@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing Report Crayoone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        crayoone: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 900: '#1e3a8a' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .kanban-column { min-height: 400px; }
+        .draggable-card { cursor: grab; }
+        .draggable-card:active { cursor: grabbing; }
+        .drag-over { border: 2px dashed #3b82f6; background-color: #eff6ff; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased overflow-hidden">
+
+    <div id="loginView" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 bg-opacity-50 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 transform transition-all">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-crayoone-600 text-white rounded-xl flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
+                    CR
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800">Crayoone Portal</h2>
+                <p class="text-slate-500 mt-2">Marketing Report System</p>
+            </div>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Pilih Role Akses</label>
+                        <select id="loginRole" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-crayoone-500 focus:border-crayoone-500 outline-none transition">
+                            <option value="owner">Owner / Direktur</option>
+                            <option value="hr">HR / Manager</option>
+                            <option value="marketing">Marketing Executive</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Username (Demo)</label>
+                        <input type="text" id="loginUsername" value="demo_user" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-crayoone-500 outline-none" readonly>
+                    </div>
+                    <button type="submit" class="w-full bg-crayoone-600 hover:bg-crayoone-700 text-white font-semibold py-3 rounded-xl shadow-md transition-colors mt-4">
+                        Masuk Sistem
+                    </button>
+                </div>
+            </form>
+            <div class="mt-6 text-center text-xs text-slate-400">
+                &copy; 2026 Crayoone - Powered by Google Apps Script
+            </div>
+        </div>
+    </div>
+
+    <div id="appContainer" class="hidden h-screen flex bg-slate-50">
+        
+        <!-- Sidebar -->
+        <aside id="sidebar" class="bg-slate-900 text-white w-64 flex-shrink-0 flex flex-col transition-transform duration-300 transform -translate-x-full md:translate-x-0 fixed md:relative z-40 h-full">
+            <div class="h-16 flex items-center justify-between px-6 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-crayoone-500 rounded-lg flex items-center justify-center font-bold text-sm">CR</div>
+                    <span class="font-bold text-lg tracking-wide">Crayoone</span>
+                </div>
+                <button class="md:hidden text-slate-400 hover:text-white" onclick="toggleSidebar()">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-4 border-b border-slate-800">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Logged in as</div>
+                <div id="userDisplayInfo" class="font-medium text-crayoone-400 capitalize">Marketing</div>
+            </div>
+
+            <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1 hide-scrollbar" id="navMenu">
+                <!-- Navigation items injected via JS based on role -->
+            </nav>
+            
+            <div class="p-4 border-t border-slate-800">
+                <button onclick="logout()" class="flex items-center gap-3 text-slate-400 hover:text-white w-full px-3 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Keluar</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <!-- Topbar -->
+            <header class="h-16 glass border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 z-30">
+                <div class="flex items-center gap-4">
+                    <button class="md:hidden text-slate-500 hover:text-slate-800" onclick="toggleSidebar()">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h1 id="pageTitle" class="text-xl font-semibold text-slate-800">Dashboard</h1>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="relative p-2 text-slate-500 hover:text-crayoone-600 transition-colors">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    <div class="h-8 w-8 rounded-full bg-gradient-to-tr from-crayoone-500 to-purple-500 border-2 border-white shadow-sm"></div>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" id="mainContentArea">
+                
+                <!-- View: Dashboard -->
+                <div id="view-dashboard" class="view-section hidden space-y-6">
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-500">Total Prospek Bulan Ini</p>
+                                    <h3 class="text-3xl font-bold text-slate-800 mt-1">124</h3>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center text-sm">
+                                <span class="text-emerald-500 font-medium"><i class="fas fa-arrow-up mr-1"></i>12%</span>
+                                <span class="text-slate-400 ml-2">vs bulan lalu</span>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-500">Kunjungan / Meeting</p>
+                                    <h3 class="text-3xl font-bold text-slate-800 mt-1">45</h3>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
+                                    <i class="fas fa-handshake"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center text-sm">
+                                <span class="text-emerald-500 font-medium"><i class="fas fa-arrow-up mr-1"></i>5%</span>
+                                <span class="text-slate-400 ml-2">vs bulan lalu</span>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-500">Closing Berhasil</p>
+                                    <h3 class="text-3xl font-bold text-slate-800 mt-1">18</h3>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center text-sm">
+                                <span class="text-emerald-500 font-medium"><i class="fas fa-arrow-up mr-1"></i>2</span>
+                                <span class="text-slate-400 ml-2">vs bulan lalu</span>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-500">Nilai Kontrak Estimasi</p>
+                                    <h3 class="text-2xl font-bold text-slate-800 mt-1">Rp 450Jt</h3>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600">
+                                    <i class="fas fa-wallet"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center text-sm">
+                                <div class="w-full bg-slate-200 rounded-full h-2 mt-1">
+                                    <div class="bg-amber-500 h-2 rounded-full" style="width: 75%"></div>
+                                </div>
+                                <span class="text-slate-500 ml-2 text-xs">75% Target</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                            <h4 class="text-lg font-semibold text-slate-800 mb-4">Tren Aktivitas (6 Bulan Terakhir)</h4>
+                            <div class="relative h-72 w-full">
+                                <canvas id="activityChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                            <h4 class="text-lg font-semibold text-slate-800 mb-4">Rasio Konversi Pipeline</h4>
+                            <div class="relative h-64 w-full flex justify-center">
+                                <canvas id="conversionChart"></canvas>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <span class="inline-block px-3 py-1 bg-crayoone-100 text-crayoone-700 rounded-full text-sm font-medium">Win Rate: 14.5%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activities Table -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h4 class="text-lg font-semibold text-slate-800">Aktivitas Terkini</h4>
+                            <button class="text-sm text-crayoone-600 hover:text-crayoone-800 font-medium" onclick="switchView('activity', 'Daily Activity')">Lihat Semua</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-600">
+                                <thead class="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
+                                    <tr>
+                                        <th class="px-6 py-3">Marketing</th>
+                                        <th class="px-6 py-3">Tipe Aktivitas</th>
+                                        <th class="px-6 py-3">Klien / Sekolah</th>
+                                        <th class="px-6 py-3">Tanggal</th>
+                                        <th class="px-6 py-3">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr class="hover:bg-slate-50 transition-colors">
+                                        <td class="px-6 py-4 font-medium text-slate-800">Budi Santoso</td>
+                                        <td class="px-6 py-4"><span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">Presentasi</span></td>
+                                        <td class="px-6 py-4">SMK Nasional Depok</td>
+                                        <td class="px-6 py-4">Hari ini, 10:30</td>
+                                        <td class="px-6 py-4"><i class="fas fa-circle text-emerald-500 text-[10px] mr-2"></i>Selesai</td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-50 transition-colors">
+                                        <td class="px-6 py-4 font-medium text-slate-800">Siti Aminah</td>
+                                        <td class="px-6 py-4"><span class="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">Follow Up</span></td>
+                                        <td class="px-6 py-4">Universitas Bakti</td>
+                                        <td class="px-6 py-4">Hari ini, 09:15</td>
+                                        <td class="px-6 py-4"><i class="fas fa-circle text-amber-500 text-[10px] mr-2"></i>Reschedule</td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-50 transition-colors">
+                                        <td class="px-6 py-4 font-medium text-slate-800">Andi Hermawan</td>
+                                        <td class="px-6 py-4"><span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">Closing</span></td>
+                                        <td class="px-6 py-4">SMA IT Nurul Huda</td>
+                                        <td class="px-6 py-4">Kemarin</td>
+                                        <td class="px-6 py-4"><i class="fas fa-circle text-emerald-500 text-[10px] mr-2"></i>Deal</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-master" class="view-section hidden space-y-6">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex space-x-2 bg-slate-200/50 p-1 rounded-xl">
+                            <button class="px-4 py-2 bg-white shadow-sm text-slate-800 rounded-lg text-sm font-medium transition-all">Data Sekolah</button>
+                            <button class="px-4 py-2 text-slate-500 hover:text-slate-800 rounded-lg text-sm font-medium transition-all">PIC</button>
+                            <button class="px-4 py-2 text-slate-500 hover:text-slate-800 rounded-lg text-sm font-medium transition-all">Produk</button>
+                        </div>
+                        <button class="bg-crayoone-600 hover:bg-crayoone-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors flex items-center gap-2">
+                            <i class="fas fa-plus"></i> Tambah Data
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div class="p-4 border-b border-slate-100 flex gap-4">
+                            <div class="relative flex-1 max-w-md">
+                                <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
+                                <input type="text" placeholder="Cari institusi/sekolah..." class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-crayoone-500 text-sm">
+                            </div>
+                            <button class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50"><i class="fas fa-filter mr-2"></i>Filter</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-600">
+                                <thead class="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
+                                    <tr>
+                                        <th class="px-6 py-3">Nama Institusi</th>
+                                        <th class="px-6 py-3">Wilayah</th>
+                                        <th class="px-6 py-3">Tingkat</th>
+                                        <th class="px-6 py-3">Status Prospek</th>
+                                        <th class="px-6 py-3 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-6 py-4 font-medium text-slate-800">SMK Nasional Depok</td>
+                                        <td class="px-6 py-4">Jawa Barat</td>
+                                        <td class="px-6 py-4">SMK</td>
+                                        <td class="px-6 py-4"><span class="px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs">Hot Prospect</span></td>
+                                        <td class="px-6 py-4 text-right space-x-2">
+                                            <button class="text-slate-400 hover:text-crayoone-600"><i class="fas fa-edit"></i></button>
+                                            <button class="text-slate-400 hover:text-red-500"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-6 py-4 font-medium text-slate-800">Universitas Bakti</td>
+                                        <td class="px-6 py-4">Jakarta Selatan</td>
+                                        <td class="px-6 py-4">Universitas</td>
+                                        <td class="px-6 py-4"><span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">Contacted</span></td>
+                                        <td class="px-6 py-4 text-right space-x-2">
+                                            <button class="text-slate-400 hover:text-crayoone-600"><i class="fas fa-edit"></i></button>
+                                            <button class="text-slate-400 hover:text-red-500"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-activity" class="view-section hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Form Input -->
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 lg:col-span-1">
+                            <h4 class="text-lg font-semibold text-slate-800 mb-4">Input Aktivitas Baru</h4>
+                            <form class="space-y-4" onsubmit="showNotification('Aktivitas berhasil disimpan!'); event.preventDefault();">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal & Waktu</label>
+                                    <input type="datetime-local" class="w-full px-4 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-crayoone-500 outline-none text-sm" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Jenis Aktivitas</label>
+                                    <select class="w-full px-4 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-crayoone-500 outline-none text-sm" required>
+                                        <option value="">-- Pilih --</option>
+                                        <option>Canvassing</option>
+                                        <option>Kunjungan Awal</option>
+                                        <option>Presentasi</option>
+                                        <option>Follow Up</option>
+                                        <option>Meeting B2B</option>
+                                        <option>Closing</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Institusi / Klien</label>
+                                    <input type="text" placeholder="Nama sekolah/klien" class="w-full px-4 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-crayoone-500 outline-none text-sm" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Hasil / Catatan</label>
+                                    <textarea rows="3" class="w-full px-4 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-crayoone-500 outline-none text-sm resize-none" placeholder="Deskripsi hasil kunjungan..." required></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Jadwal Follow Up Selanjutnya</label>
+                                    <input type="date" class="w-full px-4 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-crayoone-500 outline-none text-sm">
+                                </div>
+                                <button type="submit" class="w-full bg-crayoone-600 hover:bg-crayoone-700 text-white font-semibold py-2.5 rounded-xl shadow-sm transition-colors mt-2">
+                                    Simpan Aktivitas
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Activity Timeline -->
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 lg:col-span-2">
+                            <h4 class="text-lg font-semibold text-slate-800 mb-6">Timeline Laporan Harian</h4>
+                            <div class="relative border-l-2 border-slate-200 ml-3 space-y-8 pb-4">
+                                <!-- Item 1 -->
+                                <div class="relative pl-6">
+                                    <div class="absolute -left-2 top-1 w-4 h-4 rounded-full bg-blue-500 border-4 border-white shadow"></div>
+                                    <div class="flex justify-between items-start mb-1">
+                                        <h5 class="font-semibold text-slate-800">Presentasi Produk LMS</h5>
+                                        <span class="text-xs text-slate-500">10:30, Hari ini</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600 mb-2"><i class="fas fa-building mr-2 text-slate-400"></i>SMK Nasional Depok</p>
+                                    <div class="bg-slate-50 p-3 rounded-lg text-sm text-slate-700 border border-slate-100">
+                                        Presentasi berjalan lancar, kepala sekolah sangat tertarik dengan fitur absensi terintegrasi. Meminta proposal penawaran harga dikirim besok.
+                                    </div>
+                                    <div class="mt-2 text-xs font-medium text-crayoone-600">
+                                        <i class="fas fa-calendar-alt mr-1"></i> Follow up: 28 Jul 2026
+                                    </div>
+                                </div>
+                                <!-- Item 2 -->
+                                <div class="relative pl-6">
+                                    <div class="absolute -left-2 top-1 w-4 h-4 rounded-full bg-purple-500 border-4 border-white shadow"></div>
+                                    <div class="flex justify-between items-start mb-1">
+                                        <h5 class="font-semibold text-slate-800">Kunjungan Canvassing</h5>
+                                        <span class="text-xs text-slate-500">09:00, Kemarin</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600 mb-2"><i class="fas fa-building mr-2 text-slate-400"></i>SMA Darma Yudha</p>
+                                    <div class="bg-slate-50 p-3 rounded-lg text-sm text-slate-700 border border-slate-100">
+                                        Bertemu dengan satpam dan meninggalkan brosur. Jadwal bertemu dengan Waka Kurikulum diarahkan minggu depan.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-pipeline" class="view-section hidden h-[calc(100vh-140px)] flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-slate-800">Sales Pipeline</h3>
+                        <button class="bg-crayoone-100 text-crayoone-700 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-crayoone-200 transition">
+                            <i class="fas fa-filter mr-1"></i> Filter
+                        </button>
+                    </div>
+                    <!-- Kanban Container -->
+                    <div class="flex-1 overflow-x-auto overflow-y-hidden hide-scrollbar flex gap-4 pb-4">
+                        
+                        <!-- Column 1 -->
+                        <div class="w-80 flex-shrink-0 flex flex-col bg-slate-100 rounded-xl">
+                            <div class="p-3 border-b border-slate-200 flex justify-between items-center">
+                                <h4 class="font-semibold text-slate-700 text-sm uppercase">Leads</h4>
+                                <span class="bg-slate-200 text-slate-600 text-xs px-2 py-1 rounded-full font-bold">3</span>
+                            </div>
+                            <div class="flex-1 p-2 overflow-y-auto space-y-2 kanban-column" id="col-leads" ondragover="allowDrop(event)" ondrop="drop(event)">
+                                <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 draggable-card" draggable="true" ondragstart="drag(event)" id="card1">
+                                    <div class="text-xs font-semibold text-crayoone-600 mb-1">ERP Sekolah</div>
+                                    <h5 class="font-bold text-slate-800 text-sm mb-2">SMA Pelita Bangsa</h5>
+                                    <div class="flex justify-between items-end text-xs text-slate-500">
+                                        <span>Est: Rp 45Jt</span>
+                                        <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold">A</div>
+                                    </div>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 draggable-card" draggable="true" ondragstart="drag(event)" id="card2">
+                                    <div class="text-xs font-semibold text-purple-600 mb-1">CBT System</div>
+                                    <h5 class="font-bold text-slate-800 text-sm mb-2">SMP Bina Mandiri</h5>
+                                    <div class="flex justify-between items-end text-xs text-slate-500">
+                                        <span>Est: Rp 15Jt</span>
+                                        <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold">B</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 2 -->
+                        <div class="w-80 flex-shrink-0 flex flex-col bg-slate-100 rounded-xl">
+                            <div class="p-3 border-b border-slate-200 flex justify-between items-center">
+                                <h4 class="font-semibold text-slate-700 text-sm uppercase">Contacted</h4>
+                                <span class="bg-slate-200 text-slate-600 text-xs px-2 py-1 rounded-full font-bold">1</span>
+                            </div>
+                            <div class="flex-1 p-2 overflow-y-auto space-y-2 kanban-column" id="col-contacted" ondragover="allowDrop(event)" ondrop="drop(event)">
+                                <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 draggable-card" draggable="true" ondragstart="drag(event)" id="card3">
+                                    <div class="text-xs font-semibold text-crayoone-600 mb-1">ERP Sekolah</div>
+                                    <h5 class="font-bold text-slate-800 text-sm mb-2">SMK Texmaco</h5>
+                                    <div class="flex justify-between items-end text-xs text-slate-500">
+                                        <span>Est: Rp 60Jt</span>
+                                        <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold">S</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 3 -->
+                        <div class="w-80 flex-shrink-0 flex flex-col bg-slate-100 rounded-xl">
+                            <div class="p-3 border-b border-slate-200 flex justify-between items-center">
+                                <h4 class="font-semibold text-slate-700 text-sm uppercase">Proposal / Meeting</h4>
+                                <span class="bg-slate-200 text-slate-600 text-xs px-2 py-1 rounded-full font-bold">2</span>
+                            </div>
+                            <div class="flex-1 p-2 overflow-y-auto space-y-2 kanban-column" id="col-proposal" ondragover="allowDrop(event)" ondrop="drop(event)">
+                                <!-- Add cards here to test drag and drop -->
+                                <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 draggable-card" draggable="true" ondragstart="drag(event)" id="card4">
+                                    <div class="text-xs font-semibold text-crayoone-600 mb-1">LMS Platform</div>
+                                    <h5 class="font-bold text-slate-800 text-sm mb-2">SMK Nasional Depok</h5>
+                                    <div class="flex justify-between items-end text-xs text-slate-500">
+                                        <span>Est: Rp 120Jt</span>
+                                        <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">H</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 4 -->
+                        <div class="w-80 flex-shrink-0 flex flex-col bg-slate-100 rounded-xl opacity-75">
+                            <div class="p-3 border-b border-slate-200 flex justify-between items-center">
+                                <h4 class="font-semibold text-emerald-700 text-sm uppercase">Closed Won</h4>
+                                <span class="bg-emerald-100 text-emerald-700 text-xs px-2 py-1 rounded-full font-bold">0</span>
+                            </div>
+                            <div class="flex-1 p-2 overflow-y-auto space-y-2 kanban-column" id="col-won" ondragover="allowDrop(event)" ondrop="drop(event)">
+                                <!-- Empty -->
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div id="view-reports" class="view-section hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                            <h3 class="text-lg font-semibold text-slate-800">Laporan Performa Marketing</h3>
+                            <div class="flex gap-2">
+                                <select class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg px-3 py-2 outline-none">
+                                    <option>Bulan Ini</option>
+                                    <option>Kuartal Ini</option>
+                                    <option>Tahun Ini</option>
+                                </select>
+                                <button class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                                    <i class="fas fa-download"></i> Ekspor CSV
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-600">
+                                <thead class="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
+                                    <tr>
+                                        <th class="px-4 py-3">Nama Marketing</th>
+                                        <th class="px-4 py-3 text-center">Leads Masuk</th>
+                                        <th class="px-4 py-3 text-center">Total Kunjungan</th>
+                                        <th class="px-4 py-3 text-center">Closing</th>
+                                        <th class="px-4 py-3 text-right">Nilai Deal (Rp)</th>
+                                        <th class="px-4 py-3 text-center">Pencapaian KPI</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-4 py-4 font-medium text-slate-800 flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">BS</div>
+                                            Budi Santoso
+                                        </td>
+                                        <td class="px-4 py-4 text-center">45</td>
+                                        <td class="px-4 py-4 text-center">28</td>
+                                        <td class="px-4 py-4 text-center">12</td>
+                                        <td class="px-4 py-4 text-right font-medium">350.000.000</td>
+                                        <td class="px-4 py-4">
+                                            <div class="flex items-center gap-2 justify-center">
+                                                <div class="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                                    <div class="bg-emerald-500 h-full" style="width: 85%"></div>
+                                                </div>
+                                                <span class="text-xs font-semibold text-slate-600">85%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-4 py-4 font-medium text-slate-800 flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold">SA</div>
+                                            Siti Aminah
+                                        </td>
+                                        <td class="px-4 py-4 text-center">38</td>
+                                        <td class="px-4 py-4 text-center">32</td>
+                                        <td class="px-4 py-4 text-center">8</td>
+                                        <td class="px-4 py-4 text-right font-medium">120.000.000</td>
+                                        <td class="px-4 py-4">
+                                            <div class="flex items-center gap-2 justify-center">
+                                                <div class="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                                    <div class="bg-amber-500 h-full" style="width: 60%"></div>
+                                                </div>
+                                                <span class="text-xs font-semibold text-slate-600">60%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notification System -->
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+
+    <script>
+        // State Management
+        let currentUserRole = null;
+        let chartInstances = {};
+
+        // Navigation Config based on Roles
+        const navConfig = [
+            { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard', roles: ['owner', 'hr', 'marketing'] },
+            { id: 'master', icon: 'fa-database', label: 'Data Master', roles: ['owner', 'hr'] },
+            { id: 'activity', icon: 'fa-calendar-check', label: 'Daily Activity', roles: ['owner', 'hr', 'marketing'] },
+            { id: 'pipeline', icon: 'fa-columns', label: 'Pipeline', roles: ['owner', 'hr', 'marketing'] },
+            { id: 'reports', icon: 'fa-file-invoice', label: 'Laporan', roles: ['owner', 'hr'] },
+            { id: 'settings', icon: 'fa-cog', label: 'Pengaturan', roles: ['owner'] }
+        ];
+
+        // --- Authentication Logic ---
+        function handleLogin(e) {
+            e.preventDefault();
+            const role = document.getElementById('loginRole').value;
+            currentUserRole = role;
+            
+            // Hide Login, Show App
+            document.getElementById('loginView').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('loginView').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+                
+                // Init UI
+                document.getElementById('userDisplayInfo').textContent = role;
+                buildNavigation();
+                switchView('dashboard', 'Dashboard');
+                showNotification(`Login berhasil sebagai ${role.toUpperCase()}`);
+                
+                // Initialize Charts after a brief delay for container rendering
+                setTimeout(initCharts, 100);
+            }, 300);
+        }
+
+        function logout() {
+            currentUserRole = null;
+            document.getElementById('appContainer').classList.add('hidden');
+            document.getElementById('loginView').classList.remove('hidden');
+            // reset opacity
+            requestAnimationFrame(() => {
+                document.getElementById('loginView').style.opacity = '1';
+            });
+        }
+
+        // --- UI & Routing Logic ---
+        function buildNavigation() {
+            const navMenu = document.getElementById('navMenu');
+            navMenu.innerHTML = '';
+            
+            navConfig.forEach(item => {
+                if (item.roles.includes(currentUserRole)) {
+                    const btn = document.createElement('button');
+                    btn.className = `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-400 hover:text-white hover:bg-slate-800 nav-btn`;
+                    btn.id = `nav-${item.id}`;
+                    btn.innerHTML = `<i class="fas ${item.icon} w-5 text-center"></i> <span>${item.label}</span>`;
+                    btn.onclick = () => switchView(item.id, item.label);
+                    navMenu.appendChild(btn);
+                }
+            });
+        }
+
+        function switchView(viewId, title) {
+            // Update Title
+            document.getElementById('pageTitle').textContent = title;
+            
+            // Hide all views
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            
+            // Show selected view (create placeholder if settings clicked)
+            const viewEl = document.getElementById(`view-${viewId}`);
+            if (viewEl) {
+                viewEl.classList.remove('hidden');
+            } else {
+                // Temporary fallback for unimplemented views
+                const contentArea = document.getElementById('mainContentArea');
+                const placeholder = document.createElement('div');
+                placeholder.className = 'view-section flex items-center justify-center h-full text-slate-400';
+                placeholder.id = `view-${viewId}`;
+                placeholder.innerHTML = `<div class="text-center"><i class="fas fa-tools text-4xl mb-3"></i><p>Modul ${title} sedang dalam pengembangan.</p></div>`;
+                contentArea.appendChild(placeholder);
+            }
+
+            // Update Nav Active State
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-crayoone-600', 'text-white');
+                btn.classList.add('text-slate-400', 'hover:bg-slate-800');
+            });
+            const activeBtn = document.getElementById(`nav-${viewId}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-400', 'hover:bg-slate-800');
+                activeBtn.classList.add('bg-crayoone-600', 'text-white');
+            }
+
+            // Close sidebar on mobile
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        }
+
+        // --- Chart.js Initialization ---
+        function initCharts() {
+            // Destroy existing instances if they exist
+            if(chartInstances.activity) chartInstances.activity.destroy();
+            if(chartInstances.conversion) chartInstances.conversion.destroy();
+
+            const ctxAct = document.getElementById('activityChart');
+            const ctxConv = document.getElementById('conversionChart');
+
+            if(ctxAct) {
+                chartInstances.activity = new Chart(ctxAct, {
+                    type: 'line',
+                    data: {
+                        labels: ['Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul'],
+                        datasets: [
+                            {
+                                label: 'Kunjungan',
+                                data: [12, 19, 15, 25, 22, 30],
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            },
+                            {
+                                label: 'Closing',
+                                data: [2, 3, 2, 5, 4, 8],
+                                borderColor: '#10b981',
+                                backgroundColor: 'transparent',
+                                tension: 0.4,
+                                borderDash: [5, 5]
+                            }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
+                });
+            }
+
+            if(ctxConv) {
+                chartInstances.conversion = new Chart(ctxConv, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Leads Masuk', 'Meeting', 'Proposal', 'Won'],
+                        datasets: [{
+                            data: [100, 60, 30, 15],
+                            backgroundColor: ['#e2e8f0', '#3b82f6', '#8b5cf6', '#10b981'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+                });
+            }
+        }
+
+        // --- Kanban Drag and Drop Logic ---
+        let draggedElementId = null;
+
+        function drag(ev) {
+            draggedElementId = ev.target.id;
+            ev.dataTransfer.setData("text", ev.target.id);
+            ev.target.style.opacity = '0.5';
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+            const column = ev.target.closest('.kanban-column');
+            if(column) column.classList.add('drag-over');
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            const data = ev.dataTransfer.getData("text");
+            const draggedElement = document.getElementById(data);
+            draggedElement.style.opacity = '1';
+            
+            // Remove drag-over styling from all columns
+            document.querySelectorAll('.kanban-column').forEach(col => col.classList.remove('drag-over'));
+
+            const dropTarget = ev.target.closest('.kanban-column');
+            if (dropTarget) {
+                dropTarget.appendChild(draggedElement);
+                
+                // Update counter
+                updateKanbanCounters();
+
+                // Mock API Call Notification
+                showNotification('Status prospek diperbarui.', 'success');
+            }
+        }
+
+        // Add event listener to clean up drag styles
+        document.addEventListener('dragend', (ev) => {
+            if(ev.target.classList) ev.target.classList.remove('opacity-50');
+            ev.target.style.opacity = '1';
+            document.querySelectorAll('.kanban-column').forEach(col => col.classList.remove('drag-over'));
+        });
+
+        function updateKanbanCounters() {
+            document.querySelectorAll('.kanban-column').forEach(col => {
+                const count = col.children.length;
+                const counterBadge = col.parentElement.querySelector('span');
+                if(counterBadge) counterBadge.textContent = count;
+            });
+        }
+
+        // --- Notification System ---
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            const bgColor = type === 'success' ? 'bg-emerald-500' : 'bg-red-500';
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+            toast.className = `${bgColor} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 transform transition-all duration-300 translate-y-full opacity-0 max-w-sm`;
+            toast.innerHTML = `<i class="fas ${icon}"></i><p class="text-sm font-medium">${message}</p>`;
+            
+            container.appendChild(toast);
+            
+            // Animate in
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-full', 'opacity-0');
+            });
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-x-full');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        /* 
+         * SIMULASI GOOGLE APPS SCRIPT BACKEND (Mock google.script.run)
+         * Dalam implementasi asli di GAS, logika penyimpanan data akan
+         * memanggil fungsi di Code.gs seperti: google.script.run.withSuccessHandler(...).saveData(data);
+         */
+        const MockGAS = {
+            saveActivity: function(data, callback) {
+                console.log("Saving to Google Sheets...", data);
+                setTimeout(() => {
+                    callback({ success: true, message: "Tersimpan ke Spreadsheet" });
+                }, 500);
+            }
+        };
+
+    </script>
+</body>
+</html>
