@@ -3,803 +3,1366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketing Report Crayoone</title>
+    <title>Marketing CRM BTS</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Chart.js for Funnel Chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        crayoone: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 900: '#1e3a8a' }
-                    }
-                }
-            }
-        }
-    </script>
+
+    <!-- Custom Utilities -->
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        .kanban-column { min-height: 400px; }
-        .draggable-card { cursor: grab; }
-        .draggable-card:active { cursor: grabbing; }
-        .drag-over { border: 2px dashed #3b82f6; background-color: #eff6ff; }
+        /* Custom scrollbar for Kanban and Tables */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        
+        .toast-enter {
+            transform: translateY(100%);
+            opacity: 0;
+            animation: slideUp 0.3s forwards ease-out;
+        }
+        
+        @keyframes slideUp {
+            to { transform: translateY(0); opacity: 1; }
+        }
     </style>
 </head>
-<body class="text-slate-800 antialiased overflow-hidden">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased overflow-hidden">
+    
+    <!-- Container Utama Aplikasi -->
+    <div id="app-root" class="h-screen w-full flex flex-col"></div>
+    
+    <!-- Container untuk Toast Notifications -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[9999] flex flex-col gap-3"></div>
 
-    <div id="loginView" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 bg-opacity-50 transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 transform transition-all">
-            <div class="text-center mb-8">
-                <div class="w-16 h-16 bg-crayoone-600 text-white rounded-xl flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
-                    CR
-                </div>
-                <h2 class="text-2xl font-bold text-slate-800">Crayoone Portal</h2>
-                <p class="text-slate-500 mt-2">Marketing Report System</p>
-            </div>
-            <form id="loginForm" onsubmit="handleLogin(event)">
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Pilih Role Akses</label>
-                        <select id="loginRole" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-crayoone-500 focus:border-crayoone-500 outline-none transition">
-                            <option value="owner">Owner / Direktur</option>
-                            <option value="hr">HR / Manager</option>
-                            <option value="marketing">Marketing Executive</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Username (Demo)</label>
-                        <input type="text" id="loginUsername" value="demo_user" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-crayoone-500 outline-none" readonly>
-                    </div>
-                    <button type="submit" class="w-full bg-crayoone-600 hover:bg-crayoone-700 text-white font-semibold py-3 rounded-xl shadow-md transition-colors mt-4">
-                        Masuk Sistem
-                    </button>
-                </div>
-            </form>
-            <div class="mt-6 text-center text-xs text-slate-400">
-                &copy; 2026 Crayoone - Powered by Google Apps Script
-            </div>
-        </div>
-    </div>
+    <!-- Container untuk Modals -->
+    <div id="modal-container"></div>
 
-    <div id="appContainer" class="hidden h-screen flex bg-slate-50">
-        
-        <!-- Sidebar -->
-        <aside id="sidebar" class="bg-slate-900 text-white w-64 flex-shrink-0 flex flex-col transition-transform duration-300 transform -translate-x-full md:translate-x-0 fixed md:relative z-40 h-full">
-            <div class="h-16 flex items-center justify-between px-6 border-b border-slate-800">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-crayoone-500 rounded-lg flex items-center justify-center font-bold text-sm">CR</div>
-                    <span class="font-bold text-lg tracking-wide">Crayoone</span>
-                </div>
-                <button class="md:hidden text-slate-400 hover:text-white" onclick="toggleSidebar()">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-            
-            <div class="p-4 border-b border-slate-800">
-                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Logged in as</div>
-                <div id="userDisplayInfo" class="font-medium text-crayoone-400 capitalize">Marketing</div>
-            </div>
+    <script type="module">
+        // Firebase Modular SDK imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-            <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1 hide-scrollbar" id="navMenu">
-                <!-- Navigation items injected via JS based on role -->
-            </nav>
-            
-            <div class="p-4 border-t border-slate-800">
-                <button onclick="logout()" class="flex items-center gap-3 text-slate-400 hover:text-white w-full px-3 py-2 rounded-lg transition-colors">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Keluar</span>
-                </button>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
-            <!-- Topbar -->
-            <header class="h-16 glass border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 z-30">
-                <div class="flex items-center gap-4">
-                    <button class="md:hidden text-slate-500 hover:text-slate-800" onclick="toggleSidebar()">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
-                    <h1 id="pageTitle" class="text-xl font-semibold text-slate-800">Dashboard</h1>
-                </div>
-                <div class="flex items-center gap-4">
-                    <button class="relative p-2 text-slate-500 hover:text-crayoone-600 transition-colors">
-                        <i class="fas fa-bell"></i>
-                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                    </button>
-                    <div class="h-8 w-8 rounded-full bg-gradient-to-tr from-crayoone-500 to-purple-500 border-2 border-white shadow-sm"></div>
-                </div>
-            </header>
-
-            <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" id="mainContentArea">
-                
-                <!-- View: Dashboard -->
-                <div id="view-dashboard" class="view-section hidden space-y-6">
-                    <!-- KPI Cards -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-sm font-medium text-slate-500">Total Prospek Bulan Ini</p>
-                                    <h3 class="text-3xl font-bold text-slate-800 mt-1">124</h3>
-                                </div>
-                                <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                                    <i class="fas fa-users"></i>
-                                </div>
-                            </div>
-                            <div class="mt-4 flex items-center text-sm">
-                                <span class="text-emerald-500 font-medium"><i class="fas fa-arrow-up mr-1"></i>12%</span>
-                                <span class="text-slate-400 ml-2">vs bulan lalu</span>
-                            </div>
-                        </div>
-                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-sm font-medium text-slate-500">Kunjungan / Meeting</p>
-                                    <h3 class="text-3xl font-bold text-slate-800 mt-1">45</h3>
-                                </div>
-                                <div class="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
-                                    <i class="fas fa-handshake"></i>
-                                </div>
-                            </div>
-                            <div class="mt-4 flex items-center text-sm">
-                                <span class="text-emerald-500 font-medium"><i class="fas fa-arrow-up mr-1"></i>5%</span>
-                                <span class="text-slate-400 ml-2">vs bulan lalu</span>
-                            </div>
-                        </div>
-                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-sm font-medium text-slate-500">Closing Berhasil</p>
-                                    <h3 class="text-3xl font-bold text-slate-800 mt-1">18</h3>
-                                </div>
-                                <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                            </div>
-                            <div class="mt-4 flex items-center text-sm">
-                                <span class="text-emerald-500 font-medium"><i class="fas fa-arrow-up mr-1"></i>2</span>
-                                <span class="text-slate-400 ml-2">vs bulan lalu</span>
-                            </div>
-                        </div>
-                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-sm font-medium text-slate-500">Nilai Kontrak Estimasi</p>
-                                    <h3 class="text-2xl font-bold text-slate-800 mt-1">Rp 450Jt</h3>
-                                </div>
-                                <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600">
-                                    <i class="fas fa-wallet"></i>
-                                </div>
-                            </div>
-                            <div class="mt-4 flex items-center text-sm">
-                                <div class="w-full bg-slate-200 rounded-full h-2 mt-1">
-                                    <div class="bg-amber-500 h-2 rounded-full" style="width: 75%"></div>
-                                </div>
-                                <span class="text-slate-500 ml-2 text-xs">75% Target</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Charts Section -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                            <h4 class="text-lg font-semibold text-slate-800 mb-4">Tren Aktivitas (6 Bulan Terakhir)</h4>
-                            <div class="relative h-72 w-full">
-                                <canvas id="activityChart"></canvas>
-                            </div>
-                        </div>
-                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                            <h4 class="text-lg font-semibold text-slate-800 mb-4">Rasio Konversi Pipeline</h4>
-                            <div class="relative h-64 w-full flex justify-center">
-                                <canvas id="conversionChart"></canvas>
-                            </div>
-                            <div class="mt-4 text-center">
-                                <span class="inline-block px-3 py-1 bg-crayoone-100 text-crayoone-700 rounded-full text-sm font-medium">Win Rate: 14.5%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Recent Activities Table -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                            <h4 class="text-lg font-semibold text-slate-800">Aktivitas Terkini</h4>
-                            <button class="text-sm text-crayoone-600 hover:text-crayoone-800 font-medium" onclick="switchView('activity', 'Daily Activity')">Lihat Semua</button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm text-slate-600">
-                                <thead class="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
-                                    <tr>
-                                        <th class="px-6 py-3">Marketing</th>
-                                        <th class="px-6 py-3">Tipe Aktivitas</th>
-                                        <th class="px-6 py-3">Klien / Sekolah</th>
-                                        <th class="px-6 py-3">Tanggal</th>
-                                        <th class="px-6 py-3">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    <tr class="hover:bg-slate-50 transition-colors">
-                                        <td class="px-6 py-4 font-medium text-slate-800">Budi Santoso</td>
-                                        <td class="px-6 py-4"><span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">Presentasi</span></td>
-                                        <td class="px-6 py-4">SMK Nasional Depok</td>
-                                        <td class="px-6 py-4">Hari ini, 10:30</td>
-                                        <td class="px-6 py-4"><i class="fas fa-circle text-emerald-500 text-[10px] mr-2"></i>Selesai</td>
-                                    </tr>
-                                    <tr class="hover:bg-slate-50 transition-colors">
-                                        <td class="px-6 py-4 font-medium text-slate-800">Siti Aminah</td>
-                                        <td class="px-6 py-4"><span class="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">Follow Up</span></td>
-                                        <td class="px-6 py-4">Universitas Bakti</td>
-                                        <td class="px-6 py-4">Hari ini, 09:15</td>
-                                        <td class="px-6 py-4"><i class="fas fa-circle text-amber-500 text-[10px] mr-2"></i>Reschedule</td>
-                                    </tr>
-                                    <tr class="hover:bg-slate-50 transition-colors">
-                                        <td class="px-6 py-4 font-medium text-slate-800">Andi Hermawan</td>
-                                        <td class="px-6 py-4"><span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">Closing</span></td>
-                                        <td class="px-6 py-4">SMA IT Nurul Huda</td>
-                                        <td class="px-6 py-4">Kemarin</td>
-                                        <td class="px-6 py-4"><i class="fas fa-circle text-emerald-500 text-[10px] mr-2"></i>Deal</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="view-master" class="view-section hidden space-y-6">
-                    <div class="flex flex-wrap items-center justify-between gap-4">
-                        <div class="flex space-x-2 bg-slate-200/50 p-1 rounded-xl">
-                            <button class="px-4 py-2 bg-white shadow-sm text-slate-800 rounded-lg text-sm font-medium transition-all">Data Sekolah</button>
-                            <button class="px-4 py-2 text-slate-500 hover:text-slate-800 rounded-lg text-sm font-medium transition-all">PIC</button>
-                            <button class="px-4 py-2 text-slate-500 hover:text-slate-800 rounded-lg text-sm font-medium transition-all">Produk</button>
-                        </div>
-                        <button class="bg-crayoone-600 hover:bg-crayoone-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors flex items-center gap-2">
-                            <i class="fas fa-plus"></i> Tambah Data
-                        </button>
-                    </div>
-
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                        <div class="p-4 border-b border-slate-100 flex gap-4">
-                            <div class="relative flex-1 max-w-md">
-                                <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
-                                <input type="text" placeholder="Cari institusi/sekolah..." class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-crayoone-500 text-sm">
-                            </div>
-                            <button class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50"><i class="fas fa-filter mr-2"></i>Filter</button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm text-slate-600">
-                                <thead class="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
-                                    <tr>
-                                        <th class="px-6 py-3">Nama Institusi</th>
-                                        <th class="px-6 py-3">Wilayah</th>
-                                        <th class="px-6 py-3">Tingkat</th>
-                                        <th class="px-6 py-3">Status Prospek</th>
-                                        <th class="px-6 py-3 text-right">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    <tr class="hover:bg-slate-50">
-                                        <td class="px-6 py-4 font-medium text-slate-800">SMK Nasional Depok</td>
-                                        <td class="px-6 py-4">Jawa Barat</td>
-                                        <td class="px-6 py-4">SMK</td>
-                                        <td class="px-6 py-4"><span class="px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs">Hot Prospect</span></td>
-                                        <td class="px-6 py-4 text-right space-x-2">
-                                            <button class="text-slate-400 hover:text-crayoone-600"><i class="fas fa-edit"></i></button>
-                                            <button class="text-slate-400 hover:text-red-500"><i class="fas fa-trash"></i></button>
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-slate-50">
-                                        <td class="px-6 py-4 font-medium text-slate-800">Universitas Bakti</td>
-                                        <td class="px-6 py-4">Jakarta Selatan</td>
-                                        <td class="px-6 py-4">Universitas</td>
-                                        <td class="px-6 py-4"><span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">Contacted</span></td>
-                                        <td class="px-6 py-4 text-right space-x-2">
-                                            <button class="text-slate-400 hover:text-crayoone-600"><i class="fas fa-edit"></i></button>
-                                            <button class="text-slate-400 hover:text-red-500"><i class="fas fa-trash"></i></button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="view-activity" class="view-section hidden space-y-6">
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- Form Input -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 lg:col-span-1">
-                            <h4 class="text-lg font-semibold text-slate-800 mb-4">Input Aktivitas Baru</h4>
-                            <form class="space-y-4" onsubmit="showNotification('Aktivitas berhasil disimpan!'); event.preventDefault();">
-                                <div>
-                                    <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal & Waktu</label>
-                                    <input type="datetime-local" class="w-full px-4 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-crayoone-500 outline-none text-sm" required>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-slate-700 mb-1">Jenis Aktivitas</label>
-                                    <select class="w-full px-4 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-crayoone-500 outline-none text-sm" required>
-                                        <option value="">-- Pilih --</option>
-                                        <option>Canvassing</option>
-                                        <option>Kunjungan Awal</option>
-                                        <option>Presentasi</option>
-                                        <option>Follow Up</option>
-                                        <option>Meeting B2B</option>
-                                        <option>Closing</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-slate-700 mb-1">Institusi / Klien</label>
-                                    <input type="text" placeholder="Nama sekolah/klien" class="w-full px-4 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-crayoone-500 outline-none text-sm" required>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-slate-700 mb-1">Hasil / Catatan</label>
-                                    <textarea rows="3" class="w-full px-4 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-crayoone-500 outline-none text-sm resize-none" placeholder="Deskripsi hasil kunjungan..." required></textarea>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-slate-700 mb-1">Jadwal Follow Up Selanjutnya</label>
-                                    <input type="date" class="w-full px-4 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-crayoone-500 outline-none text-sm">
-                                </div>
-                                <button type="submit" class="w-full bg-crayoone-600 hover:bg-crayoone-700 text-white font-semibold py-2.5 rounded-xl shadow-sm transition-colors mt-2">
-                                    Simpan Aktivitas
-                                </button>
-                            </form>
-                        </div>
-
-                        <!-- Activity Timeline -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 lg:col-span-2">
-                            <h4 class="text-lg font-semibold text-slate-800 mb-6">Timeline Laporan Harian</h4>
-                            <div class="relative border-l-2 border-slate-200 ml-3 space-y-8 pb-4">
-                                <!-- Item 1 -->
-                                <div class="relative pl-6">
-                                    <div class="absolute -left-2 top-1 w-4 h-4 rounded-full bg-blue-500 border-4 border-white shadow"></div>
-                                    <div class="flex justify-between items-start mb-1">
-                                        <h5 class="font-semibold text-slate-800">Presentasi Produk LMS</h5>
-                                        <span class="text-xs text-slate-500">10:30, Hari ini</span>
-                                    </div>
-                                    <p class="text-sm text-slate-600 mb-2"><i class="fas fa-building mr-2 text-slate-400"></i>SMK Nasional Depok</p>
-                                    <div class="bg-slate-50 p-3 rounded-lg text-sm text-slate-700 border border-slate-100">
-                                        Presentasi berjalan lancar, kepala sekolah sangat tertarik dengan fitur absensi terintegrasi. Meminta proposal penawaran harga dikirim besok.
-                                    </div>
-                                    <div class="mt-2 text-xs font-medium text-crayoone-600">
-                                        <i class="fas fa-calendar-alt mr-1"></i> Follow up: 28 Jul 2026
-                                    </div>
-                                </div>
-                                <!-- Item 2 -->
-                                <div class="relative pl-6">
-                                    <div class="absolute -left-2 top-1 w-4 h-4 rounded-full bg-purple-500 border-4 border-white shadow"></div>
-                                    <div class="flex justify-between items-start mb-1">
-                                        <h5 class="font-semibold text-slate-800">Kunjungan Canvassing</h5>
-                                        <span class="text-xs text-slate-500">09:00, Kemarin</span>
-                                    </div>
-                                    <p class="text-sm text-slate-600 mb-2"><i class="fas fa-building mr-2 text-slate-400"></i>SMA Darma Yudha</p>
-                                    <div class="bg-slate-50 p-3 rounded-lg text-sm text-slate-700 border border-slate-100">
-                                        Bertemu dengan satpam dan meninggalkan brosur. Jadwal bertemu dengan Waka Kurikulum diarahkan minggu depan.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="view-pipeline" class="view-section hidden h-[calc(100vh-140px)] flex flex-col">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-slate-800">Sales Pipeline</h3>
-                        <button class="bg-crayoone-100 text-crayoone-700 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-crayoone-200 transition">
-                            <i class="fas fa-filter mr-1"></i> Filter
-                        </button>
-                    </div>
-                    <!-- Kanban Container -->
-                    <div class="flex-1 overflow-x-auto overflow-y-hidden hide-scrollbar flex gap-4 pb-4">
-                        
-                        <!-- Column 1 -->
-                        <div class="w-80 flex-shrink-0 flex flex-col bg-slate-100 rounded-xl">
-                            <div class="p-3 border-b border-slate-200 flex justify-between items-center">
-                                <h4 class="font-semibold text-slate-700 text-sm uppercase">Leads</h4>
-                                <span class="bg-slate-200 text-slate-600 text-xs px-2 py-1 rounded-full font-bold">3</span>
-                            </div>
-                            <div class="flex-1 p-2 overflow-y-auto space-y-2 kanban-column" id="col-leads" ondragover="allowDrop(event)" ondrop="drop(event)">
-                                <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 draggable-card" draggable="true" ondragstart="drag(event)" id="card1">
-                                    <div class="text-xs font-semibold text-crayoone-600 mb-1">ERP Sekolah</div>
-                                    <h5 class="font-bold text-slate-800 text-sm mb-2">SMA Pelita Bangsa</h5>
-                                    <div class="flex justify-between items-end text-xs text-slate-500">
-                                        <span>Est: Rp 45Jt</span>
-                                        <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold">A</div>
-                                    </div>
-                                </div>
-                                <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 draggable-card" draggable="true" ondragstart="drag(event)" id="card2">
-                                    <div class="text-xs font-semibold text-purple-600 mb-1">CBT System</div>
-                                    <h5 class="font-bold text-slate-800 text-sm mb-2">SMP Bina Mandiri</h5>
-                                    <div class="flex justify-between items-end text-xs text-slate-500">
-                                        <span>Est: Rp 15Jt</span>
-                                        <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold">B</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Column 2 -->
-                        <div class="w-80 flex-shrink-0 flex flex-col bg-slate-100 rounded-xl">
-                            <div class="p-3 border-b border-slate-200 flex justify-between items-center">
-                                <h4 class="font-semibold text-slate-700 text-sm uppercase">Contacted</h4>
-                                <span class="bg-slate-200 text-slate-600 text-xs px-2 py-1 rounded-full font-bold">1</span>
-                            </div>
-                            <div class="flex-1 p-2 overflow-y-auto space-y-2 kanban-column" id="col-contacted" ondragover="allowDrop(event)" ondrop="drop(event)">
-                                <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 draggable-card" draggable="true" ondragstart="drag(event)" id="card3">
-                                    <div class="text-xs font-semibold text-crayoone-600 mb-1">ERP Sekolah</div>
-                                    <h5 class="font-bold text-slate-800 text-sm mb-2">SMK Texmaco</h5>
-                                    <div class="flex justify-between items-end text-xs text-slate-500">
-                                        <span>Est: Rp 60Jt</span>
-                                        <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold">S</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Column 3 -->
-                        <div class="w-80 flex-shrink-0 flex flex-col bg-slate-100 rounded-xl">
-                            <div class="p-3 border-b border-slate-200 flex justify-between items-center">
-                                <h4 class="font-semibold text-slate-700 text-sm uppercase">Proposal / Meeting</h4>
-                                <span class="bg-slate-200 text-slate-600 text-xs px-2 py-1 rounded-full font-bold">2</span>
-                            </div>
-                            <div class="flex-1 p-2 overflow-y-auto space-y-2 kanban-column" id="col-proposal" ondragover="allowDrop(event)" ondrop="drop(event)">
-                                <!-- Add cards here to test drag and drop -->
-                                <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 draggable-card" draggable="true" ondragstart="drag(event)" id="card4">
-                                    <div class="text-xs font-semibold text-crayoone-600 mb-1">LMS Platform</div>
-                                    <h5 class="font-bold text-slate-800 text-sm mb-2">SMK Nasional Depok</h5>
-                                    <div class="flex justify-between items-end text-xs text-slate-500">
-                                        <span>Est: Rp 120Jt</span>
-                                        <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">H</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Column 4 -->
-                        <div class="w-80 flex-shrink-0 flex flex-col bg-slate-100 rounded-xl opacity-75">
-                            <div class="p-3 border-b border-slate-200 flex justify-between items-center">
-                                <h4 class="font-semibold text-emerald-700 text-sm uppercase">Closed Won</h4>
-                                <span class="bg-emerald-100 text-emerald-700 text-xs px-2 py-1 rounded-full font-bold">0</span>
-                            </div>
-                            <div class="flex-1 p-2 overflow-y-auto space-y-2 kanban-column" id="col-won" ondragover="allowDrop(event)" ondrop="drop(event)">
-                                <!-- Empty -->
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                <div id="view-reports" class="view-section hidden space-y-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                            <h3 class="text-lg font-semibold text-slate-800">Laporan Performa Marketing</h3>
-                            <div class="flex gap-2">
-                                <select class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg px-3 py-2 outline-none">
-                                    <option>Bulan Ini</option>
-                                    <option>Kuartal Ini</option>
-                                    <option>Tahun Ini</option>
-                                </select>
-                                <button class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                                    <i class="fas fa-download"></i> Ekspor CSV
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm text-slate-600">
-                                <thead class="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
-                                    <tr>
-                                        <th class="px-4 py-3">Nama Marketing</th>
-                                        <th class="px-4 py-3 text-center">Leads Masuk</th>
-                                        <th class="px-4 py-3 text-center">Total Kunjungan</th>
-                                        <th class="px-4 py-3 text-center">Closing</th>
-                                        <th class="px-4 py-3 text-right">Nilai Deal (Rp)</th>
-                                        <th class="px-4 py-3 text-center">Pencapaian KPI</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    <tr class="hover:bg-slate-50">
-                                        <td class="px-4 py-4 font-medium text-slate-800 flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">BS</div>
-                                            Budi Santoso
-                                        </td>
-                                        <td class="px-4 py-4 text-center">45</td>
-                                        <td class="px-4 py-4 text-center">28</td>
-                                        <td class="px-4 py-4 text-center">12</td>
-                                        <td class="px-4 py-4 text-right font-medium">350.000.000</td>
-                                        <td class="px-4 py-4">
-                                            <div class="flex items-center gap-2 justify-center">
-                                                <div class="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
-                                                    <div class="bg-emerald-500 h-full" style="width: 85%"></div>
-                                                </div>
-                                                <span class="text-xs font-semibold text-slate-600">85%</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-slate-50">
-                                        <td class="px-4 py-4 font-medium text-slate-800 flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold">SA</div>
-                                            Siti Aminah
-                                        </td>
-                                        <td class="px-4 py-4 text-center">38</td>
-                                        <td class="px-4 py-4 text-center">32</td>
-                                        <td class="px-4 py-4 text-center">8</td>
-                                        <td class="px-4 py-4 text-right font-medium">120.000.000</td>
-                                        <td class="px-4 py-4">
-                                            <div class="flex items-center gap-2 justify-center">
-                                                <div class="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
-                                                    <div class="bg-amber-500 h-full" style="width: 60%"></div>
-                                                </div>
-                                                <span class="text-xs font-semibold text-slate-600">60%</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </main>
-    </div>
-
-    <!-- Toast Notification System -->
-    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
-
-    <script>
-        // State Management
-        let currentUserRole = null;
-        let chartInstances = {};
-
-        // Navigation Config based on Roles
-        const navConfig = [
-            { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard', roles: ['owner', 'hr', 'marketing'] },
-            { id: 'master', icon: 'fa-database', label: 'Data Master', roles: ['owner', 'hr'] },
-            { id: 'activity', icon: 'fa-calendar-check', label: 'Daily Activity', roles: ['owner', 'hr', 'marketing'] },
-            { id: 'pipeline', icon: 'fa-columns', label: 'Pipeline', roles: ['owner', 'hr', 'marketing'] },
-            { id: 'reports', icon: 'fa-file-invoice', label: 'Laporan', roles: ['owner', 'hr'] },
-            { id: 'settings', icon: 'fa-cog', label: 'Pengaturan', roles: ['owner'] }
+        // Constants
+        const STAGES = ['Canvassing', 'Follow Up', 'Presentasi', 'Negosiasi', 'Deal', 'Belum Deal'];
+        const CATEGORIES = ['🔥 Hot', '🌤️ Warm', '❄️ Cold'];
+        const MONTHS = [
+            { value: 1, label: 'Januari' }, { value: 2, label: 'Februari' }, { value: 3, label: 'Maret' },
+            { value: 4, label: 'April' }, { value: 5, label: 'Mei' }, { value: 6, label: 'Juni' },
+            { value: 7, label: 'Juli' }, { value: 8, label: 'Agustus' }, { value: 9, label: 'September' },
+            { value: 10, label: 'Oktober' }, { value: 11, label: 'November' }, { value: 12, label: 'Desember' }
         ];
 
-        // --- Authentication Logic ---
-        function handleLogin(e) {
-            e.preventDefault();
-            const role = document.getElementById('loginRole').value;
-            currentUserRole = role;
-            
-            // Hide Login, Show App
-            document.getElementById('loginView').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('loginView').classList.add('hidden');
-                document.getElementById('appContainer').classList.remove('hidden');
-                
-                // Init UI
-                document.getElementById('userDisplayInfo').textContent = role;
-                buildNavigation();
-                switchView('dashboard', 'Dashboard');
-                showNotification(`Login berhasil sebagai ${role.toUpperCase()}`);
-                
-                // Initialize Charts after a brief delay for container rendering
-                setTimeout(initCharts, 100);
-            }, 300);
-        }
+        // Global Application State (Dengan Fallback Akun Default)
+        const defaultUsers = [
+            { id: 'local-1', name: 'Budi Owner', role: 'owner', username: 'owner', status: 'aktif', wilayah: 'Semua Wilayah', email: 'owner@bts.id', phone: '08123456781' },
+            { id: 'local-2', name: 'Siti HR', role: 'hr', username: 'hr', status: 'aktif', wilayah: 'Semua Wilayah', email: 'hr@bts.id', phone: '08123456782' },
+            { id: 'local-3', name: 'Andi Marketing', role: 'marketing', username: 'andi', status: 'aktif', wilayah: 'Bogor & Depok', email: 'andi@bts.id', phone: '08123456783' }
+        ];
 
-        function logout() {
-            currentUserRole = null;
-            document.getElementById('appContainer').classList.add('hidden');
-            document.getElementById('loginView').classList.remove('hidden');
-            // reset opacity
-            requestAnimationFrame(() => {
-                document.getElementById('loginView').style.opacity = '1';
-            });
-        }
+        const state = {
+            firebaseUser: null,
+            appUser: null,
+            users: [...defaultUsers], // Terisi otomatis agar tidak stuck di halaman login
+            schools: [],
+            activities: [],
+            settings: {
+                targetDatabase: 50, targetCanvassing: 100, targetFollowUp: 50, targetPresentasi: 20, strictIsolation: true
+            },
+            activeTab: 'dashboard',
+            sidebarOpen: false,
+            isOnline: navigator.onLine,
+            isSyncing: false,
+            currentDate: new Date('2026-07-26T20:55:26+07:00'), // As requested
+            selectedYear: 2026,
+            selectedMonth: 7,
+            chartInstance: null,
+            searchStaff: ''
+        };
 
-        // --- UI & Routing Logic ---
-        function buildNavigation() {
-            const navMenu = document.getElementById('navMenu');
-            navMenu.innerHTML = '';
-            
-            navConfig.forEach(item => {
-                if (item.roles.includes(currentUserRole)) {
-                    const btn = document.createElement('button');
-                    btn.className = `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-400 hover:text-white hover:bg-slate-800 nav-btn`;
-                    btn.id = `nav-${item.id}`;
-                    btn.innerHTML = `<i class="fas ${item.icon} w-5 text-center"></i> <span>${item.label}</span>`;
-                    btn.onclick = () => switchView(item.id, item.label);
-                    navMenu.appendChild(btn);
-                }
-            });
-        }
+        // Initialize Firebase
+        const firebaseConfig = typeof window.__firebase_config !== 'undefined' ? JSON.parse(window.__firebase_config) : {};
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof window.__app_id !== 'undefined' ? window.__app_id : 'crm-bts-demo-html';
+        const publicPath = `artifacts/${appId}/public/data`;
 
-        function switchView(viewId, title) {
-            // Update Title
-            document.getElementById('pageTitle').textContent = title;
-            
-            // Hide all views
-            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-            
-            // Show selected view (create placeholder if settings clicked)
-            const viewEl = document.getElementById(`view-${viewId}`);
-            if (viewEl) {
-                viewEl.classList.remove('hidden');
-            } else {
-                // Temporary fallback for unimplemented views
-                const contentArea = document.getElementById('mainContentArea');
-                const placeholder = document.createElement('div');
-                placeholder.className = 'view-section flex items-center justify-center h-full text-slate-400';
-                placeholder.id = `view-${viewId}`;
-                placeholder.innerHTML = `<div class="text-center"><i class="fas fa-tools text-4xl mb-3"></i><p>Modul ${title} sedang dalam pengembangan.</p></div>`;
-                contentArea.appendChild(placeholder);
-            }
+        // Expose handlers to window so inline HTML onclick attributes can reach them
+        window.h = {}; 
 
-            // Update Nav Active State
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('bg-crayoone-600', 'text-white');
-                btn.classList.add('text-slate-400', 'hover:bg-slate-800');
-            });
-            const activeBtn = document.getElementById(`nav-${viewId}`);
-            if (activeBtn) {
-                activeBtn.classList.remove('text-slate-400', 'hover:bg-slate-800');
-                activeBtn.classList.add('bg-crayoone-600', 'text-white');
-            }
+        // Helper: Formatting Currency
+        const formatCurrency = (amount) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount || 0);
+        const toTitleCase = (str) => str ? str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()) : '';
 
-            // Close sidebar on mobile
-            if (window.innerWidth < 768) {
-                document.getElementById('sidebar').classList.add('-translate-x-full');
-            }
-        }
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('-translate-x-full');
-        }
-
-        // --- Chart.js Initialization ---
-        function initCharts() {
-            // Destroy existing instances if they exist
-            if(chartInstances.activity) chartInstances.activity.destroy();
-            if(chartInstances.conversion) chartInstances.conversion.destroy();
-
-            const ctxAct = document.getElementById('activityChart');
-            const ctxConv = document.getElementById('conversionChart');
-
-            if(ctxAct) {
-                chartInstances.activity = new Chart(ctxAct, {
-                    type: 'line',
-                    data: {
-                        labels: ['Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul'],
-                        datasets: [
-                            {
-                                label: 'Kunjungan',
-                                data: [12, 19, 15, 25, 22, 30],
-                                borderColor: '#3b82f6',
-                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                                tension: 0.4,
-                                fill: true
-                            },
-                            {
-                                label: 'Closing',
-                                data: [2, 3, 2, 5, 4, 8],
-                                borderColor: '#10b981',
-                                backgroundColor: 'transparent',
-                                tension: 0.4,
-                                borderDash: [5, 5]
-                            }
-                        ]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
-                });
-            }
-
-            if(ctxConv) {
-                chartInstances.conversion = new Chart(ctxConv, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Leads Masuk', 'Meeting', 'Proposal', 'Won'],
-                        datasets: [{
-                            data: [100, 60, 30, 15],
-                            backgroundColor: ['#e2e8f0', '#3b82f6', '#8b5cf6', '#10b981'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
-                });
-            }
-        }
-
-        // --- Kanban Drag and Drop Logic ---
-        let draggedElementId = null;
-
-        function drag(ev) {
-            draggedElementId = ev.target.id;
-            ev.dataTransfer.setData("text", ev.target.id);
-            ev.target.style.opacity = '0.5';
-        }
-
-        function allowDrop(ev) {
-            ev.preventDefault();
-            const column = ev.target.closest('.kanban-column');
-            if(column) column.classList.add('drag-over');
-        }
-
-        function drop(ev) {
-            ev.preventDefault();
-            const data = ev.dataTransfer.getData("text");
-            const draggedElement = document.getElementById(data);
-            draggedElement.style.opacity = '1';
-            
-            // Remove drag-over styling from all columns
-            document.querySelectorAll('.kanban-column').forEach(col => col.classList.remove('drag-over'));
-
-            const dropTarget = ev.target.closest('.kanban-column');
-            if (dropTarget) {
-                dropTarget.appendChild(draggedElement);
-                
-                // Update counter
-                updateKanbanCounters();
-
-                // Mock API Call Notification
-                showNotification('Status prospek diperbarui.', 'success');
-            }
-        }
-
-        // Add event listener to clean up drag styles
-        document.addEventListener('dragend', (ev) => {
-            if(ev.target.classList) ev.target.classList.remove('opacity-50');
-            ev.target.style.opacity = '1';
-            document.querySelectorAll('.kanban-column').forEach(col => col.classList.remove('drag-over'));
-        });
-
-        function updateKanbanCounters() {
-            document.querySelectorAll('.kanban-column').forEach(col => {
-                const count = col.children.length;
-                const counterBadge = col.parentElement.querySelector('span');
-                if(counterBadge) counterBadge.textContent = count;
-            });
-        }
-
-        // --- Notification System ---
-        function showNotification(message, type = 'success') {
-            const container = document.getElementById('toastContainer');
+        // Helper: Show Toast
+        window.h.showToast = (message, type = 'info') => {
+            const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             
-            const bgColor = type === 'success' ? 'bg-emerald-500' : 'bg-red-500';
-            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
-
-            toast.className = `${bgColor} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 transform transition-all duration-300 translate-y-full opacity-0 max-w-sm`;
-            toast.innerHTML = `<i class="fas ${icon}"></i><p class="text-sm font-medium">${message}</p>`;
+            let colorClasses = 'bg-slate-800 text-white border-slate-700';
+            let icon = 'info';
             
+            if (type === 'error') {
+                colorClasses = 'bg-red-50 text-red-700 border-red-200';
+                icon = 'alert-circle';
+            } else if (type === 'success') {
+                colorClasses = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                icon = 'check-circle-2';
+            }
+
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border text-sm font-semibold transition-all toast-enter ${colorClasses}`;
+            toast.innerHTML = `
+                <i data-lucide="${icon}" class="w-5 h-5 shrink-0 ${type === 'error' ? 'text-red-500' : type === 'success' ? 'text-emerald-500' : 'text-blue-400'}"></i>
+                <span>${message}</span>
+            `;
             container.appendChild(toast);
-            
-            // Animate in
-            requestAnimationFrame(() => {
-                toast.classList.remove('translate-y-full', 'opacity-0');
-            });
+            lucide.createIcons();
 
-            // Remove after 3 seconds
             setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-x-full');
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
                 setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
+            }, 4000);
+        };
 
-        /* 
-         * SIMULASI GOOGLE APPS SCRIPT BACKEND (Mock google.script.run)
-         * Dalam implementasi asli di GAS, logika penyimpanan data akan
-         * memanggil fungsi di Code.gs seperti: google.script.run.withSuccessHandler(...).saveData(data);
-         */
-        const MockGAS = {
-            saveActivity: function(data, callback) {
-                console.log("Saving to Google Sheets...", data);
-                setTimeout(() => {
-                    callback({ success: true, message: "Tersimpan ke Spreadsheet" });
-                }, 500);
+        
+        // Computed Properties (Filters)
+        const getFilteredSchools = () => {
+            if (!state.appUser) return [];
+            let filtered = state.schools;
+            if (state.appUser.role === 'marketing' && state.settings.strictIsolation) {
+                filtered = state.schools.filter(s => s.marketingId === state.appUser.id);
+            }
+            return filtered.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        };
+
+        const getFilteredActivities = () => {
+            if (!state.appUser) return [];
+            let filtered = state.activities;
+            if (state.appUser.role === 'marketing') filtered = filtered.filter(a => a.marketingId === state.appUser.id);
+            
+            filtered = filtered.filter(a => {
+                if (!a.date) return false;
+                const date = new Date(a.date);
+                return date.getFullYear() === state.selectedYear && (date.getMonth() + 1) === state.selectedMonth;
+            });
+            return filtered.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        };
+
+        // Core Render Engine
+        const renderApp = () => {
+            const root = document.getElementById('app-root');
+            
+            if (!state.appUser) {
+                root.innerHTML = renderLoginScreen();
+            } else {
+                root.innerHTML = renderMainLayout();
+                renderActiveTabContent();
+            }
+            lucide.createIcons();
+        };
+
+        const reRenderContentOnly = () => {
+            renderActiveTabContent();
+            renderHeaderUI();
+            lucide.createIcons();
+        };
+
+        // Navigation Handlers
+        window.h.login = (userId) => {
+            const user = state.users.find(u => u.id === userId || u.username === userId);
+            if (user && user.status === 'aktif') {
+                state.appUser = user;
+                window.h.showToast(`Selamat datang, ${user.name}!`, 'success');
+                renderApp();
+            } else {
+                window.h.showToast('Username tidak ditemukan atau akun dinonaktifkan.', 'error');
             }
         };
+
+        window.h.loginSubmit = (event) => {
+            event.preventDefault();
+            const username = document.getElementById('login-username').value.trim().toLowerCase();
+            window.h.login(username);
+        };
+
+        window.h.logout = () => {
+            state.appUser = null;
+            state.activeTab = 'dashboard';
+            window.h.showToast('Berhasil keluar dari sistem.', 'info');
+            if (state.chartInstance) { state.chartInstance.destroy(); state.chartInstance = null; }
+            renderApp();
+        };
+
+        window.h.switchTab = (tabId) => {
+            state.activeTab = tabId;
+            state.sidebarOpen = false;
+            if (state.chartInstance) { state.chartInstance.destroy(); state.chartInstance = null; }
+            renderApp();
+        };
+
+        window.h.toggleSidebar = () => {
+            state.sidebarOpen = !state.sidebarOpen;
+            renderApp();
+        };
+
+        // Period Filters
+        window.h.changeYear = (val) => {
+            state.selectedYear = parseInt(val);
+            const currentMonthNum = state.currentDate.getMonth() + 1;
+            if (state.selectedYear === state.currentDate.getFullYear() && state.selectedMonth < currentMonthNum) {
+                state.selectedMonth = currentMonthNum;
+            }
+            reRenderContentOnly();
+        };
+
+        window.h.changeMonth = (val) => {
+            state.selectedMonth = parseInt(val);
+            reRenderContentOnly();
+        };
+
+        const renderLoginScreen = () => {
+            const demoButtons = state.users.map(u => `
+                <button type="button" onclick="window.h.login('${u.id || u.username}')" class="text-xs px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition border border-slate-200 shadow-sm">
+                    ${u.name} (${u.role})
+                </button>
+            `).join('');
+
+            return `
+            <div class="min-h-screen bg-slate-100 flex items-center justify-center p-4 w-full h-full">
+                <div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-slate-200">
+                    <div class="text-center mb-8">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4 shadow-lg shadow-blue-500/20">
+                            <i data-lucide="trending-up" class="text-white w-8 h-8"></i>
+                        </div>
+                        <h1 class="text-2xl font-bold text-slate-800">CRM Buku Tahunan</h1>
+                        <p class="text-slate-500 text-sm mt-1">Marketing Reporting System</p>
+                    </div>
+                    <form onsubmit="window.h.loginSubmit(event)" class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Username Login</label>
+                            <input id="login-username" type="text" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm transition" placeholder="Masukkan username..." required />
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-xl shadow-md transition duration-200 text-sm">
+                            Masuk Aplikasi
+                        </button>
+                    </form>
+                    <div class="mt-8 pt-6 border-t border-slate-200">
+                        <p class="text-xs font-semibold text-slate-400 mb-3 text-center uppercase tracking-wider">Akses Demo Cepat:</p>
+                        <div class="flex flex-wrap gap-2 justify-center">${demoButtons}</div>
+                    </div>
+                </div>
+            </div>`;
+        };
+
+        const renderMainLayout = () => {
+            const navItems = [
+                { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard', roles: ['owner', 'hr', 'marketing'] },
+                { id: 'master', label: 'Data Master', icon: 'building-2', roles: ['owner', 'hr', 'marketing'] },
+                { id: 'activity', label: 'Daily Activity', icon: 'file-text', roles: ['owner', 'hr', 'marketing'] },
+                { id: 'pipeline', label: 'Pipeline', icon: 'briefcase', roles: ['owner', 'hr', 'marketing'] },
+                { id: 'gps', label: 'Monitoring GPS', icon: 'map-pin', roles: ['owner', 'hr'] },
+                { id: 'settings', label: 'Pengaturan', icon: 'settings', roles: ['owner', 'hr'] }
+            ];
+
+            const visibleNavs = navItems.filter(item => item.roles.includes(state.appUser.role));
+
+            let sidebarHtml = visibleNavs.map(item => {
+                const isActive = state.activeTab === item.id;
+                const activeClasses = isActive ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30' : 'hover:bg-slate-800 hover:text-white text-slate-400';
+                const iconColor = isActive ? 'text-white' : 'text-slate-400';
+                return `
+                    <button onclick="window.h.switchTab('${item.id}')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeClasses}">
+                        <i data-lucide="${item.icon}" class="w-4 h-4 ${iconColor}"></i>
+                        ${item.label}
+                    </button>
+                `;
+            }).join('');
+
+            return `
+            <div class="flex h-screen w-full bg-slate-50 overflow-hidden relative">
+                <!-- Mobile Sidebar Overlay -->
+                ${state.sidebarOpen ? `<div class="fixed inset-0 bg-black/50 z-40 lg:hidden" onclick="window.h.toggleSidebar()"></div>` : ''}
+
+                <!-- Sidebar -->
+                <aside class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 transition-transform duration-300 ease-in-out ${state.sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} flex flex-col h-full">
+                    <div class="p-5 flex items-center gap-3 border-b border-slate-800">
+                        <div class="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center shadow-md shadow-blue-500/20">
+                            <i data-lucide="trending-up" class="text-white w-5 h-5"></i>
+                        </div>
+                        <span class="text-white font-bold text-base tracking-wide">CRM BTS</span>
+                    </div>
+                    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">${sidebarHtml}</nav>
+                    <div class="p-4 border-t border-slate-800">
+                        <button onclick="window.h.logout()" class="w-full flex items-center gap-3 px-3 py-2.5 text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+                            <i data-lucide="log-out" class="w-4 h-4"></i> Keluar Akun
+                        </button>
+                    </div>
+                </aside>
+
+                <!-- Main Content Wrapper -->
+                <div class="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+                    <header id="main-header" class="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm"></header>
+                    <main id="main-content" class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative"></main>
+                </div>
+            </div>`;
+        };
+
+        const renderHeaderUI = () => {
+            const header = document.getElementById('main-header');
+            if (!header) return;
+
+            const currentMonthNum = state.currentDate.getMonth() + 1;
+            
+            const monthOptions = MONTHS.map(m => {
+                let isDisabled = (state.selectedYear === 2026 && m.value < currentMonthNum);
+                return `<option value="${m.value}" ${state.selectedMonth === m.value ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}>${m.label} ${isDisabled ? '(Terkunci)' : ''}</option>`;
+            }).join('');
+
+            const syncStatusClasses = !state.isOnline ? 'bg-red-50 text-red-600 border border-red-200' :
+                                      state.isSyncing ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+            
+            const syncStatusIcon = !state.isOnline ? 'wifi-off' : state.isSyncing ? 'refresh-cw' : 'check-circle-2';
+            const syncStatusText = !state.isOnline ? 'Offline' : state.isSyncing ? 'Menyinkronkan...' : 'Real-Time Sync';
+
+            header.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <button onclick="window.h.toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-600">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </button>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${syncStatusClasses}">
+                            <i data-lucide="${syncStatusIcon}" class="w-3.5 h-3.5 ${state.isSyncing ? 'animate-spin' : ''}"></i>
+                            <span>${syncStatusText}</span>
+                        </div>
+                        <div class="flex items-center bg-slate-100 rounded-lg p-1">
+                            <i data-lucide="calendar" class="w-4 h-4 text-slate-500 ml-2"></i>
+                            <select onchange="window.h.changeYear(this.value)" class="bg-transparent text-xs font-bold text-slate-700 p-1 outline-none cursor-pointer">
+                                <option value="2026" ${state.selectedYear === 2026 ? 'selected' : ''}>2026</option>
+                                <option value="2027" ${state.selectedYear === 2027 ? 'selected' : ''}>2027</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center bg-slate-100 rounded-lg p-1">
+                            <select onchange="window.h.changeMonth(this.value)" class="bg-transparent text-xs font-bold text-slate-700 p-1 outline-none cursor-pointer">
+                                ${monthOptions}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="hidden sm:block text-right">
+                        <p class="text-sm font-bold text-slate-800 leading-tight">${state.appUser.name}</p>
+                        <p class="text-xs text-slate-500 capitalize">${state.appUser.role}</p>
+                    </div>
+                    <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-600 border border-blue-200 flex items-center justify-center font-bold">
+                        ${state.appUser.name.charAt(0)}
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        };
+
+        const renderActiveTabContent = () => {
+            const container = document.getElementById('main-content');
+            if(!container) return;
+            
+            switch (state.activeTab) {
+                case 'dashboard': renderDashboard(container); break;
+                case 'master': renderDataMaster(container); break;
+                case 'activity': renderDailyActivity(container); break;
+                case 'pipeline': renderPipeline(container); break;
+                case 'gps': renderGPS(container); break;
+                case 'settings': renderSettings(container); break;
+                default: renderDashboard(container);
+            }
+        };
+
+        const renderDashboard = (container) => {
+            const filteredSchools = getFilteredSchools();
+            const filteredActivities = getFilteredActivities();
+            const set = state.settings;
+
+            const dbBaru = filteredSchools.length;
+            const canvassingCount = filteredActivities.filter(a => a.type === 'Canvassing').length;
+            const followUpCount = filteredActivities.filter(a => a.type === 'Follow Up').length;
+            const presentasiCount = filteredActivities.filter(a => a.type === 'Presentasi').length;
+
+            const pipelineState = {};
+            filteredSchools.forEach(s => {
+                const schoolActivities = filteredActivities.filter(a => a.schoolId === s.id);
+                if (schoolActivities.length > 0) {
+                    const latest = schoolActivities.reduce((prev, curr) => ((curr.timestamp || 0) > (prev.timestamp || 0)) ? curr : prev);
+                    pipelineState[s.id] = { status: latest.type, dealValue: latest.dealValue || 0 };
+                }
+            });
+
+            let dealCount = 0, belumDealCount = 0, omzet = 0;
+            let funnelData = [
+                { name: 'Database', value: filteredSchools.length, fill: '#94a3b8' },
+                { name: 'Canvassing', value: 0, fill: '#3b82f6' },
+                { name: 'Follow Up', value: 0, fill: '#8b5cf6' },
+                { name: 'Presentasi', value: 0, fill: '#f59e0b' },
+                { name: 'Deal', value: 0, fill: '#10b981' }
+            ];
+
+            const statusCounts = {};
+
+            Object.values(pipelineState).forEach(st => {
+                if (st.status === 'Deal') { dealCount++; omzet += Number(st.dealValue); }
+                else if (st.status === 'Belum Deal') belumDealCount++;
+                
+                if (['Canvassing', 'Follow Up', 'Presentasi', 'Negosiasi', 'Deal', 'Belum Deal'].includes(st.status)) funnelData[1].value++;
+                if (['Follow Up', 'Presentasi', 'Negosiasi', 'Deal', 'Belum Deal'].includes(st.status)) funnelData[2].value++;
+                if (['Presentasi', 'Negosiasi', 'Deal', 'Belum Deal'].includes(st.status)) funnelData[3].value++;
+                if (st.status === 'Deal') funnelData[4].value++;
+
+                statusCounts[st.status] = (statusCounts[st.status] || 0) + 1;
+            });
+
+            const conversionRate = filteredSchools.length > 0 ? ((dealCount / filteredSchools.length) * 100).toFixed(1) : 0;
+
+            const renderKpi = (title, val, target, icon, color, isCurrency=false, isPercent=false) => {
+                let progress = 0; let statusColor = 'text-slate-500';
+                if(target) {
+                    progress = Math.min((val/target)*100, 100);
+                    if(progress<50) statusColor='text-red-500';
+                    else if(progress<100) statusColor='text-amber-500';
+                    else statusColor='text-emerald-500';
+                }
+                const displayVal = isCurrency ? formatCurrency(val) : isPercent ? `${val}%` : val;
+                
+                return `
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">${title}</p>
+                            <h3 class="text-2xl font-bold text-slate-800">${displayVal}</h3>
+                        </div>
+                        <div class="p-2.5 rounded-xl ${color} shadow-sm"><i data-lucide="${icon}" class="w-5 h-5 text-white"></i></div>
+                    </div>
+                    ${target ? `
+                    <div class="mt-4">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-500 font-medium">Target: ${target}</span>
+                            <span class="font-bold ${statusColor}">${progress.toFixed(0)}%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                            <div class="h-1.5 rounded-full transition-all duration-500 ${progress>=100?'bg-emerald-500':progress>=50?'bg-amber-400':'bg-red-500'}" style="width: ${progress}%"></div>
+                        </div>
+                    </div>` : ''}
+                </div>`;
+            };
+
+            const activeProspectsHtml = Object.keys(statusCounts).length > 0 ? Object.entries(statusCounts).map(([status, count]) => `
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="font-semibold text-slate-700">${status}</span>
+                        <span class="text-slate-500 text-xs font-bold">${count} Sekolah</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: ${(count/Math.max(filteredSchools.length, 1))*100}%"></div>
+                    </div>
+                </div>
+            `).join('') : '<div class="text-center text-slate-400 py-12 text-sm">Belum ada data aktivitas.</div>';
+
+            container.innerHTML = `
+            <div class="space-y-6">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Dashboard Monitoring Real-Time</h2>
+                    <p class="text-slate-500 text-sm">Ringkasan kualitatif & kuantitatif performa penjualan.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    ${renderKpi('Database Baru', dbBaru, set.targetDatabase, 'database', 'bg-slate-700')}
+                    ${renderKpi('Canvassing', canvassingCount, set.targetCanvassing, 'map-pin', 'bg-blue-600')}
+                    ${renderKpi('Follow Up', followUpCount, set.targetFollowUp, 'users', 'bg-purple-600')}
+                    ${renderKpi('Presentasi', presentasiCount, set.targetPresentasi, 'target', 'bg-amber-500')}
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    ${renderKpi('Total Deal', dealCount, null, 'check', 'bg-emerald-600')}
+                    ${renderKpi('Belum Deal', belumDealCount, null, 'x', 'bg-red-500')}
+                    ${renderKpi('Omzet Tercipta', omzet, null, 'trending-up', 'bg-indigo-600', true, false)}
+                    ${renderKpi('Conversion Rate', conversionRate, null, 'activity', 'bg-teal-600', false, true)}
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-4 text-base">Funnel Conversion Pipeline</h3>
+                        <div class="h-64 relative"><canvas id="funnelChart"></canvas></div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-4 text-base">Status Prospek Aktif</h3>
+                        <div class="space-y-4">${activeProspectsHtml}</div>
+                    </div>
+                </div>
+            </div>`;
+
+            // Initialize Chart.js
+            setTimeout(() => {
+                const ctx = document.getElementById('funnelChart');
+                if(!ctx) return;
+                if(state.chartInstance) state.chartInstance.destroy();
+                
+                state.chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: funnelData.map(d => d.name),
+                        datasets: [{
+                            data: funnelData.map(d => d.value),
+                            backgroundColor: funnelData.map(d => d.fill),
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { x: { beginAtZero: true } }
+                    }
+                });
+            }, 50);
+        };
+
+        window.h.openSchoolModal = () => {
+            const modalHtml = `
+            <div class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                        <h3 class="font-bold text-base text-slate-800">Tambah Sekolah Baru</h3>
+                        <button onclick="document.getElementById('modal-container').innerHTML=''"><i data-lucide="x" class="w-5 h-5 text-slate-400 hover:text-slate-600"></i></button>
+                    </div>
+                    <form onsubmit="window.h.submitSchool(event)" class="p-6 space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nama Sekolah *</label>
+                            <div class="flex gap-2">
+                                <select id="s-jenjang" class="w-1/3 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none">
+                                    <option value="SMP">SMP</option><option value="SMA">SMA</option>
+                                    <option value="SMK">SMK</option><option value="MAN">MAN</option>
+                                </select>
+                                <input type="text" id="s-name" required placeholder="N 1 JAKARTA" class="w-2/3 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none uppercase font-bold" />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Wilayah * (Ketik Bebas)</label>
+                            <input type="text" id="s-wilayah" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none" placeholder="Contoh: Bogor Selatan" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Alamat Lengkap</label>
+                            <textarea id="s-alamat" rows="2" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none"></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Nama PIC *</label>
+                                <input type="text" id="s-picName" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none capitalize" placeholder="Contoh: Bpk. Gunawan" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">No. WhatsApp *</label>
+                                <input type="tel" id="s-picPhone" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none" placeholder="08123456789" />
+                            </div>
+                        </div>
+                        <div class="pt-4 flex justify-end gap-2 border-t border-slate-100">
+                            <button type="button" onclick="document.getElementById('modal-container').innerHTML=''" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl">Batal</button>
+                            <button type="submit" id="s-submit" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm">Simpan ke Server</button>
+                        </div>
+                    </form>
+                </div>
+            </div>`;
+            document.getElementById('modal-container').innerHTML = modalHtml;
+            lucide.createIcons();
+        };
+
+        window.h.submitSchool = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('s-submit');
+            btn.disabled = true; btn.innerText = 'Menyimpan...';
+
+            const name = document.getElementById('s-name').value.trim().toUpperCase();
+            
+            // Check Duplicate
+            const existingSchool = state.schools.find(s => s.name.toUpperCase() === name);
+            if (existingSchool) {
+                if (existingSchool.marketingId !== state.appUser.id) {
+                    window.h.showToast(`Data Sudah Dalam Penanganan Marketing Lain (${existingSchool.marketingName}).`, 'error');
+                } else {
+                    window.h.showToast('Sekolah ini sudah terdaftar di database Anda.', 'error');
+                }
+                btn.disabled = false; btn.innerText = 'Simpan ke Server';
+                return;
+            }
+
+            try {
+                const newSchool = {
+                    name,
+                    jenjang: document.getElementById('s-jenjang').value,
+                    alamat: document.getElementById('s-alamat').value,
+                    wilayah: document.getElementById('s-wilayah').value.trim(),
+                    picName: toTitleCase(document.getElementById('s-picName').value),
+                    picPhone: document.getElementById('s-picPhone').value.trim(),
+                    marketingId: state.appUser.id,
+                    marketingName: state.appUser.name,
+                    createdAt: Date.now(),
+                    updatedAt: Date.now()
+                };
+                await addDoc(collection(db, publicPath, 'schools'), newSchool);
+                window.h.showToast('Sekolah berhasil ditambahkan!', 'success');
+                document.getElementById('modal-container').innerHTML='';
+            } catch (err) {
+                window.h.showToast('Gagal menyinkronkan data dengan server.', 'error');
+                btn.disabled = false; btn.innerText = 'Simpan ke Server';
+            }
+        };
+
+        const renderDataMaster = (container) => {
+            const filteredSchools = getFilteredSchools();
+            
+            let tbody = filteredSchools.map(school => `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                    <td class="px-4 py-3 font-bold text-slate-800">
+                        <span class="text-[10px] font-extrabold text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded mr-2">${school.jenjang}</span>
+                        ${school.name}
+                    </td>
+                    <td class="px-4 py-3">${school.wilayah || '-'}</td>
+                    <td class="px-4 py-3 font-medium text-slate-700">${school.picName || '-'}</td>
+                    <td class="px-4 py-3">${school.picPhone || '-'}</td>
+                    <td class="px-4 py-3 font-medium text-slate-700">${school.marketingName}</td>
+                </tr>
+            `).join('');
+
+            if(filteredSchools.length === 0) tbody = `<tr><td colspan="5" class="px-4 py-12 text-center text-slate-400">Belum ada data sekolah.</td></tr>`;
+
+            container.innerHTML = `
+            <div class="space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">Data Master Sekolah</h2>
+                        <p class="text-slate-500 text-sm">Database sekolah yang ditangani tim marketing.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="window.h.openSchoolModal()" class="flex items-center gap-2 px-3.5 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition shadow-sm">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Tambah Sekolah
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left text-slate-600">
+                            <thead class="bg-slate-100/70 text-slate-700 font-bold border-b border-slate-200 uppercase">
+                                <tr>
+                                    <th class="px-4 py-3">Nama Sekolah</th>
+                                    <th class="px-4 py-3">Wilayah</th>
+                                    <th class="px-4 py-3">PIC Sekolah</th>
+                                    <th class="px-4 py-3">No. WhatsApp</th>
+                                    <th class="px-4 py-3">Marketing</th>
+                                </tr>
+                            </thead>
+                            <tbody>${tbody}</tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>`;
+        };
+
+        const renderDailyActivity = (container) => {
+            const acts = getFilteredActivities();
+            let tbody = acts.map(act => {
+                let badgeColor = 'bg-slate-100';
+                if(act.type==='Deal') badgeColor='bg-emerald-100 text-emerald-700 border border-emerald-200';
+                if(act.type==='Belum Deal') badgeColor='bg-red-100 text-red-700 border border-red-200';
+                if(act.type==='Canvassing') badgeColor='bg-blue-100 text-blue-700 border border-blue-200';
+                if(act.type==='Follow Up') badgeColor='bg-purple-100 text-purple-700 border border-purple-200';
+                if(act.type==='Presentasi') badgeColor='bg-amber-100 text-amber-700 border border-amber-200';
+
+                return `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <div class="font-bold text-slate-800">${act.date}</div>
+                        <div class="text-[10px] text-slate-400">${act.checkIn} - ${act.checkOut}</div>
+                    </td>
+                    <td class="px-4 py-3 font-bold text-slate-800">${act.schoolName}</td>
+                    <td class="px-4 py-3"><span class="px-2 py-0.5 text-[10px] font-bold rounded-full ${badgeColor}">${act.type}</span></td>
+                    <td class="px-4 py-3 font-semibold">${act.category}</td>
+                    ${state.appUser.role !== 'marketing' ? `<td class="px-4 py-3 font-medium">${act.marketingName}</td>` : ''}
+                    <td class="px-4 py-3">${act.picMet || '-'}</td>
+                    <td class="px-4 py-3 max-w-xs truncate" title="${act.notes}">${act.notes || '-'}</td>
+                </tr>`;
+            }).join('');
+
+            if(acts.length === 0) tbody = `<tr><td colspan="${state.appUser.role!=='marketing'?7:6}" class="px-4 py-12 text-center text-slate-400">Belum ada aktivitas tercatat.</td></tr>`;
+
+            container.innerHTML = `
+            <div class="space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">Daily Activity</h2>
+                        <p class="text-slate-500 text-sm">Catatan kunjungan harian tim lapangan.</p>
+                    </div>
+                    ${state.appUser.role === 'marketing' ? `
+                    <button onclick="window.h.openActivityModal()" class="flex items-center gap-2 px-3.5 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition shadow-sm">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Input Aktivitas
+                    </button>` : ''}
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left text-slate-600">
+                            <thead class="bg-slate-100/70 text-slate-700 font-bold border-b border-slate-200 uppercase">
+                                <tr>
+                                    <th class="px-4 py-3">Tanggal & Jam</th>
+                                    <th class="px-4 py-3">Sekolah Target</th>
+                                    <th class="px-4 py-3">Aktivitas</th>
+                                    <th class="px-4 py-3">Status</th>
+                                    ${state.appUser.role !== 'marketing' ? '<th class="px-4 py-3">Marketing</th>' : ''}
+                                    <th class="px-4 py-3">Pihak Ditemui</th>
+                                    <th class="px-4 py-3">Catatan</th>
+                                </tr>
+                            </thead>
+                            <tbody>${tbody}</tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>`;
+        };
+
+        // Needs to hold GPS coords temporarily for the modal
+        let tempGps = { lat: null, lng: null };
+
+        window.h.getGps = () => {
+            const btn = document.getElementById('btn-gps');
+            btn.innerText = "Mengambil Lokasi...";
+            btn.disabled = true;
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        tempGps.lat = pos.coords.latitude;
+                        tempGps.lng = pos.coords.longitude;
+                        btn.className = "w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold transition bg-emerald-50 text-emerald-700 border border-emerald-300";
+                        btn.innerHTML = `<i data-lucide="map-pin" class="w-4 h-4"></i> GPS Terkunci (${tempGps.lat.toFixed(4)}, ${tempGps.lng.toFixed(4)})`;
+                        lucide.createIcons();
+                        window.h.showToast('Koordinat GPS berhasil didapatkan', 'success');
+                    },
+                    (err) => {
+                        window.h.showToast('Gagal mendapat lokasi. Pastikan izin GPS aktif.', 'error');
+                        btn.innerText = "Ambil Ulang Lokasi GPS";
+                        btn.disabled = false;
+                    }
+                );
+            }
+        };
+
+        window.h.openActivityModal = () => {
+            tempGps = { lat: null, lng: null };
+            const schoolsOptions = getFilteredSchools().map(s => `<option value="${s.id}">${s.name} (${s.wilayah})</option>`).join('');
+            const stagesOpts = STAGES.map(s => `<option value="${s}">${s}</option>`).join('');
+            const catOpts = CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+            const todayDate = state.currentDate.toISOString().split('T')[0];
+
+            const modalHtml = `
+            <div class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+                <div class="bg-white rounded-2xl w-full max-w-2xl shadow-xl my-8 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                        <h3 class="font-bold text-base text-slate-800">Input Aktivitas Harian</h3>
+                        <button onclick="document.getElementById('modal-container').innerHTML=''"><i data-lucide="x" class="w-5 h-5 text-slate-400"></i></button>
+                    </div>
+                    <form onsubmit="window.h.submitActivity(event)" class="p-6 space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Pilih Sekolah *</label>
+                                <select id="a-school" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none">
+                                    <option value="">-- Pilih Sekolah --</option>${schoolsOptions}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Kunjungan *</label>
+                                <input type="date" id="a-date" value="${todayDate}" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Jam Check In *</label>
+                                <input type="time" id="a-in" value="09:00" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Jam Check Out *</label>
+                                <input type="time" id="a-out" value="11:00" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none" />
+                            </div>
+                        </div>
+                        <div class="border-t border-slate-100 pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Tahap Aktivitas *</label>
+                                <select id="a-type" required onchange="window.h.checkDealType(this.value)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none">${stagesOpts}</select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Prospek *</label>
+                                <select id="a-cat" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none">${catOpts}</select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Pihak Yang Ditemui *</label>
+                                <input type="text" id="a-pic" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none capitalize" placeholder="Contoh: Kepala Sekolah" />
+                            </div>
+                            <div class="md:col-span-2 hidden" id="a-deal-container">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Nilai Kesepakatan / Deal (Rp) *</label>
+                                <input type="number" id="a-dealval" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none" placeholder="15000000" />
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Catatan</label>
+                                <textarea id="a-notes" rows="2" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none" placeholder="Hasil diskusi..."></textarea>
+                            </div>
+                        </div>
+                        <div class="border-t border-slate-100 pt-3">
+                            <label class="block text-xs font-bold text-slate-700 mb-2">Validasi GPS *</label>
+                            <button type="button" id="btn-gps" onclick="window.h.getGps()" class="w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold transition bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200">
+                                <i data-lucide="map-pin" class="w-4 h-4"></i> Klik untuk Ambil Lokasi GPS (Wajib)
+                            </button>
+                        </div>
+                        <div class="pt-4 flex justify-end gap-2 border-t border-slate-100">
+                            <button type="button" onclick="document.getElementById('modal-container').innerHTML=''" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl">Batal</button>
+                            <button type="submit" id="a-submit" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm">Simpan Aktivitas</button>
+                        </div>
+                    </form>
+                </div>
+            </div>`;
+            document.getElementById('modal-container').innerHTML = modalHtml;
+            lucide.createIcons();
+        };
+
+        window.h.checkDealType = (val) => {
+            const container = document.getElementById('a-deal-container');
+            const input = document.getElementById('a-dealval');
+            if(val === 'Deal' || val === 'Negosiasi') {
+                container.classList.remove('hidden');
+                input.required = true;
+            } else {
+                container.classList.add('hidden');
+                input.required = false;
+                input.value = '';
+            }
+        };
+
+        window.h.submitActivity = async (e) => {
+            e.preventDefault();
+            if(!tempGps.lat) {
+                window.h.showToast("Validasi Lokasi GPS wajib dilakukan!", "error");
+                return;
+            }
+            const btn = document.getElementById('a-submit');
+            btn.disabled = true; btn.innerText = 'Menyimpan...';
+
+            const sId = document.getElementById('a-school').value;
+            const school = state.schools.find(s => s.id === sId);
+
+            try {
+                await addDoc(collection(db, publicPath, 'activities'), {
+                    schoolId: sId,
+                    schoolName: school.name,
+                    date: document.getElementById('a-date').value,
+                    checkIn: document.getElementById('a-in').value,
+                    checkOut: document.getElementById('a-out').value,
+                    type: document.getElementById('a-type').value,
+                    category: document.getElementById('a-cat').value,
+                    picMet: toTitleCase(document.getElementById('a-pic').value),
+                    dealValue: Number(document.getElementById('a-dealval').value || 0),
+                    notes: document.getElementById('a-notes').value,
+                    gpsLat: tempGps.lat, gpsLng: tempGps.lng,
+                    marketingId: state.appUser.id,
+                    marketingName: state.appUser.name,
+                    timestamp: Date.now()
+                });
+                window.h.showToast("Aktivitas tersimpan", "success");
+                document.getElementById('modal-container').innerHTML='';
+            } catch (err) {
+                window.h.showToast("Gagal menyimpan aktivitas", "error");
+                btn.disabled = false; btn.innerText = 'Simpan Aktivitas';
+            }
+        };
+
+        const renderPipeline = (container) => {
+            const schools = getFilteredSchools();
+            
+            const board = STAGES.reduce((acc, stage) => { acc[stage] = []; return acc; }, {});
+
+            schools.forEach(school => {
+                const schoolActivities = state.activities
+                    .filter(a => a.schoolId === school.id)
+                    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+                if (schoolActivities.length > 0) {
+                    const latestAct = schoolActivities[0];
+                    if (board[latestAct.type]) board[latestAct.type].push({ ...school, latestActivity: latestAct });
+                } else {
+                    board['Canvassing'].push({ ...school, latestActivity: null });
+                }
+            });
+
+            const columnsHtml = STAGES.map(stage => {
+                const cardsHtml = board[stage].map(item => `
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] font-extrabold bg-blue-50 text-blue-600 px-2 py-0.5 rounded">${item.jenjang}</span>
+                            ${item.latestActivity ? `<span class="text-xs font-bold">${item.latestActivity.category.split(' ')[0]}</span>` : ''}
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-sm leading-tight mb-1">${item.name}</h4>
+                        <p class="text-xs text-slate-500 mb-2">${item.wilayah || ''}</p>
+                        ${(stage === 'Deal' && item.latestActivity?.dealValue) ? `
+                        <div class="mt-2 pt-2 border-t border-slate-100">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Nilai Deal:</p>
+                            <p class="text-xs font-extrabold text-emerald-600">${formatCurrency(item.latestActivity.dealValue)}</p>
+                        </div>` : ''}
+                        <div class="mt-2 pt-2 border-t border-slate-100 flex justify-between items-end text-[10px] text-slate-400 font-medium">
+                            <div>
+                                ${state.appUser.role !== 'marketing' ? `<p class="font-bold text-slate-600">${item.marketingName}</p>` : ''}
+                                <p>${item.latestActivity ? new Date(item.latestActivity.timestamp).toLocaleDateString('id-ID') : 'Belum dikunjungi'}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                return `
+                <div class="w-80 bg-slate-100/80 rounded-2xl flex flex-col h-full border border-slate-200">
+                    <div class="p-3 border-b border-slate-200 flex justify-between items-center bg-slate-200/50 rounded-t-2xl shrink-0">
+                        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-700">${stage}</h3>
+                        <span class="bg-white text-slate-700 text-xs font-bold px-2.5 py-0.5 rounded-full shadow-sm">${board[stage].length}</span>
+                    </div>
+                    <div class="p-3 overflow-y-auto flex-1 space-y-3">
+                        ${cardsHtml || '<div class="h-24 flex items-center justify-center border-2 border-dashed border-slate-300 rounded-xl text-slate-400 text-xs font-medium">Kosong</div>'}
+                    </div>
+                </div>`;
+            }).join('');
+
+            container.innerHTML = `
+            <div class="h-full flex flex-col pb-4">
+                <div class="flex justify-between items-center mb-4 shrink-0">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">Pipeline Kanban Board</h2>
+                        <p class="text-slate-500 text-sm">Progres ter-update otomatis dari Daily Activity.</p>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-x-auto overflow-y-hidden pb-4">
+                    <div class="flex gap-4 h-full min-w-max px-1">
+                        ${columnsHtml}
+                    </div>
+                </div>
+            </div>`;
+        };
+
+        const renderGPS = (container) => {
+            const actsWithGps = getFilteredActivities().filter(a => a.gpsLat);
+            
+            const listHtml = actsWithGps.map(act => `
+                <div class="py-3 flex gap-3 border-b border-slate-100 last:border-0">
+                    <div class="mt-1 bg-emerald-100 p-2 rounded-xl h-8 w-8 flex items-center justify-center shrink-0">
+                        <i data-lucide="map-pin" class="w-4 h-4 text-emerald-700"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-xs">${act.schoolName}</h4>
+                        <p class="text-xs text-slate-600 font-semibold mb-0.5">${act.marketingName}</p>
+                        <p class="text-[11px] text-slate-500 mb-1">${act.date} • ${act.checkIn} - ${act.checkOut}</p>
+                        <p class="text-[10px] text-slate-400 font-mono">Lat: ${act.gpsLat?.toFixed(5)}, Lng: ${act.gpsLng?.toFixed(5)}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = `
+            <div class="space-y-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Monitoring Lokasi GPS Real-Time</h2>
+                    <p class="text-slate-500 text-sm">Monitoring titik geolokasi kunjungan tim marketing.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 h-[500px] flex flex-col">
+                        <div class="flex items-center gap-2 mb-3 text-slate-700 font-bold text-xs uppercase tracking-wider">
+                            <i data-lucide="map" class="w-4 h-4 text-blue-600"></i> Peta Visualisasi Kunjungan
+                        </div>
+                        <div class="flex-1 bg-slate-100 rounded-xl border border-slate-300 flex items-center justify-center relative overflow-hidden">
+                            <div class="absolute inset-0 opacity-20" style="background-image: url('data:image/svg+xml,%3Csvg width=\\'20\\' height=\\'20\\' viewBox=\\'0 0 20 20\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cpath d=\\'M1.2267 13.987l4.004-1.295 4.305 3.336a.5.5 0 0 0 .61 0l4.305-3.336 4.004 1.295a.5.5 0 0 0 .64-.627l-2.09-8.486a.5.5 0 0 0-.82-.23l-3.957 2.91-3.64-2.822a.5.5 0 0 0-.616 0l-3.64 2.823-3.957-2.91a.5.5 0 0 0-.82.23l-2.09 8.486a.5.5 0 0 0 .64.627z\\' fill=\\'%23000000\\' fill-rule=\\'evenodd\\'/%3E%3C/svg%3E'); background-size: 100px;"></div>
+                            <div class="text-center p-6 bg-white/90 rounded-2xl shadow-md max-w-xs z-10">
+                                <i data-lucide="map-pin" class="w-8 h-8 text-blue-600 mx-auto mb-2"></i>
+                                <p class="text-xs font-bold text-slate-800">Koordinat Tersimpan ke Server</p>
+                                <p class="text-[11px] text-slate-500 mt-1">Total ${actsWithGps.length} data geolokasi tercatat secara real-time.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[500px]">
+                        <div class="p-4 border-b border-slate-200 bg-slate-50">
+                            <h3 class="font-bold text-xs uppercase tracking-wider text-slate-700">Daftar Titik Kunjungan GPS</h3>
+                        </div>
+                        <div class="overflow-y-auto flex-1 p-3 px-4">
+                            ${listHtml || '<div class="h-full flex items-center justify-center text-slate-400 text-xs">Tidak ada data GPS tercatat.</div>'}
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        };
+
+        
+        window.h.saveConfig = async () => {
+            const data = {
+                targetDatabase: parseInt(document.getElementById('cfg-db').value)||0,
+                targetCanvassing: parseInt(document.getElementById('cfg-can').value)||0,
+                targetFollowUp: parseInt(document.getElementById('cfg-fol').value)||0,
+                targetPresentasi: parseInt(document.getElementById('cfg-pres').value)||0,
+                strictIsolation: document.getElementById('cfg-iso').checked,
+                updatedAt: Date.now()
+            };
+            try {
+                await setDoc(doc(db, publicPath, 'settings', 'main_config'), data);
+                window.h.showToast("Konfigurasi disimpan", "success");
+            } catch(e) { window.h.showToast("Gagal menyimpan konfigurasi", "error"); }
+        };
+
+        window.h.updateSearchStaff = (val) => {
+            state.searchStaff = val;
+            reRenderContentOnly();
+        };
+
+        window.h.openUserModal = (userId = '') => {
+            let user = { id: '', name: '', username: '', role: 'marketing', wilayah: '', email: '', phone: '', status: 'aktif' };
+            if (userId) {
+                const found = state.users.find(u => u.id === userId);
+                if(found) user = found;
+            }
+
+            const modalHtml = `
+            <div class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                        <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
+                            <i data-lucide="user" class="w-5 h-5 text-indigo-600"></i>
+                            ${userId ? 'Edit Profil Staff' : 'Tambah Staff Baru'}
+                        </h3>
+                        <button type="button" onclick="document.getElementById('modal-container').innerHTML=''"><i data-lucide="x" class="w-5 h-5 text-slate-400 hover:text-slate-600"></i></button>
+                    </div>
+                    <form onsubmit="window.h.submitUser(event, '${userId}')" class="p-6 space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="col-span-2">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap *</label>
+                                <input type="text" id="u-name" required value="${user.name}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500" placeholder="Contoh: Dimas Aditya" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Username Login *</label>
+                                <input type="text" id="u-username" required value="${user.username}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs lowercase outline-none focus:border-indigo-500" placeholder="username" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Role Hak Akses *</label>
+                                <select id="u-role" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500">
+                                    <option value="marketing" ${user.role === 'marketing' ? 'selected' : ''}>Marketing</option>
+                                    <option value="hr" ${user.role === 'hr' ? 'selected' : ''}>HR</option>
+                                    <option value="owner" ${user.role === 'owner' ? 'selected' : ''}>Owner</option>
+                                </select>
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Wilayah Tugas</label>
+                                <input type="text" id="u-wilayah" value="${user.wilayah}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500" placeholder="Contoh: Bogor, Depok, Jaksel" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Email</label>
+                                <input type="email" id="u-email" value="${user.email}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500" placeholder="email@bts.id" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">No. WhatsApp</label>
+                                <input type="tel" id="u-phone" value="${user.phone}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500" placeholder="08123456789" />
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Status Akun</label>
+                                <select id="u-status" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500">
+                                    <option value="aktif" ${user.status === 'aktif' ? 'selected' : ''}>Aktif</option>
+                                    <option value="nonaktif" ${user.status === 'nonaktif' ? 'selected' : ''}>Nonaktif / Suspend</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="pt-4 flex justify-end gap-2 border-t border-slate-100">
+                            <button type="button" onclick="document.getElementById('modal-container').innerHTML=''" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">Batal</button>
+                            <button type="submit" id="u-submit" class="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition">Simpan Staff</button>
+                        </div>
+                    </form>
+                </div>
+            </div>`;
+            document.getElementById('modal-container').innerHTML = modalHtml;
+            lucide.createIcons();
+        };
+
+        window.h.submitUser = async (e, userId) => {
+            e.preventDefault();
+            const btn = document.getElementById('u-submit');
+            btn.disabled = true; btn.innerText = 'Menyimpan...';
+
+            const dataToSave = {
+                name: document.getElementById('u-name').value.trim(),
+                username: document.getElementById('u-username').value.toLowerCase().trim(),
+                role: document.getElementById('u-role').value,
+                wilayah: document.getElementById('u-wilayah').value.trim(),
+                email: document.getElementById('u-email').value.trim(),
+                phone: document.getElementById('u-phone').value.trim(),
+                status: document.getElementById('u-status').value,
+                updatedAt: Date.now()
+            };
+
+            try {
+                if (userId) {
+                    await updateDoc(doc(db, publicPath, 'users', userId), dataToSave);
+                    window.h.showToast("Data staff berhasil di-update!", "success");
+                } else {
+                    await addDoc(collection(db, publicPath, 'users'), { ...dataToSave, createdAt: Date.now() });
+                    window.h.showToast("Staff baru berhasil ditambahkan!", "success");
+                }
+                document.getElementById('modal-container').innerHTML = '';
+            } catch (err) {
+                window.h.showToast("Gagal menyinkronkan data dengan server.", "error");
+                btn.disabled = false; btn.innerText = 'Simpan Staff';
+            }
+        };
+
+        window.h.openDeleteUserModal = (userId) => {
+            const user = state.users.find(u => u.id === userId);
+            if (!user) return;
+            const modalHtml = `
+            <div class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-2xl w-full max-w-sm shadow-xl p-6 text-center">
+                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i data-lucide="alert-circle" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-800 mb-1">Hapus Akun Staff?</h3>
+                    <p class="text-xs text-slate-500 mb-6">
+                        Apakah Anda yakin ingin menghapus akun <span class="font-bold text-slate-700">${user.name}</span>? Tindakan ini akan menghapus data secara permanen.
+                    </p>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="document.getElementById('modal-container').innerHTML=''" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition">Batal</button>
+                        <button type="button" onclick="window.h.confirmDeleteUser('${userId}')" class="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs shadow-sm transition">Hapus</button>
+                    </div>
+                </div>
+            </div>`;
+            document.getElementById('modal-container').innerHTML = modalHtml;
+            lucide.createIcons();
+        };
+
+        window.h.confirmDeleteUser = async (userId) => {
+            try {
+                await deleteDoc(doc(db, publicPath, 'users', userId));
+                window.h.showToast("Akun staff berhasil dihapus dari server.", "success");
+                document.getElementById('modal-container').innerHTML = '';
+            } catch (err) {
+                window.h.showToast("Gagal menghapus data.", "error");
+            }
+        };
+
+        const renderSettings = (container) => {
+            const searchTerm = (state.searchStaff || '').toLowerCase();
+            const filteredUsers = state.users.filter(u => 
+                u.name.toLowerCase().includes(searchTerm) || 
+                u.role.toLowerCase().includes(searchTerm) ||
+                (u.wilayah && u.wilayah.toLowerCase().includes(searchTerm)) ||
+                (u.email && u.email.toLowerCase().includes(searchTerm)) ||
+                (u.phone && u.phone.toLowerCase().includes(searchTerm))
+            );
+
+            const usersHtml = filteredUsers.map(u => {
+                const assignedCount = u.role === 'marketing' ? state.schools.filter(s => s.marketingId === u.id).length : 0;
+                const wilayahData = u.wilayah || (u.role === 'marketing' ? 'Belum Diatur' : 'Semua Wilayah');
+                
+                return `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-bold shrink-0">
+                                <span class="uppercase text-xs">${u.name.substring(0, 2)}</span>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800">${u.name}</div>
+                                <div class="text-[10px] text-slate-400 font-mono">@${u.username} • ${u.role}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-medium text-[10px]">
+                            <i data-lucide="map-pin" class="w-3 h-3 text-indigo-600"></i> ${wilayahData}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex flex-col gap-0.5 text-slate-500 text-[10px]">
+                            <div class="flex items-center gap-1.5"><i data-lucide="mail" class="w-3 h-3 text-slate-400"></i> ${u.email || '-'}</div>
+                            <div class="flex items-center gap-1.5"><i data-lucide="phone" class="w-3 h-3 text-slate-400"></i> ${u.phone || '-'}</div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${u.role === 'marketing' ? `
+                        <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 font-bold border border-indigo-100 text-[10px]">
+                            <i data-lucide="users" class="w-3 h-3"></i> ${assignedCount} Sekolah
+                        </div>` : '<span class="text-slate-400">-</span>'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <button onclick="window.h.openUserModal('${u.id}')" class="text-slate-400 hover:text-blue-600 transition p-1" title="Edit"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                            <button onclick="window.h.openDeleteUserModal('${u.id}')" class="text-slate-400 hover:text-red-600 transition p-1" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            container.innerHTML = `
+            <div class="space-y-6 pb-12">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Pengaturan & Konfigurasi Real-Time</h2>
+                    <p class="text-slate-500 text-sm">Kelola target KPI, isolasi data, dan akun staff.</p>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2 text-sm"><i data-lucide="target" class="w-5 h-5 text-blue-600"></i> Target KPI Aktivitas Bulanan</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Target DB Baru</label><input type="number" id="cfg-db" value="${state.settings.targetDatabase}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" /></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Target Canvassing</label><input type="number" id="cfg-can" value="${state.settings.targetCanvassing}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" /></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Target Follow Up</label><input type="number" id="cfg-fol" value="${state.settings.targetFollowUp}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" /></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">Target Presentasi</label><input type="number" id="cfg-pres" value="${state.settings.targetPresentasi}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" /></div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-100">
+                        <h3 class="font-bold text-slate-800 mb-3 flex items-center gap-2 text-sm"><i data-lucide="settings" class="w-5 h-5 text-blue-600"></i> Akses & Keamanan Data</h3>
+                        <label class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" id="cfg-iso" ${state.settings.strictIsolation ? 'checked' : ''} class="mt-1 rounded text-blue-600" />
+                            <div>
+                                <span class="block text-xs font-bold text-slate-800">Isolasi Data Strict Marketing</span>
+                                <span class="block text-xs text-slate-500">Marketing hanya dapat mengakses data miliknya sendiri.</span>
+                            </div>
+                        </label>
+                    </div>
+                    <button onclick="window.h.saveConfig()" class="mt-6 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 shadow-sm transition">Simpan Konfigurasi</button>
+                </div>
+                
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <div>
+                            <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-wider mb-1">
+                                <i data-lucide="users" class="w-4 h-4"></i> Manajemen Staff Penjualan & Tim Lapangan
+                            </div>
+                            <h2 class="text-xl font-bold text-slate-800">Daftar Tim Marketing Aktif</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Kelola akun, profil, dan wilayah tugas. Data otomatis disinkronkan ke laporan KPI.</p>
+                        </div>
+                        <button onclick="window.h.openUserModal()" class="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 text-xs shadow-sm transition">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Tambah Staff Marketing
+                        </button>
+                    </div>
+
+                    <div class="relative mb-6 max-w-lg">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" oninput="window.h.updateSearchStaff(this.value)" value="${state.searchStaff || ''}" placeholder="Cari nama staff, wilayah, email, atau no HP..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-xs text-slate-700" />
+                    </div>
+
+                    <div class="border border-slate-300 rounded-2xl overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs text-left">
+                                <thead class="border-b border-slate-300 bg-slate-50 uppercase text-slate-500 font-bold">
+                                    <tr>
+                                        <th class="px-6 py-3.5">Nama Staff / Avatar</th>
+                                        <th class="px-6 py-3.5">Wilayah Tugas</th>
+                                        <th class="px-6 py-3.5">Kontak</th>
+                                        <th class="px-6 py-3.5">Sekolah Assigned</th>
+                                        <th class="px-6 py-3.5 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${usersHtml || '<tr><td colspan="5" class="px-6 py-12 text-center text-slate-400">Tidak ada data staff tersimpan.</td></tr>'}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        };
+
+        // Setup initial users if empty
+        const setupDefaultUsers = async () => {
+            for (let u of defaultUsers) {
+                const { id, ...userData } = u; // Hapus ID lokal sebelum push ke server
+                await addDoc(collection(db, publicPath, 'users'), { ...userData, createdAt: Date.now() });
+            }
+        };
+
+        // Attach listeners after auth
+        const setupRealtimeListeners = () => {
+            state.isSyncing = true;
+            if (state.appUser) renderHeaderUI();
+
+            onSnapshot(collection(db, publicPath, 'users'), (snapshot) => {
+                const fetchedUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if(fetchedUsers.length > 0) {
+                    state.users = fetchedUsers;
+                } else {
+                    setupDefaultUsers();
+                }
+                state.isSyncing = false;
+                
+                if (state.appUser) {
+                    renderApp(); // Global re-render if active
+                } else {
+                    // Update UI Login agar ID sinkron jika ada perubahan di server
+                    const root = document.getElementById('app-root');
+                    if(root) {
+                        root.innerHTML = renderLoginScreen();
+                        lucide.createIcons();
+                    }
+                }
+            }, (error) => {
+                state.isSyncing = false;
+                window.h.showToast("Gagal menyinkronkan data pengguna dengan server.", "error");
+            });
+
+            onSnapshot(collection(db, publicPath, 'schools'), (snapshot) => {
+                state.schools = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if (state.appUser) reRenderContentOnly();
+            });
+
+            onSnapshot(collection(db, publicPath, 'activities'), (snapshot) => {
+                state.activities = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if (state.appUser) reRenderContentOnly();
+            });
+
+            onSnapshot(collection(db, publicPath, 'settings'), (snapshot) => {
+                if (!snapshot.empty) state.settings = snapshot.docs[0].data();
+                if (state.appUser) reRenderContentOnly();
+            });
+        };
+
+        // Connectivity Monitoring
+        window.addEventListener('online', () => { state.isOnline = true; if(state.appUser) renderHeaderUI(); });
+        window.addEventListener('offline', () => { state.isOnline = false; if(state.appUser) renderHeaderUI(); });
+
+        // Initialize Application
+        const initApp = async () => {
+            try {
+                if (typeof window.__initial_auth_token !== 'undefined' && window.__initial_auth_token) {
+                    await signInWithCustomToken(auth, window.__initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
+                window.h.showToast("Koneksi Firebase terhambat. Menggunakan mode lokal sementara.", "error");
+                renderApp(); // Tetap render halaman login meski gagal konek
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            state.firebaseUser = user;
+            if (user) {
+                setupRealtimeListeners();
+            }
+            renderApp(); // Initial render (akan render login via state lokal terlebih dahulu)
+        });
+
+        // Start!
+        initApp();
 
     </script>
 </body>
