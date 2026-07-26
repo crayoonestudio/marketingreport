@@ -1,22 +1,22 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Marketing - Buku Tahunan Sekolah</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KPI & Database Real-Time - Marketing Buku Tahunan Sekolah</title>
     
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Chart.js -->
+    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- FontAwesome -->
+
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <script>
         tailwind.config = {
             theme: {
@@ -25,553 +25,1962 @@
                         sans: ['Inter', 'sans-serif'],
                     },
                     colors: {
-                        primary: '#4f46e5',
-                        secondary: '#10b981',
-                        dark: '#1e293b'
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81'
+                        }
                     }
                 }
             }
         }
     </script>
-    
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .sidebar-item:hover { background-color: #f1f5f9; color: #4f46e5; border-radius: 0.5rem; transition: all 0.3s; }
-        .sidebar-item.active { background-color: #e0e7ff; color: #4f46e5; border-radius: 0.5rem; font-weight: 600; }
-        /* Scrollbar styling */
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .pulse-live {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .4; }
+        }
+        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Smooth Kanban horizontal scrolling on mobile */
+        .kanban-scroll-container {
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+        .kanban-col {
+            scroll-snap-align: start;
+        }
     </style>
 </head>
-<body class="text-slate-800 antialiased flex h-screen overflow-hidden">
+<body class="h-full overflow-hidden text-slate-800 bg-slate-50 flex">
 
-    <!-- Sidebar -->
-    <aside id="sidebar" class="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex z-50 transition-all duration-300">
-        <div class="h-16 flex items-center px-6 border-b border-slate-200">
-            <div class="text-xl font-bold text-primary flex items-center gap-2">
-                <i class="fa-solid fa-book-open"></i> MemoryYearbook
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div id="mobileBackdrop" class="fixed inset-0 bg-slate-900/60 z-40 hidden transition-opacity duration-300 md:hidden"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="fixed md:relative inset-y-0 left-0 w-64 bg-slate-900 text-slate-300 flex flex-col -translate-x-full md:translate-x-0 transition-transform duration-300 z-50 shrink-0 h-full">
+        <!-- Logo Header -->
+        <div class="h-16 flex items-center px-5 border-b border-slate-800 justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-brand-500/30">
+                    <i class="fa-solid fa-book-open"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-white text-base leading-tight">Yearbook CRM</h1>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Marketing KPI Hub</p>
+                </div>
+            </div>
+            <!-- Close button for mobile screen -->
+            <button id="closeMobileSidebarBtn" class="md:hidden text-slate-400 hover:text-white p-2">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Sidebar Navigation Items -->
+        <div class="p-4 flex-1 overflow-y-auto space-y-6">
+            <div>
+                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 px-3">Main Monitoring</div>
+                <nav class="space-y-1">
+                    <button id="navDashboard" class="w-full sidebar-item active flex items-center gap-3 px-3.5 py-3 rounded-lg bg-brand-600 text-white font-medium text-sm transition text-left">
+                        <i class="fa-solid fa-gauge-high w-5 text-center"></i> Real-time Dashboard
+                    </button>
+                    <button id="navDatabase" class="w-full sidebar-item flex items-center gap-3 px-3.5 py-3 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-sm transition text-left">
+                        <i class="fa-solid fa-building-columns w-5 text-center"></i> Database Sekolah
+                    </button>
+                    <button id="navDailyActivity" class="w-full sidebar-item flex items-center gap-3 px-3.5 py-3 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-sm transition text-left">
+                        <i class="fa-solid fa-calendar-day w-5 text-center"></i> Daily Activity
+                    </button>
+                    <button id="navPipeline" class="w-full sidebar-item flex items-center gap-3 px-3.5 py-3 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-sm transition text-left">
+                        <i class="fa-solid fa-border-all w-5 text-center"></i> Pipeline (Kanban)
+                    </button>
+                    <button id="navGpsMonitoring" class="w-full sidebar-item flex items-center gap-3 px-3.5 py-3 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-sm transition text-left hidden">
+                        <i class="fa-solid fa-map-location-dot w-5 text-center"></i> Monitoring GPS
+                    </button>
+                    <button id="navSettings" class="w-full sidebar-item flex items-center gap-3 px-3.5 py-3 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-sm transition text-left">
+                        <i class="fa-solid fa-gear w-5 text-center"></i> Pengaturan
+                    </button>
+                </nav>
             </div>
         </div>
-        <div class="p-4 flex-1 overflow-y-auto">
-            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 mt-2">Menu Utama</div>
-            <nav class="space-y-1">
-                <a href="#" class="sidebar-item active flex items-center gap-3 px-3 py-2.5">
-                    <i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard
-                </a>
-                <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-slate-600">
-                    <i class="fa-solid fa-school w-5 text-center"></i> Data Sekolah
-                </a>
-                <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-slate-600">
-                    <i class="fa-solid fa-file-invoice w-5 text-center"></i> Penawaran
-                </a>
-                <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-slate-600">
-                    <i class="fa-solid fa-chart-line w-5 text-center"></i> Laporan
-                </a>
-            </nav>
 
-            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 mt-8">Pengaturan</div>
-            <nav class="space-y-1">
-                <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-slate-600">
-                    <i class="fa-solid fa-users w-5 text-center"></i> Tim Marketing
-                </a>
-                <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-slate-600">
-                    <i class="fa-solid fa-cog w-5 text-center"></i> Pengaturan
-                </a>
-            </nav>
-        </div>
-        
-        <!-- User Profile (Sidebar Bottom) -->
-        <div class="p-4 border-t border-slate-200">
-            <div class="flex items-center gap-3">
-                <img src="https://placehold.co/100x100/4f46e5/white?text=A" alt="User" class="w-9 h-9 rounded-full">
+        <!-- System Live Status & User Profile -->
+        <div class="p-4 border-t border-slate-800 space-y-3">
+            <div class="bg-slate-800/80 rounded-lg p-2.5 text-xs flex items-center justify-between border border-slate-700/50">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-live"></span>
+                    <span class="text-slate-300 font-medium">Server Realtime</span>
+                </div>
+                <span class="text-slate-400 text-[10px]" id="liveTimer">12:00 WIB</span>
+            </div>
+            
+            <div class="flex items-center gap-3 pt-1">
+                <img id="userAvatarImg" src="https://placehold.co/100x100/4f46e5/white?text=A" alt="Avatar" class="w-9 h-9 rounded-full ring-2 ring-brand-500/50">
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-slate-900 truncate">Andi Susanto</p>
-                    <p class="text-xs text-slate-500 truncate">Head of Marketing</p>
+                    <p class="text-xs font-semibold text-white truncate" id="userNameLabel">Andi Susanto</p>
+                    <p class="text-[10px] text-brand-300 font-bold uppercase truncate" id="userRoleBadge">Marketing Executive</p>
                 </div>
             </div>
         </div>
     </aside>
 
-    <!-- Main Content -->
-    <div class="flex-1 flex flex-col h-screen overflow-hidden">
-        
+    <!-- Main Work Area -->
+    <div class="flex-1 flex flex-col h-full overflow-hidden w-full min-w-0">
+
         <!-- Top Header -->
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-10">
-            <div class="flex items-center gap-4">
-                <button id="mobileMenuBtn" class="md:hidden text-slate-500 hover:text-slate-700">
-                    <i class="fa-solid fa-bars text-xl"></i>
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-3 sm:px-6 shrink-0 gap-2">
+            <div class="flex items-center gap-2 sm:gap-4 min-w-0">
+                <button id="mobileMenuBtn" class="md:hidden text-slate-600 hover:text-slate-900 p-2 rounded-lg bg-slate-100 focus:outline-none shrink-0" title="Buka Menu">
+                    <i class="fa-solid fa-bars text-lg"></i>
                 </button>
-                <h1 class="text-lg font-semibold text-slate-800">Laporan Kuartal 3 - 2026</h1>
-            </div>
-            <div class="flex items-center gap-4">
-                <div id="notificationBtn" class="relative cursor-pointer">
-                    <i class="fa-solid fa-bell text-slate-400 hover:text-slate-600 text-xl"></i>
-                    <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                <div class="min-w-0">
+                    <h2 class="text-sm sm:text-lg font-bold text-slate-900 leading-tight flex items-center gap-2 truncate" id="headerTitle">
+                        Dashboard KPI Real-Time
+                    </h2>
+                    <p class="text-[11px] sm:text-xs text-slate-500 hidden sm:block truncate" id="headerSub">Monitoring target penjualan buku tahunan sekolah secara terpusat</p>
                 </div>
-                <button id="addProspectBtn" class="bg-primary hover:bg-indigo-700 text-white text-sm font-medium py-2 px-4 rounded-lg shadow-sm transition-colors flex items-center gap-2">
-                    <i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">Tambah Prospek</span>
+            </div>
+
+            <!-- Top Header Actions & Role Switcher -->
+            <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
+                <!-- Role Switcher for Testing Access Rights -->
+                <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase px-1 hidden lg:inline">Role:</span>
+                    <select id="roleSelector" class="bg-white text-slate-800 text-[11px] sm:text-xs font-bold rounded p-1 sm:p-1.5 border border-slate-300 focus:outline-none focus:ring-1 focus:ring-brand-500">
+                        <option value="Marketing_Andi">Marketing: Andi</option>
+                        <option value="Marketing_Rian">Marketing: Rian</option>
+                        <option value="HR">Akses: HR</option>
+                        <option value="Owner">Akses: Owner</option>
+                    </select>
+                </div>
+
+                <button id="refreshDataBtn" class="p-2 text-slate-500 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition" title="Refresh Data">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+
+                <button id="btnOpenSchoolModal" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold p-2 sm:py-2 sm:px-3 rounded-lg shadow-sm transition flex items-center gap-1.5" title="Tambah Sekolah">
+                    <i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">Tambah Sekolah</span>
+                </button>
+
+                <button id="btnOpenDailyActivityModalHeader" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold p-2 sm:py-2 sm:px-3 rounded-lg shadow-sm transition flex items-center gap-1.5" title="Catat Aktivitas">
+                    <i class="fa-solid fa-clipboard-list"></i> <span class="hidden sm:inline">Catat Aktivitas</span>
                 </button>
             </div>
         </header>
 
-        <!-- Main Scrollable Area -->
-        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50/50 p-4 sm:p-6 lg:p-8">
-            
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <!-- Card 1 -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-sm font-medium text-slate-500 mb-1">Total Sekolah Target</p>
-                            <h3 class="text-2xl font-bold text-slate-800">124</h3>
-                        </div>
-                        <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                            <i class="fa-solid fa-building-columns"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-sm">
-                        <span class="text-secondary font-medium flex items-center gap-1"><i class="fa-solid fa-arrow-up"></i> 12%</span>
-                        <span class="text-slate-400 ml-2">dari bulan lalu</span>
-                    </div>
-                </div>
+        <!-- Main Scrollable Content -->
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 p-3 sm:p-6 space-y-6">
 
-                <!-- Card 2 -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-sm font-medium text-slate-500 mb-1">Sekolah Deal (Closing)</p>
-                            <h3 class="text-2xl font-bold text-slate-800">38</h3>
-                        </div>
-                        <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
-                            <i class="fa-solid fa-handshake"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-sm">
-                        <span class="text-secondary font-medium flex items-center gap-1"><i class="fa-solid fa-arrow-up"></i> 5%</span>
-                        <span class="text-slate-400 ml-2">dari bulan lalu</span>
-                    </div>
-                </div>
-
-                <!-- Card 3 -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-sm font-medium text-slate-500 mb-1">Estimasi Pendapatan</p>
-                            <h3 class="text-2xl font-bold text-slate-800">Rp 1.2M</h3>
-                        </div>
-                        <div class="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
-                            <i class="fa-solid fa-wallet"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-sm">
-                        <span class="text-secondary font-medium flex items-center gap-1"><i class="fa-solid fa-arrow-up"></i> 18%</span>
-                        <span class="text-slate-400 ml-2">dari bulan lalu</span>
-                    </div>
-                </div>
-
-                <!-- Card 4 -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-sm font-medium text-slate-500 mb-1">Conversion Rate</p>
-                            <h3 class="text-2xl font-bold text-slate-800">30.6%</h3>
-                        </div>
-                        <div class="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-600">
-                            <i class="fa-solid fa-chart-pie"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-sm">
-                        <span class="text-red-500 font-medium flex items-center gap-1"><i class="fa-solid fa-arrow-down"></i> 2%</span>
-                        <span class="text-slate-400 ml-2">dari bulan lalu</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Charts Section -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                <!-- Bar Chart: Progres Penjualan -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 lg:col-span-2">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-lg font-bold text-slate-800">Progres Closing Bulanan</h2>
-                        <select class="bg-slate-50 border border-slate-200 text-slate-600 text-sm rounded-lg focus:ring-primary focus:border-primary block p-2">
-                            <option>Tahun Ajaran 2026/2027</option>
-                            <option>Tahun Ajaran 2025/2026</option>
-                        </select>
-                    </div>
-                    <div class="relative h-72 w-full">
-                        <canvas id="salesChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Doughnut Chart: Status Pendekatan -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-                    <h2 class="text-lg font-bold text-slate-800 mb-4">Status Prospek Sekolah</h2>
-                    <div class="relative h-64 w-full flex justify-center">
-                        <canvas id="statusChart"></canvas>
-                    </div>
-                    <div class="mt-4 grid grid-cols-2 gap-2 text-sm">
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500"></span> Pendekatan</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-yellow-400"></span> Negosiasi</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> Deal</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-400"></span> Batal</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Data Table -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h2 class="text-lg font-bold text-slate-800">Update Prospek Terbaru</h2>
-                    <div class="relative w-full sm:w-64">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                            <i class="fa-solid fa-search text-slate-400"></i>
-                        </div>
-                        <input type="text" id="searchInput" class="bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5" placeholder="Cari nama sekolah...">
-                    </div>
-                </div>
+            <!-- SECTION 1: VIEW REALTIME DASHBOARD KPI -->
+            <div id="viewDashboardSection" class="space-y-6">
                 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left text-slate-600">
-                        <thead class="text-xs text-slate-500 uppercase bg-slate-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-4 font-medium">Nama Sekolah</th>
-                                <th scope="col" class="px-6 py-4 font-medium">Kontak (PIC)</th>
-                                <th scope="col" class="px-6 py-4 font-medium">Estimasi Siswa</th>
-                                <th scope="col" class="px-6 py-4 font-medium">Paket Dipilih</th>
-                                <th scope="col" class="px-6 py-4 font-medium">Status</th>
-                                <th scope="col" class="px-6 py-4 font-medium text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            <tr class="bg-white border-b hover:bg-slate-50 transition-colors">
-                                <td class="px-6 py-4 font-semibold text-slate-800">SMA Negeri 1 Jakarta</td>
-                                <td class="px-6 py-4">Bpk. Budi (Wakasek)</td>
-                                <td class="px-6 py-4">350 Siswa</td>
-                                <td class="px-6 py-4"><span class="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded border border-indigo-200">Premium Hardcover</span></td>
-                                <td class="px-6 py-4">
-                                    <span class="bg-emerald-100 text-emerald-800 text-xs font-medium px-2.5 py-0.5 rounded-full flex items-center w-max gap-1">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-600"></div> Deal
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <button class="text-primary hover:text-indigo-900 mx-1" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
-                                    <button class="text-slate-400 hover:text-slate-600 mx-1" title="Detail"><i class="fa-solid fa-chevron-right"></i></button>
-                                </td>
-                            </tr>
-                            <tr class="bg-white border-b hover:bg-slate-50 transition-colors">
-                                <td class="px-6 py-4 font-semibold text-slate-800">SMA Kristen BPK Penabur</td>
-                                <td class="px-6 py-4">Ibu Sisca (OSIS)</td>
-                                <td class="px-6 py-4">220 Siswa</td>
-                                <td class="px-6 py-4"><span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-200">Standard Softcover</span></td>
-                                <td class="px-6 py-4">
-                                    <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full flex items-center w-max gap-1">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-yellow-600"></div> Negosiasi
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <button class="text-primary hover:text-indigo-900 mx-1" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
-                                    <button class="text-slate-400 hover:text-slate-600 mx-1" title="Detail"><i class="fa-solid fa-chevron-right"></i></button>
-                                </td>
-                            </tr>
-                            <tr class="bg-white border-b hover:bg-slate-50 transition-colors">
-                                <td class="px-6 py-4 font-semibold text-slate-800">SMK Telkom Malang</td>
-                                <td class="px-6 py-4">Pak Ahmad (Humas)</td>
-                                <td class="px-6 py-4">450 Siswa</td>
-                                <td class="px-6 py-4"><span class="bg-slate-100 text-slate-800 text-xs font-medium px-2.5 py-0.5 rounded border border-slate-200">Belum Ditentukan</span></td>
-                                <td class="px-6 py-4">
-                                    <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full flex items-center w-max gap-1">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-blue-600"></div> Pendekatan Baru
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <button class="text-primary hover:text-indigo-900 mx-1" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
-                                    <button class="text-slate-400 hover:text-slate-600 mx-1" title="Detail"><i class="fa-solid fa-chevron-right"></i></button>
-                                </td>
-                            </tr>
-                            <tr class="bg-white hover:bg-slate-50 transition-colors">
-                                <td class="px-6 py-4 font-semibold text-slate-800">SMA Al Azhar 1</td>
-                                <td class="px-6 py-4">Fathia (Ketua Panitia)</td>
-                                <td class="px-6 py-4">300 Siswa</td>
-                                <td class="px-6 py-4"><span class="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded border border-indigo-200">Premium Hardcover</span></td>
-                                <td class="px-6 py-4">
-                                    <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full flex items-center w-max gap-1">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-red-600"></div> Batal / Cancel
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <button class="text-primary hover:text-indigo-900 mx-1" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
-                                    <button class="text-slate-400 hover:text-slate-600 mx-1" title="Detail"><i class="fa-solid fa-chevron-right"></i></button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Ikhtisar KPI Utama</h3>
+                    <span class="text-[11px] text-slate-500">Update: <strong class="text-slate-700">Realtime</strong></span>
                 </div>
-                <!-- Pagination -->
-                <div class="px-6 py-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <span class="text-sm text-slate-500">Menampilkan <span class="font-semibold text-slate-700">1</span> sampai <span class="font-semibold text-slate-700">4</span> dari <span class="font-semibold text-slate-700">124</span> Entri</span>
-                    <div class="inline-flex rounded-md shadow-sm" role="group">
-                        <button type="button" class="px-4 py-2 text-sm font-medium text-slate-900 bg-white border border-slate-200 rounded-l-lg hover:bg-slate-100 hover:text-primary">
-                            Sebelumnya
-                        </button>
-                        <button type="button" class="px-4 py-2 text-sm font-medium text-white bg-primary border border-primary hover:bg-indigo-700">
-                            1
-                        </button>
-                        <button type="button" class="px-4 py-2 text-sm font-medium text-slate-900 bg-white border border-slate-200 hover:bg-slate-100 hover:text-primary">
-                            2
-                        </button>
-                        <button type="button" class="px-4 py-2 text-sm font-medium text-slate-900 bg-white border border-slate-200 rounded-r-lg hover:bg-slate-100 hover:text-primary">
-                            Selanjutnya
-                        </button>
+
+                <!-- Grid Layout for 10 KPIs -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                    
+                    <!-- KPI 1: Total Database Sekolah -->
+                    <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1">
+                            <span class="truncate">1. Database Sekolah</span>
+                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-school text-xs sm:text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-xl sm:text-2xl font-extrabold text-slate-900" id="kpiTotalSchoolCount">4</div>
+                        <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 flex items-center gap-1 truncate">
+                            <span class="text-emerald-600 font-semibold"><i class="fa-solid fa-arrow-up"></i> +18</span>
+                            <span>sekolah baru</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI 2: Total Hot / Warm / Cold -->
+                    <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1">
+                            <span class="truncate">2. Status Kualifikasi</span>
+                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-temperature-three-quarters text-xs sm:text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-baseline justify-between text-[10px] sm:text-xs font-bold pt-1 gap-1">
+                            <span class="text-red-600 bg-red-50 px-1 py-0.5 rounded border border-red-100 truncate" id="kpiHotCount">Hot: 32</span>
+                            <span class="text-amber-600 bg-amber-50 px-1 py-0.5 rounded border border-amber-100 truncate" id="kpiWarmCount">Warm: 86</span>
+                            <span class="text-blue-600 bg-blue-50 px-1 py-0.5 rounded border border-blue-100 truncate" id="kpiColdCount">Cold: 166</span>
+                        </div>
+                        <div class="mt-2 text-[10px] sm:text-[11px] text-slate-500">
+                            Total: <strong id="kpiTotalLeadsCount">284 Leads</strong>
+                        </div>
+                    </div>
+
+                    <!-- KPI 3: Total Kunjungan -->
+                    <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1">
+                            <span class="truncate">3. Total Kunjungan</span>
+                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-map-location-dot text-xs sm:text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-xl sm:text-2xl font-extrabold text-slate-900" id="kpiVisitCount">142</div>
+                        <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 flex items-center gap-1 truncate">
+                            <span class="text-emerald-600 font-semibold"><i class="fa-solid fa-arrow-up"></i> +12.4%</span>
+                            <span>vs target</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI 4: Total Follow Up -->
+                    <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1">
+                            <span class="truncate">4. Total Follow Up</span>
+                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-phone-volume text-xs sm:text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-xl sm:text-2xl font-extrabold text-slate-900" id="kpiFollowUpCount">418</div>
+                        <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 truncate">
+                            <strong>2.9x</strong> rasio sentuhan
+                        </div>
+                    </div>
+
+                    <!-- KPI 5: Total Presentasi -->
+                    <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1">
+                            <span class="truncate">5. Total Presentasi</span>
+                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-display text-xs sm:text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-xl sm:text-2xl font-extrabold text-slate-900" id="kpiPresentasiCount">54</div>
+                        <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 truncate">
+                            Presentasi OSIS & Panitia
+                        </div>
+                    </div>
+
+                    <!-- KPI 6: Total Pipeline -->
+                    <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1">
+                            <span class="truncate">6. Total Pipeline</span>
+                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-filter-circle-dollar text-xs sm:text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-xl sm:text-2xl font-extrabold text-slate-900" id="kpiPipelineValue">Rp 2.85M</div>
+                        <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 truncate">
+                            <strong>68 Sekolah</strong> aktif
+                        </div>
+                    </div>
+
+                    <!-- KPI 7: Total Deal -->
+                    <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1">
+                            <span class="truncate">7. Total Deal</span>
+                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-handshake-angle text-xs sm:text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-xl sm:text-2xl font-extrabold text-emerald-600" id="kpiDealCount">42 <span class="text-xs font-medium text-slate-500">Sklh</span></div>
+                        <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 truncate">
+                            Closing Kontrak
+                        </div>
+                    </div>
+
+                    <!-- KPI 8: Total Omzet -->
+                    <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1">
+                            <span class="truncate">8. Total Omzet</span>
+                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-sack-dollar text-xs sm:text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-lg sm:text-xl font-extrabold text-slate-900 truncate" id="kpiOmzetValue">Rp 1.54M</div>
+                        <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 truncate flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check text-emerald-500"></i> Verified
+                        </div>
+                    </div>
+
+                    <!-- KPI 9: Conversion Rate -->
+                    <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1">
+                            <span class="truncate">9. Conversion Rate</span>
+                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-chart-line text-xs sm:text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-xl sm:text-2xl font-extrabold text-slate-900" id="kpiConversionRate">29.5%</div>
+                        <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 truncate">
+                            Database ke Deal
+                        </div>
+                    </div>
+
+                    <!-- KPI 10: Progress Target Marketing -->
+                    <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition col-span-2 sm:col-span-1">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1">
+                            <span class="truncate">10. Target Achievement</span>
+                            <span class="text-xs font-extrabold text-brand-600" id="kpiTargetPercent">77%</span>
+                        </div>
+                        <div class="text-[10px] sm:text-[11px] text-slate-600 font-semibold mb-1.5 truncate" id="kpiTargetText">
+                            Rp 1.54M / Rp 2.00M
+                        </div>
+                        <!-- Progress Bar -->
+                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                            <div id="kpiProgressBar" class="bg-brand-600 h-2 rounded-full" style="width: 77%"></div>
+                        </div>
+                        <div class="mt-1.5 text-[10px] text-slate-400 flex justify-between">
+                            <span>Sisa: Rp 460Jt</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Grafik Performa & Funnel -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                    <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-sm lg:col-span-2 flex flex-col justify-between">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                            <div>
+                                <h3 class="text-sm sm:text-base font-bold text-slate-900">Grafik Performa Marketing & Trend Omzet</h3>
+                                <p class="text-xs text-slate-500">Perbandingan target vs pencapaian deal & omzet bulanan</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <select id="chartMetricSelect" class="bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-brand-500">
+                                    <option value="omzet">Omzet Penjualan (Rupiah)</option>
+                                    <option value="deal">Jumlah Deal Sekolah</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="relative h-64 sm:h-72 w-full">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Funnel Marketing -->
+                    <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-sm sm:text-base font-bold text-slate-900">Funnel Marketing</h3>
+                                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">Bulan Ini</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-4">Tingkat konversi aktivitas ke hasil deal</p>
+
+                            <div class="space-y-3">
+                                <div>
+                                    <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                                        <span>1. Database & Kontak (284)</span>
+                                        <span>100%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5">
+                                        <div class="bg-slate-400 h-2.5 rounded-full" style="width: 100%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                                        <span>2. Kunjungan Sekolah (142)</span>
+                                        <span>50%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5">
+                                        <div class="bg-blue-500 h-2.5 rounded-full" style="width: 50%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                                        <span>3. Presentasi Panitia (54)</span>
+                                        <span>19%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5">
+                                        <div class="bg-purple-500 h-2.5 rounded-full" style="width: 38%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                                        <span>4. Proposal / Pipeline (68)</span>
+                                        <span>24%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5">
+                                        <div class="bg-amber-500 h-2.5 rounded-full" style="width: 47%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs font-semibold text-emerald-700 mb-1">
+                                        <span>5. Closing Deal (42)</span>
+                                        <span class="font-bold">14.8% Total</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5">
+                                        <div class="bg-emerald-500 h-2.5 rounded-full" style="width: 30%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between items-center">
+                            <span>Metode Utama: <strong>Direct Visit</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard Tim Marketing -->
+                <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+                    <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                        <div>
+                            <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-trophy text-amber-500"></i> Ranking & Leaderboard Tim Marketing
+                            </h3>
+                            <p class="text-xs text-slate-500">Evaluasi performa individu tim sales/marketing berdasarkan KPI real-time</p>
+                        </div>
+                    </div>
+
+                    <!-- Top 3 Podium Highlights -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 p-4 sm:p-5 bg-slate-50/50">
+                        <!-- Rank 2 -->
+                        <div class="bg-white rounded-xl p-3.5 border border-slate-200 shadow-sm flex items-center gap-3 relative overflow-hidden">
+                            <div class="absolute -right-2 -bottom-2 text-5xl font-black text-slate-100 select-none">2</div>
+                            <div class="relative shrink-0">
+                                <img src="https://placehold.co/100x100/3b82f6/white?text=S" alt="Siti" class="w-11 h-11 rounded-full ring-2 ring-slate-200">
+                                <span class="absolute -bottom-1 -right-1 bg-slate-300 text-slate-800 text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">2</span>
+                            </div>
+                            <div class="min-w-0">
+                                <h4 class="font-bold text-slate-900 text-xs sm:text-sm truncate">Siti Rahmawati</h4>
+                                <p class="text-[11px] text-slate-500">Senior Marketing</p>
+                                <div class="mt-1 flex items-center gap-2 text-xs">
+                                    <span class="font-extrabold text-slate-800">12 Deal</span>
+                                    <span class="text-emerald-600 font-semibold">Rp 480 Jt</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rank 1 -->
+                        <div class="bg-gradient-to-br from-amber-500/10 via-white to-amber-500/5 rounded-xl p-4 border-2 border-amber-400 shadow-md flex items-center gap-3 relative overflow-hidden">
+                            <div class="absolute -right-2 -bottom-2 text-6xl font-black text-amber-200/50 select-none">1</div>
+                            <div class="relative shrink-0">
+                                <img src="https://placehold.co/100x100/f59e0b/white?text=R" alt="Rian" class="w-12 h-12 rounded-full ring-4 ring-amber-400">
+                                <span class="absolute -bottom-1 -right-1 bg-amber-400 text-amber-950 text-[10px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center shadow">1</span>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="inline-block bg-amber-100 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded mb-0.5">Top #1</div>
+                                <h4 class="font-bold text-slate-900 text-sm sm:text-base truncate">Rian Ardianto</h4>
+                                <p class="text-[11px] text-slate-500">Account Executive</p>
+                                <div class="mt-1 flex items-center gap-2 text-xs">
+                                    <span class="font-extrabold text-slate-900">15 Deal</span>
+                                    <span class="text-emerald-600 font-extrabold">Rp 580 Jt</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rank 3 -->
+                        <div class="bg-white rounded-xl p-3.5 border border-slate-200 shadow-sm flex items-center gap-3 relative overflow-hidden">
+                            <div class="absolute -right-2 -bottom-2 text-5xl font-black text-amber-800/10 select-none">3</div>
+                            <div class="relative shrink-0">
+                                <img src="https://placehold.co/100x100/10b981/white?text=B" alt="Budi" class="w-11 h-11 rounded-full ring-2 ring-amber-700/30">
+                                <span class="absolute -bottom-1 -right-1 bg-amber-700 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">3</span>
+                            </div>
+                            <div class="min-w-0">
+                                <h4 class="font-bold text-slate-900 text-xs sm:text-sm truncate">Budi Prasetyo</h4>
+                                <p class="text-[11px] text-slate-500">Junior Sales Executive</p>
+                                <div class="mt-1 flex items-center gap-2 text-xs">
+                                    <span class="font-extrabold text-slate-800">9 Deal</span>
+                                    <span class="text-emerald-600 font-semibold">Rp 320 Jt</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SECTION 2: VIEW DATABASE SEKOLAH (DEDICATED VIEW) -->
+            <div id="viewDatabaseSection" class="space-y-6 hidden">
+                <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden p-4 sm:p-5">
+                    
+                    <!-- View Header & Controls -->
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-5 pb-4 border-b border-slate-100">
+                        <div>
+                            <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-building-columns text-brand-600"></i> Master Database Sekolah Target
+                            </h3>
+                            <p class="text-xs text-slate-500">Kelola dan input data sekolah target, jenjang, wilayah, serta kontak PIC</p>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
+                            <!-- Search Input -->
+                            <div class="relative flex-1 sm:w-64 min-w-[160px]">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+                                <input type="text" id="searchSchoolInput" placeholder="Cari nama sekolah / PIC..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            </div>
+
+                            <!-- Filter Jenjang -->
+                            <select id="filterJenjangSelect" class="bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                                <option value="">Semua Jenjang</option>
+                                <option value="SMP">SMP</option>
+                                <option value="SMA">SMA</option>
+                                <option value="SMK">SMK</option>
+                                <option value="MAN">MAN</option>
+                            </select>
+
+                            <button id="btnExportSchoolsCsv" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2 px-3 rounded-lg border border-slate-300 transition flex items-center gap-1.5" title="Export Spreadsheet Excel">
+                                <i class="fa-solid fa-file-excel text-emerald-600"></i> <span class="hidden sm:inline">Export Excel</span>
+                            </button>
+
+                            <button id="btnAddNewSchoolMain" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3.5 rounded-lg shadow-sm transition flex items-center gap-2 shrink-0">
+                                <i class="fa-solid fa-plus"></i> <span>+ Tambah Baru</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Master Database Table -->
+                    <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                        <table class="w-full text-xs text-left text-slate-600 min-w-[700px]">
+                            <thead class="bg-slate-50 uppercase text-slate-500 font-semibold border-b border-slate-200">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3">Nama Sekolah</th>
+                                    <th scope="col" class="px-4 py-3">Jenjang</th>
+                                    <th scope="col" class="px-4 py-3">Wilayah & Alamat</th>
+                                    <th scope="col" class="px-4 py-3">PIC Sekolah</th>
+                                    <th scope="col" class="px-4 py-3">No. WhatsApp</th>
+                                    <th scope="col" class="px-4 py-3">Marketing</th>
+                                    <th scope="col" class="px-4 py-3 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="schoolTableBody" class="divide-y divide-slate-200">
+                                <!-- Dynamic Render from JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SECTION 3: VIEW DAILY ACTIVITY MARKETING -->
+            <div id="viewDailyActivitySection" class="space-y-6 hidden">
+                <!-- Panduan Kategori Status Target Market -->
+                <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 sm:p-5">
+                    <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-book-bookmark text-brand-600"></i> Panduan Kategori Target Market (Marketing BTS)
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-medium">Petunjuk Kualifikasi Lead</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left border border-slate-200 rounded-lg overflow-hidden min-w-[500px]">
+                            <thead class="bg-slate-50 uppercase text-slate-600 font-bold border-b border-slate-200">
+                                <tr>
+                                    <th scope="col" class="px-3 sm:px-4 py-2.5 w-1/5">Target Market</th>
+                                    <th scope="col" class="px-3 sm:px-4 py-2.5 w-2/5">Pengertian</th>
+                                    <th scope="col" class="px-3 sm:px-4 py-2.5 w-2/5">Contoh Marketing BTS</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 font-normal text-slate-700">
+                                <tr class="hover:bg-amber-50/30 transition">
+                                    <td class="px-3 sm:px-4 py-2.5 font-bold text-red-600 flex items-center gap-1.5">
+                                        <span class="text-sm">🔥</span> Hot
+                                    </td>
+                                    <td class="px-3 sm:px-4 py-2.5">Sangat tertarik dan <strong>berpotensi segera deal</strong></td>
+                                    <td class="px-3 sm:px-4 py-2.5 text-slate-600">Sekolah sudah minta proposal, jadwal presentasi, atau sedang negosiasi</td>
+                                </tr>
+                                <tr class="hover:bg-amber-50/30 transition">
+                                    <td class="px-3 sm:px-4 py-2.5 font-bold text-amber-600 flex items-center gap-1.5">
+                                        <span class="text-sm">💥</span> Warm
+                                    </td>
+                                    <td class="px-3 sm:px-4 py-2.5">Sudah tertarik tetapi <strong>belum siap mengambil keputusan</strong></td>
+                                    <td class="px-3 sm:px-4 py-2.5 text-slate-600">Sudah komunikasi dengan PIC, tertarik produk, tetapi masih perlu follow-up</td>
+                                </tr>
+                                <tr class="hover:bg-blue-50/30 transition">
+                                    <td class="px-3 sm:px-4 py-2.5 font-bold text-blue-600 flex items-center gap-1.5">
+                                        <span class="text-sm">❄️</span> Cold
+                                    </td>
+                                    <td class="px-3 sm:px-4 py-2.5">Belum memiliki ketertarikan atau <strong>belum ada komunikasi</strong></td>
+                                    <td class="px-3 sm:px-4 py-2.5 text-slate-600">Database sekolah baru, belum pernah dihubungi atau belum merespons</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Log Daily Activity Table & Add Button -->
+                <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 sm:p-5">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5 pb-4 border-b border-slate-100">
+                        <div>
+                            <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-list-check text-brand-600"></i> Catatan Daily Activity Marketing
+                            </h3>
+                            <p class="text-xs text-slate-500">Rekapitulasi kunjungan harian, jam check-in/out, lokasi GPS, dan bukti foto</p>
+                        </div>
+
+                        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                            <button id="btnExportDailyCsv" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2 px-3 rounded-lg border border-slate-300 transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-file-excel text-emerald-600"></i> Export Excel
+                            </button>
+                            <button id="btnOpenDailyActivityModal" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold py-2 px-3.5 rounded-lg shadow-sm transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-plus"></i> + Catat Aktivitas
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabel Daily Activity -->
+                    <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                        <table class="w-full text-xs text-left text-slate-600 min-w-[700px]">
+                            <thead class="bg-slate-50 uppercase text-slate-500 font-semibold border-b border-slate-200">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3">Tgl & Jam</th>
+                                    <th scope="col" class="px-4 py-3">Marketing</th>
+                                    <th scope="col" class="px-4 py-3">Sekolah Target</th>
+                                    <th scope="col" class="px-4 py-3">Aktivitas</th>
+                                    <th scope="col" class="px-4 py-3">Pihak Ditemui</th>
+                                    <th scope="col" class="px-4 py-3 text-center">Status</th>
+                                    <th scope="col" class="px-4 py-3">GPS & Foto</th>
+                                    <th scope="col" class="px-4 py-3 text-right">Nilai Prospek</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dailyActivityTableBody" class="divide-y divide-slate-200">
+                                <!-- Dynamic Render from JS -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-            
-            <!-- Footer spacing -->
-            <div class="h-8"></div>
+
+            <!-- SECTION 4: VIEW PIPELINE (KANBAN BOARD) -->
+            <div id="viewPipelineSection" class="space-y-6 hidden">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-sm">
+                    <div>
+                        <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-border-all text-brand-600"></i> Kanban Pipeline Marketing Buku Tahunan
+                        </h3>
+                        <p class="text-xs text-slate-500">Setiap sekolah berpindah tahapan secara otomatis saat aktivitas harian diinput oleh tim marketing</p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 font-medium">
+                            <i class="fa-solid fa-arrows-rotate text-brand-600 mr-1"></i> Auto-Sync Daily Activity
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Kanban Columns Grid (Horizontal Scroll on Mobile) -->
+                <div class="flex sm:grid sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 overflow-x-auto pb-4 kanban-scroll-container">
+                    
+                    <!-- Col 1: Canvassing -->
+                    <div class="kanban-col bg-slate-100/80 rounded-xl p-3 border border-slate-200 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink">
+                        <div class="flex items-center justify-between font-bold text-slate-700 text-xs mb-3 pb-2 border-b border-slate-200">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-shoe-prints text-slate-500"></i> Canvassing</span>
+                            <span class="bg-slate-200 text-slate-800 text-[10px] px-2 py-0.5 rounded-full" id="countCanvassing">0</span>
+                        </div>
+                        <div class="space-y-3 min-h-[120px]" id="kanbanCanvassing"></div>
+                    </div>
+
+                    <!-- Col 2: Follow Up -->
+                    <div class="kanban-col bg-indigo-50/50 rounded-xl p-3 border border-indigo-100 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink">
+                        <div class="flex items-center justify-between font-bold text-indigo-900 text-xs mb-3 pb-2 border-b border-indigo-100">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-phone-volume text-indigo-500"></i> Follow Up</span>
+                            <span class="bg-indigo-100 text-indigo-800 text-[10px] px-2 py-0.5 rounded-full" id="countFollowUp">0</span>
+                        </div>
+                        <div class="space-y-3 min-h-[120px]" id="kanbanFollowUp"></div>
+                    </div>
+
+                    <!-- Col 3: Presentasi -->
+                    <div class="kanban-col bg-purple-50/50 rounded-xl p-3 border border-purple-100 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink">
+                        <div class="flex items-center justify-between font-bold text-purple-900 text-xs mb-3 pb-2 border-b border-purple-100">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-display text-purple-500"></i> Presentasi</span>
+                            <span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.5 rounded-full" id="countPresentasi">0</span>
+                        </div>
+                        <div class="space-y-3 min-h-[120px]" id="kanbanPresentasi"></div>
+                    </div>
+
+                    <!-- Col 4: Negosiasi -->
+                    <div class="kanban-col bg-amber-50/50 rounded-xl p-3 border border-amber-100 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink">
+                        <div class="flex items-center justify-between font-bold text-amber-900 text-xs mb-3 pb-2 border-b border-amber-100">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-comments-dollar text-amber-500"></i> Negosiasi</span>
+                            <span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full" id="countNegosiasi">0</span>
+                        </div>
+                        <div class="space-y-3 min-h-[120px]" id="kanbanNegosiasi"></div>
+                    </div>
+
+                    <!-- Col 5: Deal -->
+                    <div class="kanban-col bg-emerald-50/50 rounded-xl p-3 border border-emerald-200 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink">
+                        <div class="flex items-center justify-between font-bold text-emerald-900 text-xs mb-3 pb-2 border-b border-emerald-200">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-handshake-angle text-emerald-600"></i> Deal (Closing)</span>
+                            <span class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-full" id="countDeal">0</span>
+                        </div>
+                        <div class="space-y-3 min-h-[120px]" id="kanbanDeal"></div>
+                    </div>
+
+                    <!-- Col 6: Belum Deal -->
+                    <div class="kanban-col bg-rose-50/50 rounded-xl p-3 border border-rose-100 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink">
+                        <div class="flex items-center justify-between font-bold text-rose-900 text-xs mb-3 pb-2 border-b border-rose-100">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-circle-xmark text-rose-500"></i> Belum Deal</span>
+                            <span class="bg-rose-100 text-rose-800 text-[10px] px-2 py-0.5 rounded-full" id="countBelumDeal">0</span>
+                        </div>
+                        <div class="space-y-3 min-h-[120px]" id="kanbanBelumDeal"></div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SECTION 5: VIEW GPS MONITORING (KHUSUS OWNER & HR) -->
+            <div id="viewGpsSection" class="space-y-6 hidden">
+                <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-map-location-dot text-emerald-600"></i> Monitoring Lokasi GPS Visit Tim Marketing
+                        </h3>
+                        <p class="text-xs text-slate-500">Pelacakan posisi real-time, jam absensi visit, dan bukti foto lapangan (Fitur Khusus Owner & HR)</p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span class="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-emerald-200 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-live"></span> GPS Tracker Active
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Simulation Visual Map & Feed Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                    <!-- Interactive Visual Map Card -->
+                    <div class="lg:col-span-2 bg-slate-900 rounded-xl p-4 sm:p-5 text-white flex flex-col justify-between relative overflow-hidden min-h-[350px] shadow-md border border-slate-800">
+                        <!-- Simulated Radar Map Background -->
+                        <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                        
+                        <div class="relative z-10 flex justify-between items-center">
+                            <div>
+                                <span class="bg-indigo-500/20 text-indigo-300 text-[10px] font-mono px-2 py-0.5 rounded border border-indigo-500/30">LOKASI TIM SAAT INI</span>
+                                <h4 class="text-base sm:text-lg font-bold mt-1">Area Jabodetabek & Jawa Barat</h4>
+                            </div>
+                            <span class="text-xs font-mono text-slate-400" id="gpsLiveClock">Live Updates</span>
+                        </div>
+
+                        <!-- Simulated Markers on Map -->
+                        <div class="relative z-10 my-6 grid grid-cols-1 sm:grid-cols-2 gap-3" id="gpsMapPins">
+                            <!-- Rendered dynamically -->
+                        </div>
+
+                        <div class="relative z-10 text-[11px] text-slate-400 border-t border-slate-800 pt-3 flex justify-between">
+                            <span>Akurasi GPS Mobile: <strong>High (&lt; 10m)</strong></span>
+                            <span>Verifikasi Foto: <strong>Sesuai Geo-Tag</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Recent Visit Photo Stream -->
+                    <div class="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/80 shadow-sm flex flex-col">
+                        <h4 class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-camera text-brand-600"></i> Feed Foto Lokasi Terakhir
+                        </h4>
+                        <div class="space-y-3 flex-1 overflow-y-auto max-h-[320px] pr-1" id="gpsPhotoFeed">
+                            <!-- Rendered dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 6: VIEW PENGATURAN (SETTINGS) -->
+            <div id="viewSettingsSection" class="space-y-6 hidden">
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                    
+                    <!-- Column 1: Config Privacy & Access -->
+                    <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4 md:col-span-1">
+                        <h3 class="font-bold text-slate-900 text-sm border-b border-slate-100 pb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-user-lock text-brand-600"></i> Role & Hak Akses Tim
+                        </h3>
+
+                        <div class="space-y-3 text-xs">
+                            <label class="block font-semibold text-slate-700">Setiap Marketing Hanya Melihat Sekolah Miliknya</label>
+                            <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                                <div>
+                                    <div class="font-bold text-slate-900">Privasi Akun Marketing</div>
+                                    <div class="text-[10px] text-slate-500">Membatasi akses antar tim marketing</div>
+                                </div>
+                                <input type="checkbox" id="toggleRestrictMarketing" checked class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500 border-slate-300">
+                            </div>
+                            <p class="text-[11px] text-slate-500 italic">
+                                * Jika diaktifkan, pengguna dengan peran Marketing hanya dapat melihat & mengelola data sekolah yang diinput/ditugaskan kepada dirinya sendiri.
+                            </p>
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-100">
+                            <h4 class="font-bold text-xs text-slate-800 mb-2">Hierarki Hak Akses:</h4>
+                            <ul class="text-[11px] space-y-1.5 text-slate-600">
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-check text-emerald-500"></i> <strong>Owner:</strong> Akses penuh semua data, laporan & GPS</li>
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-check text-emerald-500"></i> <strong>HR Manager:</strong> Akses monitoring kinerja & GPS</li>
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-check text-indigo-500"></i> <strong>Marketing:</strong> Input database, visit, & pipeline milik sendiri</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Column 2 & 3: KPI Target Configuration -->
+                    <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-5 md:col-span-2">
+                        <h3 class="font-bold text-slate-900 text-sm border-b border-slate-100 pb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-bullseye text-amber-500"></i> Konfigurasi Target KPI Aktivitas & Bisnis
+                        </h3>
+
+                        <form id="settingsTargetsForm" class="space-y-4 text-xs">
+                            <div class="font-bold text-slate-800 text-xs">1. Target KPI Aktivitas (Bulanan)</div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-slate-600 mb-1 font-medium">Target Database Baru</label>
+                                    <input type="number" id="cfgTargetDatabase" value="300" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-600 mb-1 font-medium">Target Kunjungan</label>
+                                    <input type="number" id="cfgTargetVisit" value="150" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-600 mb-1 font-medium">Target Presentasi</label>
+                                    <input type="number" id="cfgTargetPresentasi" value="50" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                                </div>
+                            </div>
+
+                            <div class="font-bold text-slate-800 text-xs pt-2">2. Target KPI Bisnis & Pencapaian</div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-slate-600 mb-1 font-medium">Target Total Deal (Sekolah)</label>
+                                    <input type="number" id="cfgTargetDealCount" value="55" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-600 mb-1 font-medium">Target Total Omzet (Rp)</label>
+                                    <input type="number" id="cfgTargetOmzet" value="2000000000" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-extrabold text-emerald-700 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                                </div>
+                            </div>
+
+                            <div class="pt-4 border-t border-slate-100 flex justify-end">
+                                <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 px-5 rounded-lg shadow transition flex items-center gap-2">
+                                    <i class="fa-solid fa-floppy-disk"></i> Simpan Konfigurasi
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="h-6"></div>
         </main>
     </div>
 
+    <!-- MODAL FORM 1: TAMBAH / EDIT SEKOLAH (DATABASE MASTER) -->
+    <div id="modalAddSchool" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-3 sm:p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2" id="modalSchoolTitle">
+                    <i class="fa-solid fa-school-flag text-emerald-600"></i> Tambah Data Sekolah Baru
+                </h3>
+                <button id="btnCloseSchoolModal" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="schoolForm" class="mt-4 space-y-3.5">
+                
+                <!-- Nama Sekolah (Otomatis Uppercase) -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">
+                        Nama Sekolah <span class="text-red-500">*</span>
+                        <span class="text-[10px] text-brand-600 font-normal ml-1">(Auto UPPERCASE)</span>
+                    </label>
+                    <input type="text" id="inputSchoolName" required placeholder="Contoh: SMA NEGERI 1 JAKARTA" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none uppercase">
+                </div>
+
+                <!-- Jenjang -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Jenjang Sekolah <span class="text-red-500">*</span></label>
+                    <select id="inputSchoolJenjang" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <option value="">-- Pilih Jenjang --</option>
+                        <option value="SMP">SMP</option>
+                        <option value="SMA">SMA</option>
+                        <option value="SMK">SMK</option>
+                        <option value="MAN">MAN</option>
+                    </select>
+                </div>
+
+                <!-- Wilayah -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Wilayah / Kota <span class="text-red-500">*</span></label>
+                    <input type="text" id="inputSchoolWilayah" required placeholder="Contoh: Jakarta Pusat, Malang, dll" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+
+                <!-- Alamat Lengkap -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Alamat Lengkap <span class="text-red-500">*</span></label>
+                    <textarea id="inputSchoolAlamat" required rows="2" placeholder="Masukkan jalan, nomor, kecamatan..." class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+                </div>
+
+                <!-- Nama PIC & WhatsApp -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Nama PIC <span class="text-red-500">*</span></label>
+                        <input type="text" id="inputSchoolPic" required placeholder="Contoh: Drs. Hendra (Kasek)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">No. WhatsApp PIC <span class="text-red-500">*</span></label>
+                        <input type="tel" id="inputSchoolWa" required placeholder="081234567890" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- Nama Marketing PIC -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nama Marketing Penanggung Jawab <span class="text-red-500">*</span></label>
+                    <select id="inputSchoolMarketing" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <option value="Andi Susanto">Andi Susanto</option>
+                        <option value="Rian Ardianto">Rian Ardianto</option>
+                        <option value="Siti Rahmawati">Siti Rahmawati</option>
+                        <option value="Budi Prasetyo">Budi Prasetyo</option>
+                    </select>
+                </div>
+
+                <!-- Modal Actions -->
+                <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                    <button type="button" id="btnCancelSchoolModal" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg">Batal</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-md transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Data Sekolah
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL FORM 2: CATAT DAILY ACTIVITY MARKETING -->
+    <div id="modalDailyActivity" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-3 sm:p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-plus text-brand-600"></i> Form Daily Activity Marketing
+                </h3>
+                <button id="btnCloseDailyModal" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="dailyActivityForm" class="mt-4 space-y-3.5">
+                
+                <!-- Nama Marketing (Otomatis) -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nama Marketing</label>
+                    <input type="text" id="inputDailyMarketingName" readonly value="Andi Susanto" class="w-full bg-slate-100 border border-slate-200 rounded-lg p-2.5 text-xs font-bold text-slate-700 cursor-not-allowed">
+                </div>
+
+                <!-- Sekolah yang Dikunjungi (Dropdown dari Master Data) -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">
+                        Sekolah Yang Dikunjungi <span class="text-red-500">*</span>
+                        <span class="text-[10px] text-brand-600 font-normal ml-1">(Dari Master Database)</span>
+                    </label>
+                    <select id="inputDailySchool" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <!-- Populated Dynamically -->
+                    </select>
+                </div>
+
+                <!-- Tanggal Kunjungan, Jam Check-in, Jam Check-out -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Kunjungan <span class="text-red-500">*</span></label>
+                        <input type="date" id="inputDailyDate" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Jam Check In <span class="text-red-500">*</span></label>
+                        <input type="time" id="inputDailyCheckIn" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Jam Check Out <span class="text-red-500">*</span></label>
+                        <input type="time" id="inputDailyCheckOut" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- Jenis Aktivitas & Kategori/Status -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Jenis Aktivitas <span class="text-red-500">*</span></label>
+                        <select id="inputDailyActivityType" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            <option value="">-- Pilih Jenis Aktivitas --</option>
+                            <option value="Canvassing">Canvassing</option>
+                            <option value="Follow Up">Follow Up</option>
+                            <option value="Presentasi">Presentasi</option>
+                            <option value="Negosiasi">Negosiasi</option>
+                            <option value="Deal">Deal</option>
+                            <option value="Belum Deal">Belum Deal</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Kategori / Status Target <span class="text-red-500">*</span></label>
+                        <select id="inputDailyCategory" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-bold focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            <option value="">-- Pilih Status --</option>
+                            <option value="Hot">🔥 Hot (Potensi Segera Deal)</option>
+                            <option value="Warm">💥 Warm (Perlu Follow Up)</option>
+                            <option value="Cold">❄️ Cold (Database Baru)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Pihak Yang Ditemui (Otomatis Huruf Besar Diawal) -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">
+                        Pihak Yang Ditemui <span class="text-red-500">*</span>
+                        <span class="text-[10px] text-brand-600 font-normal ml-1">(Format Title Case)</span>
+                    </label>
+                    <input type="text" id="inputDailyPerson" required placeholder="Contoh: Pak Budi Kesiswaan & Panitia OSIS" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+
+                <!-- Validasi Lokasi GPS & Upload Foto Lokasi -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Validasi Lokasi GPS <span class="text-red-500">*</span></label>
+                        <div class="flex gap-2">
+                            <input type="text" id="inputDailyGps" required readonly placeholder="-6.175392, 106.827153" class="bg-slate-100 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-700 font-mono flex-1 cursor-not-allowed">
+                            <button type="button" id="btnGetGpsLocation" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-2.5 rounded-lg shadow transition flex items-center gap-1.5 shrink-0">
+                                <i class="fa-solid fa-location-crosshairs"></i> Ambil GPS
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Foto Lokasi / Bukti Visit <span class="text-red-500">*</span></label>
+                        <input type="file" id="inputDailyPhoto" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 border border-slate-200 rounded-lg bg-slate-50 p-1">
+                        <div id="photoPreviewContainer" class="mt-2 hidden">
+                            <img id="photoPreviewImg" src="" alt="Preview Foto" class="h-16 w-full object-cover rounded-lg border border-slate-300">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nilai Prospek / Kesepakatan Deal (Rp) -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">
+                        Nilai Prospek / Kesepakatan Deal (Rp) <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" id="inputDailyDealValue" required placeholder="Contoh: 75000000" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs font-extrabold text-emerald-700 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    <p class="text-[11px] text-slate-500 italic mt-1.5 bg-amber-50 border border-amber-200/80 p-2 rounded-md">
+                        <i class="fa-solid fa-circle-info text-amber-600 mr-1"></i>
+                        * Nilai ini akan disimpan dan tersinkronisasi ke Kanban Board.
+                    </p>
+                </div>
+
+                <!-- Modal Actions -->
+                <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                    <button type="button" id="btnCancelDailyModal" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg">Batal</button>
+                    <button type="submit" id="btnSubmitDailyForm" class="px-5 py-2.5 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-md transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-paper-plane"></i> Simpan Daily Activity
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: KONFIRMASI HAPUS DATA -->
+    <div id="modalDeleteConfirm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-center">
+            <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-3 text-xl">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <h3 class="font-bold text-slate-900 text-base mb-1">Hapus Data Sekolah?</h3>
+            <p class="text-xs text-slate-500 mb-5" id="deleteConfirmText">Apakah Anda yakin ingin menghapus data sekolah ini dari master database?</p>
+            <div class="flex justify-center gap-3">
+                <button id="btnCancelDelete" class="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg w-full">Batal</button>
+                <button id="btnConfirmDelete" class="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow w-full">Ya, Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Box -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-3 border border-slate-800 transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toastMessage">Sistem berhasil diperbarui</span>
+    </div>
+
     <script>
-        // Inisialisasi Grafik saat dokumen telah dimuat
         document.addEventListener('DOMContentLoaded', function() {
             
-            // Konfigurasi Chart.js global
-            Chart.defaults.font.family = "'Inter', sans-serif";
-            Chart.defaults.color = '#64748b';
-            
-            // 1. Grafik Bar (Penjualan/Closing Bulanan)
-            const ctxSales = document.getElementById('salesChart').getContext('2d');
-            const salesChart = new Chart(ctxSales, {
-                type: 'bar',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
-                    datasets: [
-                        {
-                            label: 'Target Sekolah',
-                            data: [15, 20, 25, 30, 20, 15, 10, 25, 30, 40, 20, 10],
-                            backgroundColor: '#e2e8f0',
-                            borderRadius: 4,
-                            barPercentage: 0.6
-                        },
-                        {
-                            label: 'Deal (Closing)',
-                            data: [2, 5, 8, 12, 18, 10, 5, 8, 15, 25, 10, 4],
-                            backgroundColor: '#4f46e5',
-                            borderRadius: 4,
-                            barPercentage: 0.6
-                        }
-                    ]
+            // App State Variables
+            let currentUser = {
+                name: "Andi Susanto",
+                role: "Marketing", // Owner, HR, Marketing
+                avatar: "https://placehold.co/100x100/4f46e5/white?text=A"
+            };
+
+            let appSettings = {
+                restrictMarketingView: true,
+                targetDatabase: 300,
+                targetVisit: 150,
+                targetPresentasi: 50,
+                targetDeal: 55,
+                targetOmzet: 2000000000
+            };
+
+            // Master Database Schools Initial Data
+            let initialSchools = [
+                {
+                    nama: "SMA NEGERI 1 JAKARTA",
+                    jenjang: "SMA",
+                    wilayah: "Jakarta Pusat",
+                    alamat: "Jl. Budi Utomo No. 7, Pasar Baru",
+                    pic: "Drs. Hendra (Kasek)",
+                    wa: "081298765432",
+                    marketing: "Andi Susanto",
+                    stage: "Presentasi",
+                    kategori: "Hot",
+                    nilai: 85000000
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            align: 'end',
-                            labels: { usePointStyle: true, boxWidth: 8 }
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                            titleFont: { size: 13 },
-                            bodyFont: { size: 13 },
-                            padding: 10,
-                            cornerRadius: 8
-                        }
+                {
+                    nama: "SMA KRISTEN BPK PENABUR 1",
+                    jenjang: "SMA",
+                    wilayah: "Jakarta Barat",
+                    alamat: "Jl. Tanjung Duren Raya No. 4",
+                    pic: "Sisca (Ketua Panitia OSIS)",
+                    wa: "081311223344",
+                    marketing: "Rian Ardianto",
+                    stage: "Follow Up",
+                    kategori: "Warm",
+                    nilai: 120000000
+                },
+                {
+                    nama: "SMK TELKOM MALANG",
+                    jenjang: "SMK",
+                    wilayah: "Kota Malang",
+                    alamat: "Jl. Danau Ranau, Sawojajar",
+                    pic: "Pak Rizky (Pembina OSIS)",
+                    wa: "085678901234",
+                    marketing: "Budi Prasetyo",
+                    stage: "Deal",
+                    kategori: "Hot",
+                    nilai: 60000000
+                },
+                {
+                    nama: "MAN 2 KOTA BANDUNG",
+                    jenjang: "MAN",
+                    wilayah: "Bandung",
+                    alamat: "Jl. Cijagra No. 28, Lengkong",
+                    pic: "Ustadz Ahmad (Kesiswaan)",
+                    wa: "087890123456",
+                    marketing: "Andi Susanto",
+                    stage: "Canvassing",
+                    kategori: "Cold",
+                    nilai: 45000000
+                }
+            ];
+
+            // Initial Daily Activities Data
+            let dailyActivities = [
+                {
+                    tgl: "2026-07-26",
+                    checkIn: "09:00",
+                    checkOut: "11:30",
+                    marketing: "Andi Susanto",
+                    sekolah: "SMA NEGERI 1 JAKARTA",
+                    aktivitas: "Presentasi",
+                    pihak: "Pak Hendra & Panitia OSIS",
+                    kategori: "Hot",
+                    gps: "-6.168392, 106.834153",
+                    foto: "https://placehold.co/100x100/4f46e5/white?text=Bukti+Visit",
+                    nilai: 85000000
+                },
+                {
+                    tgl: "2026-07-25",
+                    checkIn: "13:15",
+                    checkOut: "15:00",
+                    marketing: "Rian Ardianto",
+                    sekolah: "SMA KRISTEN BPK PENABUR 1",
+                    aktivitas: "Follow Up",
+                    pihak: "Bu Sisca Panitia",
+                    kategori: "Warm",
+                    gps: "-6.178412, 106.788231",
+                    foto: "https://placehold.co/100x100/10b981/white?text=Foto+Lokasi",
+                    nilai: 120000000
+                }
+            ];
+
+            let editingIndex = null;
+            let deletingIndex = null;
+            let myChartInstance = null;
+
+            // Toast Notification Helper
+            function showToast(message, isError = false) {
+                const toast = document.getElementById('toastNotification');
+                const toastMsg = document.getElementById('toastMessage');
+                const toastIcon = document.getElementById('toastIcon');
+                if (!toast || !toastMsg) return;
+                
+                toastMsg.innerText = message;
+                if (isError) {
+                    toast.classList.remove('bg-slate-900');
+                    toast.classList.add('bg-red-900');
+                    if (toastIcon) toastIcon.className = "fa-solid fa-circle-exclamation text-amber-300 text-base";
+                } else {
+                    toast.classList.remove('bg-red-900');
+                    toast.classList.add('bg-slate-900');
+                    if (toastIcon) toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+                }
+
+                toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+                
+                setTimeout(() => {
+                    toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+                }, 4000);
+            }
+
+            // Title Case Helper
+            function toTitleCase(str) {
+                if (!str) return '';
+                return str.replace(/\w\S*/g, function(txt) {
+                    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                });
+            }
+
+            // Live Timer Clock
+            function updateClock() {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+                const liveTimer = document.getElementById('liveTimer');
+                const gpsLiveClock = document.getElementById('gpsLiveClock');
+                if (liveTimer) liveTimer.innerText = timeStr;
+                if (gpsLiveClock) gpsLiveClock.innerText = timeStr;
+            }
+            setInterval(updateClock, 1000);
+            updateClock();
+
+            // Mobile Sidebar Toggle Handlers
+            const sidebar = document.getElementById('sidebar');
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const closeMobileSidebarBtn = document.getElementById('closeMobileSidebarBtn');
+            const mobileBackdrop = document.getElementById('mobileBackdrop');
+
+            function openMobileSidebar() {
+                sidebar?.classList.remove('-translate-x-full');
+                mobileBackdrop?.classList.remove('hidden');
+            }
+
+            function closeMobileSidebar() {
+                sidebar?.classList.add('-translate-x-full');
+                mobileBackdrop?.classList.add('hidden');
+            }
+
+            mobileMenuBtn?.addEventListener('click', openMobileSidebar);
+            closeMobileSidebarBtn?.addEventListener('click', closeMobileSidebar);
+            mobileBackdrop?.addEventListener('click', closeMobileSidebar);
+
+            // Role Switcher Handler
+            const roleSelector = document.getElementById('roleSelector');
+            const navGpsMonitoring = document.getElementById('navGpsMonitoring');
+            const userNameLabel = document.getElementById('userNameLabel');
+            const userRoleBadge = document.getElementById('userRoleBadge');
+            const userAvatarImg = document.getElementById('userAvatarImg');
+
+            function updateRoleState() {
+                const val = roleSelector?.value || 'Marketing_Andi';
+                if (val === 'Owner') {
+                    currentUser = { name: "Bapak Hendrawan", role: "Owner", avatar: "https://placehold.co/100x100/059669/white?text=OWN" };
+                    navGpsMonitoring?.classList.remove('hidden');
+                } else if (val === 'HR') {
+                    currentUser = { name: "Ibu Ratna (HR)", role: "HR", avatar: "https://placehold.co/100x100/d97706/white?text=HR" };
+                    navGpsMonitoring?.classList.remove('hidden');
+                } else if (val === 'Marketing_Rian') {
+                    currentUser = { name: "Rian Ardianto", role: "Marketing", avatar: "https://placehold.co/100x100/f59e0b/white?text=R" };
+                    navGpsMonitoring?.classList.add('hidden');
+                } else {
+                    currentUser = { name: "Andi Susanto", role: "Marketing", avatar: "https://placehold.co/100x100/4f46e5/white?text=A" };
+                    navGpsMonitoring?.classList.add('hidden');
+                }
+
+                if (userNameLabel) userNameLabel.innerText = currentUser.name;
+                if (userRoleBadge) userRoleBadge.innerText = currentUser.role === 'Marketing' ? 'Marketing Executive' : currentUser.role;
+                if (userAvatarImg) userAvatarImg.src = currentUser.avatar;
+
+                const inputDailyMarketingName = document.getElementById('inputDailyMarketingName');
+                if (inputDailyMarketingName) inputDailyMarketingName.value = currentUser.name;
+
+                recalculateKpiValues();
+                applySchoolFilters();
+                renderDailyActivityTable();
+                renderKanbanBoard();
+                renderGpsMonitoringView();
+                showToast(`Role aktif diubah: ${currentUser.name} (${currentUser.role})`);
+            }
+
+            roleSelector?.addEventListener('change', updateRoleState);
+
+            // Filter Helpers based on Role Privacy Rules
+            function getFilteredSchools() {
+                if (currentUser.role === 'Marketing' && appSettings.restrictMarketingView) {
+                    return initialSchools.filter(s => s.marketing === currentUser.name);
+                }
+                return initialSchools;
+            }
+
+            function getFilteredActivities() {
+                if (currentUser.role === 'Marketing' && appSettings.restrictMarketingView) {
+                    return dailyActivities.filter(a => a.marketing === currentUser.name);
+                }
+                return dailyActivities;
+            }
+
+            // Navigation Elements
+            const navDashboard = document.getElementById('navDashboard');
+            const navDatabase = document.getElementById('navDatabase');
+            const navDailyActivity = document.getElementById('navDailyActivity');
+            const navPipeline = document.getElementById('navPipeline');
+            const navGpsMonitoringBtn = document.getElementById('navGpsMonitoring');
+            const navSettings = document.getElementById('navSettings');
+
+            const viewDashboardSection = document.getElementById('viewDashboardSection');
+            const viewDatabaseSection = document.getElementById('viewDatabaseSection');
+            const viewDailyActivitySection = document.getElementById('viewDailyActivitySection');
+            const viewPipelineSection = document.getElementById('viewPipelineSection');
+            const viewGpsSection = document.getElementById('viewGpsSection');
+            const viewSettingsSection = document.getElementById('viewSettingsSection');
+
+            const headerTitle = document.getElementById('headerTitle');
+            const headerSub = document.getElementById('headerSub');
+
+            function switchView(viewName) {
+                closeMobileSidebar(); // Close sidebar on mobile navigation
+                
+                [viewDashboardSection, viewDatabaseSection, viewDailyActivitySection, viewPipelineSection, viewGpsSection, viewSettingsSection].forEach(v => v?.classList.add('hidden'));
+
+                [navDashboard, navDatabase, navDailyActivity, navPipeline, navGpsMonitoringBtn, navSettings].forEach(b => {
+                    b?.classList.remove('bg-brand-600', 'text-white');
+                    b?.classList.add('text-slate-400');
+                });
+
+                if (viewName === 'database') {
+                    viewDatabaseSection?.classList.remove('hidden');
+                    navDatabase?.classList.add('bg-brand-600', 'text-white');
+                    if (headerTitle) headerTitle.innerHTML = `Database Sekolah <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">MASTER</span>`;
+                    if (headerSub) headerSub.innerText = 'Kelola informasi sekolah target, jenjang, alamat, serta penanggung jawab (PIC)';
+                    applySchoolFilters();
+                } else if (viewName === 'daily') {
+                    viewDailyActivitySection?.classList.remove('hidden');
+                    navDailyActivity?.classList.add('bg-brand-600', 'text-white');
+                    if (headerTitle) headerTitle.innerHTML = `Daily Activity <span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-0.5 rounded-full">LOG VISIT</span>`;
+                    if (headerSub) headerSub.innerText = 'Pencatatan aktivitas harian visit sekolah, jam check-in/out, GPS, dan bukti foto';
+                    renderDailyActivityTable();
+                } else if (viewName === 'pipeline') {
+                    viewPipelineSection?.classList.remove('hidden');
+                    navPipeline?.classList.add('bg-brand-600', 'text-white');
+                    if (headerTitle) headerTitle.innerHTML = `Pipeline Kanban <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">BOARD</span>`;
+                    if (headerSub) headerSub.innerText = 'Tahapan progres prospek sekolah tersinkronisasi dari Daily Activity';
+                    renderKanbanBoard();
+                } else if (viewName === 'gps') {
+                    viewGpsSection?.classList.remove('hidden');
+                    navGpsMonitoringBtn?.classList.add('bg-brand-600', 'text-white');
+                    if (headerTitle) headerTitle.innerHTML = `Monitoring GPS <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">TRACKER</span>`;
+                    if (headerSub) headerSub.innerText = 'Pantau keberadaan tim marketing di lapangan secara terpusat (Khusus Owner/HR)';
+                    renderGpsMonitoringView();
+                } else if (viewName === 'settings') {
+                    viewSettingsSection?.classList.remove('hidden');
+                    navSettings?.classList.add('bg-brand-600', 'text-white');
+                    if (headerTitle) headerTitle.innerHTML = `Pengaturan <span class="bg-slate-200 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded-full">CONFIG</span>`;
+                    if (headerSub) headerSub.innerText = 'Konfigurasi hak akses, batasan privasi, dan target KPI perusahaan';
+                } else {
+                    viewDashboardSection?.classList.remove('hidden');
+                    navDashboard?.classList.add('bg-brand-600', 'text-white');
+                    if (headerTitle) headerTitle.innerHTML = `Dashboard Real-Time <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">LIVE DATA</span>`;
+                    if (headerSub) headerSub.innerText = 'Monitoring target penjualan buku tahunan sekolah secara terpusat';
+                    recalculateKpiValues();
+                }
+            }
+
+            navDashboard?.addEventListener('click', () => switchView('dashboard'));
+            navDatabase?.addEventListener('click', () => switchView('database'));
+            navDailyActivity?.addEventListener('click', () => switchView('daily'));
+            navPipeline?.addEventListener('click', () => switchView('pipeline'));
+            navGpsMonitoringBtn?.addEventListener('click', () => switchView('gps'));
+            navSettings?.addEventListener('click', () => switchView('settings'));
+
+            // Refresh Button
+            document.getElementById('refreshDataBtn')?.addEventListener('click', () => {
+                recalculateKpiValues();
+                applySchoolFilters();
+                renderDailyActivityTable();
+                renderKanbanBoard();
+                showToast("Seluruh data dashboard berhasil diperbarui!");
+            });
+
+            // Chart.js Performance Graph Initializer
+            function initPerformanceChart() {
+                const ctx = document.getElementById('performanceChart')?.getContext('2d');
+                if (!ctx) return;
+
+                if (myChartInstance) myChartInstance.destroy();
+
+                myChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+                        datasets: [
+                            {
+                                label: 'Target Omzet (Rupiah)',
+                                data: [150000000, 150000000, 180000000, 200000000, 220000000, 250000000, 250000000, 200000000, 150000000, 100000000, 80000000, 70000000],
+                                borderColor: '#94a3b8',
+                                borderWidth: 2,
+                                borderDash: [5, 5],
+                                fill: false,
+                                tension: 0.3
+                            },
+                            {
+                                label: 'Pencapaian Omzet (Rupiah)',
+                                data: [120000000, 160000000, 190000000, 210000000, 240000000, 280000000, 340000000, 0, 0, 0, 0, 0],
+                                borderColor: '#4f46e5',
+                                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.3
+                            }
+                        ]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#f1f5f9', drawBorder: false }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top', labels: { font: { size: 11 } } }
                         },
-                        x: {
-                            grid: { display: false, drawBorder: false }
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: function(value) { return 'Rp ' + (value/1000000) + ' Jt'; },
+                                    font: { size: 10 }
+                                }
+                            },
+                            x: { ticks: { font: { size: 10 } } }
                         }
-                    },
-                    interaction: { mode: 'nearest', axis: 'x', intersect: false }
+                    }
+                });
+            }
+
+            document.getElementById('chartMetricSelect')?.addEventListener('change', function(e) {
+                if (!myChartInstance) return;
+                if (e.target.value === 'deal') {
+                    myChartInstance.data.datasets[0].label = 'Target Deal (Sekolah)';
+                    myChartInstance.data.datasets[0].data = [4, 5, 6, 8, 8, 10, 10, 8, 5, 4, 2, 2];
+                    myChartInstance.data.datasets[1].label = 'Pencapaian Deal (Sekolah)';
+                    myChartInstance.data.datasets[1].data = [3, 5, 7, 8, 9, 12, 14, 0, 0, 0, 0, 0];
+                    myChartInstance.options.scales.y.ticks.callback = function(value) { return value + ' Sklh'; };
+                } else {
+                    myChartInstance.data.datasets[0].label = 'Target Omzet (Rupiah)';
+                    myChartInstance.data.datasets[0].data = [150000000, 150000000, 180000000, 200000000, 220000000, 250000000, 250000000, 200000000, 150000000, 100000000, 80000000, 70000000];
+                    myChartInstance.data.datasets[1].label = 'Pencapaian Omzet (Rupiah)';
+                    myChartInstance.data.datasets[1].data = [120000000, 160000000, 190000000, 210000000, 240000000, 280000000, 340000000, 0, 0, 0, 0, 0];
+                    myChartInstance.options.scales.y.ticks.callback = function(value) { return 'Rp ' + (value/1000000) + ' Jt'; };
+                }
+                myChartInstance.update();
+            });
+
+            // Recalculate KPIs based on filtered school & activity dataset
+            function recalculateKpiValues() {
+                const schools = getFilteredSchools();
+                const activities = getFilteredActivities();
+
+                const totalSchools = schools.length;
+                const hotCount = schools.filter(s => s.kategori === 'Hot').length;
+                const warmCount = schools.filter(s => s.kategori === 'Warm').length;
+                const coldCount = schools.filter(s => s.kategori === 'Cold' || !s.kategori).length;
+
+                const dealSchools = schools.filter(s => s.stage === 'Deal');
+                const dealCount = dealSchools.length;
+                const totalOmzet = schools.reduce((sum, s) => sum + (s.nilai || 0), 0);
+
+                // DOM Bindings
+                document.getElementById('kpiTotalSchoolCount').innerText = totalSchools;
+                document.getElementById('kpiHotCount').innerText = `Hot: ${hotCount}`;
+                document.getElementById('kpiWarmCount').innerText = `Warm: ${warmCount}`;
+                document.getElementById('kpiColdCount').innerText = `Cold: ${coldCount}`;
+                document.getElementById('kpiTotalLeadsCount').innerText = `${totalSchools} Leads`;
+                document.getElementById('kpiDealCount').innerHTML = `${dealCount} <span class="text-xs font-medium text-slate-500">Sklh</span>`;
+                document.getElementById('kpiOmzetValue').innerText = `Rp ${(totalOmzet/1000000).toFixed(1)}M`;
+
+                const percentTarget = Math.min(100, Math.round((totalOmzet / appSettings.targetOmzet) * 100));
+                document.getElementById('kpiTargetPercent').innerText = `${percentTarget}%`;
+                document.getElementById('kpiTargetText').innerText = `Rp ${(totalOmzet/1000000).toFixed(2)}M / Rp ${(appSettings.targetOmzet/1000000).toFixed(0)}M`;
+                document.getElementById('kpiProgressBar').style.width = `${percentTarget}%`;
+            }
+
+            // Kanban Board Renderer
+            function renderKanbanBoard() {
+                const stages = ['Canvassing', 'Follow Up', 'Presentasi', 'Negosiasi', 'Deal', 'Belum Deal'];
+                const filteredSchools = getFilteredSchools();
+
+                stages.forEach(stg => {
+                    const stageKey = stg.replace(/\s+/g, '');
+                    const container = document.getElementById(`kanban${stageKey}`);
+                    const countEl = document.getElementById(`count${stageKey}`);
+                    
+                    if (!container) return;
+                    container.innerHTML = '';
+
+                    const items = filteredSchools.filter(s => (s.stage || 'Canvassing') === stg);
+                    if (countEl) countEl.innerText = items.length;
+
+                    if (items.length === 0) {
+                        container.innerHTML = `<div class="text-[11px] text-slate-400 italic text-center py-4 border border-dashed border-slate-200 rounded-lg">Kosong</div>`;
+                        return;
+                    }
+
+                    items.forEach(sch => {
+                        let badgeColor = 'bg-blue-100 text-blue-800';
+                        let iconCat = '❄️';
+                        if (sch.kategori === 'Hot') { badgeColor = 'bg-red-100 text-red-800'; iconCat = '🔥'; }
+                        if (sch.kategori === 'Warm') { badgeColor = 'bg-amber-100 text-amber-800'; iconCat = '💥'; }
+
+                        const card = document.createElement('div');
+                        card.className = 'bg-white rounded-lg p-3 shadow-sm border border-slate-200 hover:shadow-md transition text-xs space-y-2';
+                        card.innerHTML = `
+                            <div class="flex items-start justify-between gap-1">
+                                <h5 class="font-bold text-slate-900 leading-tight">${sch.nama}</h5>
+                                <span class="${badgeColor} text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 shrink-0">
+                                    ${iconCat} ${sch.kategori || 'Cold'}
+                                </span>
+                            </div>
+                            <div class="text-[11px] text-slate-500">
+                                <i class="fa-solid fa-user-tie text-slate-400 mr-1"></i> ${sch.pic}
+                            </div>
+                            <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-[10px]">
+                                <span class="font-semibold text-brand-600"><i class="fa-solid fa-user-gear"></i> ${sch.marketing}</span>
+                                <span class="font-extrabold text-emerald-600">Rp ${(sch.nilai || 0).toLocaleString('id-ID')}</span>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    });
+                });
+            }
+
+            function renderGpsMonitoringView() {
+                const mapPins = document.getElementById('gpsMapPins');
+                const photoFeed = document.getElementById('gpsPhotoFeed');
+                if (!mapPins || !photoFeed) return;
+
+                mapPins.innerHTML = '';
+                photoFeed.innerHTML = '';
+
+                dailyActivities.forEach((act) => {
+                    // Render pin card
+                    const pin = document.createElement('div');
+                    pin.className = 'bg-slate-800/90 border border-slate-700/80 rounded-lg p-3 text-xs space-y-1 shadow';
+                    pin.innerHTML = `
+                        <div class="flex items-center justify-between text-slate-300 font-bold">
+                            <span class="text-emerald-400 flex items-center gap-1 truncate"><i class="fa-solid fa-location-dot"></i> ${act.sekolah}</span>
+                            <span class="text-[10px] text-slate-400 font-mono shrink-0">${act.checkIn}</span>
+                        </div>
+                        <p class="text-slate-400 text-[11px]">Marketing: <strong class="text-white">${act.marketing}</strong></p>
+                        <p class="text-[10px] text-slate-500 font-mono">GPS: ${act.gps}</p>
+                    `;
+                    mapPins.appendChild(pin);
+
+                    // Render photo feed
+                    const item = document.createElement('div');
+                    item.className = 'flex items-center gap-3 p-2 bg-slate-50 rounded-lg border border-slate-200 text-xs';
+                    item.innerHTML = `
+                        <img src="${act.foto}" class="w-11 h-11 rounded object-cover border border-slate-300 shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <div class="font-bold text-slate-900 truncate">${act.sekolah}</div>
+                            <div class="text-[11px] text-slate-500 truncate">${act.marketing} &bull; ${act.aktivitas}</div>
+                            <div class="text-[10px] font-mono text-emerald-600"><i class="fa-solid fa-circle-check"></i> ${act.gps}</div>
+                        </div>
+                    `;
+                    photoFeed.appendChild(item);
+                });
+            }
+
+            // CSV Export Helper
+            function exportToCsv(filename, rows) {
+                let csvFile = '';
+                for (let i = 0; i < rows.length; i++) {
+                    let row = rows[i];
+                    let finalVal = '';
+                    for (let j = 0; j < row.length; j++) {
+                        let innerValue = row[j] === null || row[j] === undefined ? '' : row[j].toString();
+                        let result = innerValue.replace(/"/g, '""');
+                        if (result.search(/("|,|\n)/g) >= 0) result = '"' + result + '"';
+                        if (j > 0) finalVal += ',';
+                        finalVal += result;
+                    }
+                    csvFile += finalVal + '\n';
+                }
+
+                const blob = new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                if (link.download !== undefined) {
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", filename);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
+
+            document.getElementById('btnExportSchoolsCsv')?.addEventListener('click', () => {
+                const data = getFilteredSchools().map(s => [s.nama, s.jenjang, s.wilayah, s.alamat, s.pic, s.wa, s.marketing, s.stage, s.kategori, s.nilai]);
+                data.unshift(['Nama Sekolah', 'Jenjang', 'Wilayah', 'Alamat', 'PIC', 'WA', 'Marketing', 'Stage', 'Kategori', 'Nilai Prospek']);
+                exportToCsv(`Database_Sekolah_${currentUser.name}.csv`, data);
+                showToast('Spreadsheet Database Sekolah berhasil diunduh!');
+            });
+
+            document.getElementById('btnExportDailyCsv')?.addEventListener('click', () => {
+                const data = getFilteredActivities().map(a => [a.tgl, a.checkIn, a.checkOut, a.marketing, a.sekolah, a.aktivitas, a.pihak, a.kategori, a.gps, a.nilai]);
+                data.unshift(['Tanggal', 'CheckIn', 'CheckOut', 'Marketing', 'Sekolah', 'Aktivitas', 'Pihak Ditemui', 'Kategori', 'GPS', 'Nilai Deal']);
+                exportToCsv(`Daily_Activity_${currentUser.name}.csv`, data);
+                showToast('Spreadsheet Daily Activity berhasil diunduh!');
+            });
+
+            // Open Modal Handlers
+            const modalAddSchool = document.getElementById('modalAddSchool');
+            const schoolForm = document.getElementById('schoolForm');
+            const modalSchoolTitle = document.getElementById('modalSchoolTitle');
+
+            function openSchoolModal(isEdit = false, index = null) {
+                if (isEdit && index !== null) {
+                    editingIndex = index;
+                    const item = initialSchools[index];
+                    document.getElementById('inputSchoolName').value = item.nama;
+                    document.getElementById('inputSchoolJenjang').value = item.jenjang;
+                    document.getElementById('inputSchoolWilayah').value = item.wilayah;
+                    document.getElementById('inputSchoolAlamat').value = item.alamat;
+                    document.getElementById('inputSchoolPic').value = item.pic;
+                    document.getElementById('inputSchoolWa').value = item.wa;
+                    document.getElementById('inputSchoolMarketing').value = item.marketing;
+                    if (modalSchoolTitle) modalSchoolTitle.innerHTML = `<i class="fa-solid fa-pen-to-square text-brand-600"></i> Edit Data Sekolah`;
+                } else {
+                    editingIndex = null;
+                    schoolForm.reset();
+                    document.getElementById('inputSchoolMarketing').value = currentUser.name;
+                    if (modalSchoolTitle) modalSchoolTitle.innerHTML = `<i class="fa-solid fa-school-flag text-emerald-600"></i> Tambah Data Sekolah Baru`;
+                }
+                modalAddSchool?.classList.remove('hidden');
+            }
+
+            document.getElementById('btnOpenSchoolModal')?.addEventListener('click', () => openSchoolModal(false));
+            document.getElementById('btnAddNewSchoolMain')?.addEventListener('click', () => openSchoolModal(false));
+            document.getElementById('btnCloseSchoolModal')?.addEventListener('click', () => modalAddSchool?.classList.add('hidden'));
+            document.getElementById('btnCancelSchoolModal')?.addEventListener('click', () => modalAddSchool?.classList.add('hidden'));
+
+            // Auto uppercase on School Name input
+            document.getElementById('inputSchoolName')?.addEventListener('input', function(e) {
+                e.target.value = e.target.value.toUpperCase();
+            });
+
+            // Handle School Form Submit (Add/Edit)
+            schoolForm?.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const inputName = document.getElementById('inputSchoolName').value.trim().toUpperCase();
+                
+                // Duplicate Protection Rule Check
+                const existing = initialSchools.find(s => s.nama === inputName);
+                if (existing && existing.marketing !== currentUser.name && editingIndex === null) {
+                    showToast(`Data Sudah Dalam Penanganan Marketing Lain (${existing.marketing}).`, true);
+                    return;
+                }
+
+                const schoolData = {
+                    nama: inputName,
+                    jenjang: document.getElementById('inputSchoolJenjang').value,
+                    wilayah: document.getElementById('inputSchoolWilayah').value.trim(),
+                    alamat: document.getElementById('inputSchoolAlamat').value.trim(),
+                    pic: document.getElementById('inputSchoolPic').value.trim(),
+                    wa: document.getElementById('inputSchoolWa').value.trim(),
+                    marketing: document.getElementById('inputSchoolMarketing').value,
+                    stage: editingIndex !== null ? initialSchools[editingIndex].stage : 'Canvassing',
+                    kategori: editingIndex !== null ? initialSchools[editingIndex].kategori : 'Cold',
+                    nilai: editingIndex !== null ? initialSchools[editingIndex].nilai : 0
+                };
+
+                if (editingIndex !== null) {
+                    initialSchools[editingIndex] = schoolData;
+                    showToast(`Data sekolah ${schoolData.nama} berhasil diperbarui!`);
+                } else {
+                    initialSchools.unshift(schoolData);
+                    showToast(`Sekolah ${schoolData.nama} berhasil ditambahkan!`);
+                }
+
+                editingIndex = null;
+                recalculateKpiValues();
+                applySchoolFilters();
+                renderKanbanBoard();
+                modalAddSchool?.classList.add('hidden');
+                schoolForm.reset();
+            });
+
+            // Daily Activity Modal Trigger & Handlers
+            const modalDailyActivity = document.getElementById('modalDailyActivity');
+            const dailyActivityForm = document.getElementById('dailyActivityForm');
+            const inputDailySchool = document.getElementById('inputDailySchool');
+
+            function populateDailySchoolDropdown() {
+                if (!inputDailySchool) return;
+                inputDailySchool.innerHTML = '<option value="">-- Pilih Sekolah Target --</option>';
+                const schools = getFilteredSchools();
+                schools.forEach(sch => {
+                    const opt = document.createElement('option');
+                    opt.value = sch.nama;
+                    opt.innerText = `${sch.nama} (${sch.jenjang} - ${sch.wilayah})`;
+                    inputDailySchool.appendChild(opt);
+                });
+            }
+
+            function openDailyModal() {
+                populateDailySchoolDropdown();
+                const now = new Date();
+                const todayStr = now.toISOString().split('T')[0];
+                document.getElementById('inputDailyDate').value = todayStr;
+                document.getElementById('inputDailyCheckIn').value = "09:00";
+                document.getElementById('inputDailyCheckOut').value = "11:00";
+                document.getElementById('inputDailyGps').value = "-6.175392, 106.827153";
+                modalDailyActivity?.classList.remove('hidden');
+            }
+
+            document.getElementById('btnOpenDailyActivityModalHeader')?.addEventListener('click', openDailyModal);
+            document.getElementById('btnOpenDailyActivityModal')?.addEventListener('click', openDailyModal);
+            document.getElementById('btnCloseDailyModal')?.addEventListener('click', () => modalDailyActivity?.classList.add('hidden'));
+            document.getElementById('btnCancelDailyModal')?.addEventListener('click', () => modalDailyActivity?.classList.add('hidden'));
+
+            // Title Case Auto Format on Person Field
+            document.getElementById('inputDailyPerson')?.addEventListener('blur', function(e) {
+                e.target.value = toTitleCase(e.target.value);
+            });
+
+            // GPS Location Trigger
+            document.getElementById('btnGetGpsLocation')?.addEventListener('click', function() {
+                const gpsInput = document.getElementById('inputDailyGps');
+                if (navigator.geolocation) {
+                    showToast("Mendeteksi posisi GPS...");
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const lat = position.coords.latitude.toFixed(6);
+                            const lng = position.coords.longitude.toFixed(6);
+                            if (gpsInput) gpsInput.value = `${lat}, ${lng}`;
+                            showToast("Lokasi GPS berhasil ditemukan!");
+                        },
+                        () => {
+                            // Fallback simulation coordinates if permission denied
+                            if (gpsInput) gpsInput.value = "-6.208851, 106.845599";
+                            showToast("Menggunakan koordinat GPS simulasi lokasi.");
+                        }
+                    );
+                } else {
+                    if (gpsInput) gpsInput.value = "-6.208851, 106.845599";
                 }
             });
 
-            // 2. Grafik Doughnut (Status Pendekatan Sekolah)
-            const ctxStatus = document.getElementById('statusChart').getContext('2d');
-            const statusChart = new Chart(ctxStatus, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Pendekatan', 'Negosiasi', 'Deal (Closing)', 'Batal'],
-                    datasets: [{
-                        data: [45, 25, 38, 16], // Representasi total dari 124 target
-                        backgroundColor: [
-                            '#3b82f6', // blue
-                            '#facc15', // yellow
-                            '#10b981', // emerald
-                            '#f87171'  // red
-                        ],
-                        borderWidth: 0,
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '75%',
-                    plugins: {
-                        legend: {
-                            display: false // Kita pakai legend kustom HTML di bawah canvas
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                            padding: 10,
-                            cornerRadius: 8,
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    if (label) { label += ': '; }
-                                    if (context.parsed !== null) {
-                                        label += context.parsed + ' Sekolah';
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
-                    }
-                },
-                plugins: [{
-                    id: 'textCenter',
-                    beforeDraw: function(chart) {
-                        var width = chart.width,
-                            height = chart.height,
-                            ctx = chart.ctx;
+            // Photo Input Preview
+            const inputDailyPhoto = document.getElementById('inputDailyPhoto');
+            const photoPreviewContainer = document.getElementById('photoPreviewContainer');
+            const photoPreviewImg = document.getElementById('photoPreviewImg');
 
-                        ctx.restore();
-                        var fontSize = (height / 114).toFixed(2);
-                        ctx.font = "bold " + fontSize + "em Inter";
-                        ctx.textBaseline = "middle";
-                        ctx.fillStyle = "#1e293b";
-
-                        var text = "124",
-                            textX = Math.round((width - ctx.measureText(text).width) / 2),
-                            textY = height / 2 - 10;
-
-                        ctx.fillText(text, textX, textY);
-                        
-                        ctx.font = "normal " + (fontSize * 0.4).toFixed(2) + "em Inter";
-                        ctx.fillStyle = "#64748b";
-                        var text2 = "Total Target",
-                            text2X = Math.round((width - ctx.measureText(text2).width) / 2),
-                            text2Y = height / 2 + 15;
-                            
-                        ctx.fillText(text2, text2X, text2Y);
-                        ctx.save();
-                    }
-                }]
+            inputDailyPhoto?.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        if (photoPreviewImg) photoPreviewImg.src = evt.target.result;
+                        photoPreviewContainer?.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                }
             });
-            
-            
-            // 1. Sistem Notifikasi Toast (Pengganti Alert)
-            function showToast(message) {
-                // Hapus toast lama jika masih ada
-                const oldToast = document.getElementById('customToast');
-                if (oldToast) oldToast.remove();
+
+            // Submit Daily Activity
+            dailyActivityForm?.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const selectedSchoolName = inputDailySchool.value;
+                const activityType = document.getElementById('inputDailyActivityType').value;
+                const categoryStatus = document.getElementById('inputDailyCategory').value;
+                const dealValue = parseFloat(document.getElementById('inputDailyDealValue').value) || 0;
+
+                // Sync with Master Database School stage & category
+                const schoolObj = initialSchools.find(s => s.nama === selectedSchoolName);
+                if (schoolObj) {
+                    schoolObj.stage = activityType;
+                    schoolObj.kategori = categoryStatus;
+                    if (dealValue > 0) schoolObj.nilai = dealValue;
+                }
+
+                const newActivity = {
+                    tgl: document.getElementById('inputDailyDate').value,
+                    checkIn: document.getElementById('inputDailyCheckIn').value,
+                    checkOut: document.getElementById('inputDailyCheckOut').value,
+                    marketing: currentUser.name,
+                    sekolah: selectedSchoolName,
+                    aktivitas: activityType,
+                    pihak: toTitleCase(document.getElementById('inputDailyPerson').value),
+                    kategori: categoryStatus,
+                    gps: document.getElementById('inputDailyGps').value,
+                    foto: photoPreviewImg?.src || 'https://placehold.co/100x100/4f46e5/white?text=Foto+Visit',
+                    nilai: dealValue
+                };
+
+                dailyActivities.unshift(newActivity);
+                modalDailyActivity?.classList.add('hidden');
                 
-                const toast = document.createElement('div');
-                toast.id = 'customToast';
-                toast.className = 'fixed bottom-4 right-4 bg-slate-800 text-white px-5 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-y-full opacity-0 z-50 flex items-center gap-3';
-                toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span class="text-sm font-medium">${message}</span>`;
-                document.body.appendChild(toast);
+                recalculateKpiValues();
+                renderDailyActivityTable();
+                renderKanbanBoard();
+                renderGpsMonitoringView();
+                showToast(`Aktivitas harian di ${newActivity.sekolah} tersinkronisasi ke Kanban Board!`);
+            });
 
-                // Animasi masuk
-                setTimeout(() => toast.classList.remove('translate-y-full', 'opacity-0'), 10);
-                
-                // Animasi keluar
-                setTimeout(() => {
-                    toast.classList.add('translate-y-full', 'opacity-0');
-                    setTimeout(() => toast.remove(), 300);
-                }, 2500);
+            // Dynamic School Filter Rendering
+            function applySchoolFilters() {
+                const searchVal = document.getElementById('searchSchoolInput')?.value.toLowerCase() || '';
+                const jenjangVal = document.getElementById('filterJenjangSelect')?.value || '';
+
+                const filtered = getFilteredSchools().filter(sch => {
+                    const matchesSearch = sch.nama.toLowerCase().includes(searchVal) || 
+                                          sch.pic.toLowerCase().includes(searchVal) ||
+                                          sch.wilayah.toLowerCase().includes(searchVal);
+                    const matchesJenjang = jenjangVal === '' || sch.jenjang === jenjangVal;
+                    return matchesSearch && matchesJenjang;
+                });
+
+                renderSchoolTable(filtered);
             }
 
-            // 2. Fitur Pencarian Tabel
-            const searchInput = document.getElementById('searchInput');
-            const tableBody = document.getElementById('tableBody');
-            
-            if (searchInput && tableBody) {
-                searchInput.addEventListener('input', (e) => {
-                    const term = e.target.value.toLowerCase();
-                    const rows = tableBody.querySelectorAll('tr');
-                    let matchCount = 0;
-                    
-                    rows.forEach(row => {
-                        const schoolName = row.cells[0].textContent.toLowerCase();
-                        if (schoolName.includes(term)) {
-                            row.style.display = '';
-                            matchCount++;
-                        } else {
-                            row.style.display = 'none';
-                        }
-                    });
+            document.getElementById('searchSchoolInput')?.addEventListener('input', applySchoolFilters);
+            document.getElementById('filterJenjangSelect')?.addEventListener('change', applySchoolFilters);
+
+            const schoolTableBody = document.getElementById('schoolTableBody');
+            function renderSchoolTable(schoolsToRender) {
+                if (!schoolTableBody) return;
+                schoolTableBody.innerHTML = '';
+
+                if (schoolsToRender.length === 0) {
+                    schoolTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center py-8 text-slate-400">
+                                <i class="fa-solid fa-school-circle-xmark text-3xl mb-2"></i>
+                                <p>Tidak ada data sekolah yang ditemukan.</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                schoolsToRender.forEach((sch) => {
+                    const realIndex = initialSchools.indexOf(sch);
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50 transition';
+
+                    tr.innerHTML = `
+                        <td class="px-4 py-3 font-bold text-slate-900 uppercase">${sch.nama}</td>
+                        <td class="px-4 py-3"><span class="bg-indigo-50 text-indigo-700 font-bold text-[10px] px-2 py-0.5 rounded border border-indigo-100">${sch.jenjang}</span></td>
+                        <td class="px-4 py-3"><div class="font-semibold text-slate-800">${sch.wilayah}</div><div class="text-[11px] text-slate-400 truncate max-w-xs">${sch.alamat}</div></td>
+                        <td class="px-4 py-3 font-medium text-slate-700">${sch.pic}</td>
+                        <td class="px-4 py-3 font-mono"><a href="https://wa.me/${sch.wa.replace(/[^0-9]/g, '')}" target="_blank" class="text-emerald-600 hover:underline flex items-center gap-1 font-semibold"><i class="fa-brands fa-whatsapp text-emerald-500"></i> ${sch.wa}</a></td>
+                        <td class="px-4 py-3 text-slate-700 font-medium">${sch.marketing}</td>
+                        <td class="px-4 py-3 text-center">
+                            <div class="flex items-center justify-center gap-1.5">
+                                <button class="btn-edit-school text-slate-400 hover:text-brand-600 p-1.5 rounded transition" data-index="${realIndex}" title="Edit Data"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button class="btn-delete-school text-slate-400 hover:text-red-600 p-1.5 rounded transition" data-index="${realIndex}" title="Hapus Data"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                        </td>
+                    `;
+                    schoolTableBody.appendChild(tr);
                 });
             }
 
-            // 3. Toggle Mobile Menu
-            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            const sidebar = document.getElementById('sidebar');
-            
-            if (mobileMenuBtn && sidebar) {
-                mobileMenuBtn.addEventListener('click', () => {
-                    sidebar.classList.toggle('hidden');
-                    sidebar.classList.toggle('absolute');
-                    sidebar.classList.toggle('h-full');
-                    sidebar.classList.toggle('shadow-xl');
+            // Event Delegation for Edit and Delete School Buttons
+            schoolTableBody?.addEventListener('click', function(e) {
+                const editBtn = e.target.closest('.btn-edit-school');
+                const deleteBtn = e.target.closest('.btn-delete-school');
+
+                if (editBtn) {
+                    const idx = parseInt(editBtn.getAttribute('data-index'));
+                    openSchoolModal(true, idx);
+                } else if (deleteBtn) {
+                    deletingIndex = parseInt(deleteBtn.getAttribute('data-index'));
+                    const item = initialSchools[deletingIndex];
+                    const deleteConfirmText = document.getElementById('deleteConfirmText');
+                    if (deleteConfirmText) deleteConfirmText.innerText = `Apakah Anda yakin ingin menghapus data "${item.nama}" dari master database?`;
+                    document.getElementById('modalDeleteConfirm')?.classList.remove('hidden');
+                }
+            });
+
+            // Modal Delete Handlers
+            document.getElementById('btnCancelDelete')?.addEventListener('click', () => {
+                document.getElementById('modalDeleteConfirm')?.classList.add('hidden');
+                deletingIndex = null;
+            });
+
+            document.getElementById('btnConfirmDelete')?.addEventListener('click', () => {
+                if (deletingIndex !== null && initialSchools[deletingIndex]) {
+                    const deletedName = initialSchools[deletingIndex].nama;
+                    initialSchools.splice(deletingIndex, 1);
+                    showToast(`Sekolah ${deletedName} berhasil dihapus.`);
+                    recalculateKpiValues();
+                    applySchoolFilters();
+                    renderKanbanBoard();
+                }
+                document.getElementById('modalDeleteConfirm')?.classList.add('hidden');
+                deletingIndex = null;
+            });
+
+            // Daily Activity Table Renderer
+            const dailyActivityTableBody = document.getElementById('dailyActivityTableBody');
+            function renderDailyActivityTable() {
+                if (!dailyActivityTableBody) return;
+                dailyActivityTableBody.innerHTML = '';
+
+                getFilteredActivities().forEach(act => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50 transition';
+
+                    let badgeColor = 'bg-blue-100 text-blue-800';
+                    let iconCat = '❄️';
+                    if (act.kategori === 'Hot') { badgeColor = 'bg-red-100 text-red-800'; iconCat = '🔥'; }
+                    if (act.kategori === 'Warm') { badgeColor = 'bg-amber-100 text-amber-800'; iconCat = '💥'; }
+
+                    tr.innerHTML = `
+                        <td class="px-4 py-3 font-semibold text-slate-900">
+                            <div>${act.tgl}</div>
+                            <div class="text-[10px] text-slate-400 font-normal"><i class="fa-regular fa-clock"></i> ${act.checkIn} - ${act.checkOut}</div>
+                        </td>
+                        <td class="px-4 py-3 font-semibold text-slate-800">${act.marketing}</td>
+                        <td class="px-4 py-3 font-extrabold text-brand-700">${act.sekolah}</td>
+                        <td class="px-4 py-3"><span class="bg-slate-100 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200">${act.aktivitas}</span></td>
+                        <td class="px-4 py-3 font-medium text-slate-700">${act.pihak}</td>
+                        <td class="px-4 py-3 text-center"><span class="${badgeColor} text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center justify-center gap-1 w-max mx-auto">${iconCat} ${act.kategori}</span></td>
+                        <td class="px-4 py-3"><div class="flex items-center gap-2"><img src="${act.foto}" class="w-8 h-8 rounded object-cover border border-slate-200"><span class="text-[10px] font-mono text-slate-500 truncate w-20"><i class="fa-solid fa-location-dot text-emerald-600"></i> OK</span></div></td>
+                        <td class="px-4 py-3 text-right font-extrabold text-emerald-600">Rp ${(act.nilai || 0).toLocaleString('id-ID')}</td>
+                    `;
+                    dailyActivityTableBody.appendChild(tr);
                 });
             }
 
-            // 4. Interaksi Navigasi Sidebar
-            const sidebarItems = document.querySelectorAll('.sidebar-item');
-            sidebarItems.forEach(item => {
-                item.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    
-                    // Reset class
-                    sidebarItems.forEach(i => {
-                        i.classList.remove('active');
-                        i.classList.add('text-slate-600');
-                    });
-                    
-                    // Add active class
-                    item.classList.add('active');
-                    item.classList.remove('text-slate-600');
-                    
-                    showToast('Mengakses menu baru...');
-                    
-                    // Auto tutup sidebar di mobile setelah klik menu
-                    if (window.innerWidth < 768 && sidebar) {
-                        sidebar.classList.add('hidden');
-                    }
-                });
+            // Settings Form Handler
+            document.getElementById('toggleRestrictMarketing')?.addEventListener('change', function(e) {
+                appSettings.restrictMarketingView = e.target.checked;
+                recalculateKpiValues();
+                applySchoolFilters();
+                renderDailyActivityTable();
+                renderKanbanBoard();
+                showToast(`Pengaturan privasi diperbarui: ${appSettings.restrictMarketingView ? 'Aktif' : 'Non-aktif'}`);
             });
 
-            // 5. Event Listeners pada Tombol Aksi
-            document.getElementById('addProspectBtn')?.addEventListener('click', () => showToast('Membuka Form: Tambah Prospek Baru'));
-            document.getElementById('notificationBtn')?.addEventListener('click', () => showToast('Tidak ada pemberitahuan baru saat ini'));
-            
-            // Tombol di dalam tabel
-            document.querySelectorAll('button[title="Edit"]').forEach(btn => {
-                btn.addEventListener('click', () => showToast('Membuka detail edit data sekolah...'));
-            });
-            document.querySelectorAll('button[title="Detail"]').forEach(btn => {
-                btn.addEventListener('click', () => showToast('Memuat rincian negosiasi prospek...'));
-            });
-
-            // Dropdown filter & Pagination
-            document.querySelector('select')?.addEventListener('change', () => showToast('Memperbarui laporan sesuai periode...'));
-            document.querySelectorAll('[role="group"] button').forEach(btn => {
-                btn.addEventListener('click', () => showToast('Memuat halaman tabel berikutnya...'));
+            document.getElementById('settingsTargetsForm')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                appSettings.targetDatabase = parseInt(document.getElementById('cfgTargetDatabase').value) || 300;
+                appSettings.targetVisit = parseInt(document.getElementById('cfgTargetVisit').value) || 150;
+                appSettings.targetPresentasi = parseInt(document.getElementById('cfgTargetPresentasi').value) || 50;
+                appSettings.targetDeal = parseInt(document.getElementById('cfgTargetDealCount').value) || 55;
+                appSettings.targetOmzet = parseInt(document.getElementById('cfgTargetOmzet').value) || 2000000000;
+                recalculateKpiValues();
+                showToast('Konfigurasi target KPI berhasil disimpan!');
             });
 
+            // App Startup Initialization
+            initPerformanceChart();
+            updateRoleState();
         });
     </script>
 </body>
