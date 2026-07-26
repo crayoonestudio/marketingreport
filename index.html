@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Yearbook CRM & KPI Real-Time Cloud Hub</title>
+    <title>Yearbook CRM & KPI Local Hub</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,11 +16,6 @@
     
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Firebase 10 SDK (Compat Mode for Single File CDN Integration) -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
     <script>
         tailwind.config = {
@@ -78,12 +73,12 @@
         <div class="h-16 flex items-center px-5 border-b border-slate-800 justify-between">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-brand-500/30">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <i class="fa-solid fa-server"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-white text-base leading-tight">Yearbook Cloud</h1>
-                    <p class="text-[10px] text-emerald-400 uppercase tracking-widest font-bold flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-live"></span> Multi-Device Sync
+                    <h1 class="font-bold text-white text-base leading-tight">Yearbook CRM</h1>
+                    <p class="text-[10px] text-amber-400 uppercase tracking-widest font-bold flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 pulse-live"></span> Local Storage
                     </p>
                 </div>
             </div>
@@ -95,10 +90,10 @@
         <!-- Sidebar Navigation Items -->
         <div class="p-4 flex-1 overflow-y-auto space-y-6">
             <div>
-                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 px-3">Sistem Terpusat</div>
+                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 px-3">Menu Utama</div>
                 <nav class="space-y-1">
                     <button id="navDashboard" class="w-full sidebar-item active flex items-center gap-3 px-3.5 py-3 rounded-lg bg-brand-600 text-white font-medium text-sm transition text-left">
-                        <i class="fa-solid fa-gauge-high w-5 text-center"></i> Real-time Dashboard
+                        <i class="fa-solid fa-gauge-high w-5 text-center"></i> Dashboard KPI
                     </button>
                     <button id="navDatabase" class="w-full sidebar-item flex items-center gap-3 px-3.5 py-3 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-sm transition text-left">
                         <i class="fa-solid fa-building-columns w-5 text-center"></i> Database Sekolah
@@ -119,14 +114,13 @@
             </div>
         </div>
 
-        <!-- System Live Status & User Profile -->
+        <!-- System Local Status & User Profile -->
         <div class="p-4 border-t border-slate-800 space-y-3">
-            <div id="cloudConnectionBadge" class="bg-emerald-950/80 border border-emerald-800/80 rounded-lg p-2.5 text-xs flex items-center justify-between">
+            <div id="cloudConnectionBadge" class="bg-amber-950/80 border border-amber-800/80 rounded-lg p-2.5 text-xs flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-live" id="cloudStatusDot"></span>
-                    <span class="text-emerald-300 font-bold" id="cloudStatusText">Cloud Database Live</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500 pulse-live" id="cloudStatusDot"></span>
+                    <span class="text-amber-300 font-bold" id="cloudStatusText">Offline (Local)</span>
                 </div>
-                <span class="text-slate-400 text-[10px]" id="liveTimer">12:00 WIB</span>
             </div>
             
             <div class="flex items-center gap-3 pt-1">
@@ -150,9 +144,9 @@
                 </button>
                 <div class="min-w-0">
                     <h2 class="text-sm sm:text-lg font-bold text-slate-900 leading-tight flex items-center gap-2 truncate" id="headerTitle">
-                        Dashboard KPI Real-Time Cloud
+                        Dashboard KPI Marketing
                     </h2>
-                    <p class="text-[11px] sm:text-xs text-slate-500 hidden sm:block truncate" id="headerSub">Tersambung ke 1 Database Online Terpusat (PC, Laptop, & Mobile Handphone)</p>
+                    <p class="text-[11px] sm:text-xs text-slate-500 hidden sm:block truncate" id="headerSub">Data tersimpan di penyimpanan lokal browser Anda.</p>
                 </div>
             </div>
 
@@ -169,7 +163,7 @@
                     </select>
                 </div>
 
-                <button id="refreshDataBtn" class="p-2 text-slate-500 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition" title="Force Sync Database Cloud">
+                <button id="refreshDataBtn" class="p-2 text-slate-500 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition" title="Refresh Data Lokal">
                     <i class="fa-solid fa-arrows-rotate"></i>
                 </button>
 
@@ -190,9 +184,9 @@
             <div id="viewDashboardSection" class="space-y-6">
                 
                 <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Ikhtisar KPI Terpusat (Live Cloud Database)</h3>
-                    <span class="text-[11px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        <i class="fa-solid fa-cloud-check"></i> Cloud Sync Active
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Ikhtisar KPI Target & Pencapaian</h3>
+                    <span class="text-[11px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                        <i class="fa-solid fa-server"></i> Local Storage
                     </span>
                 </div>
 
@@ -209,8 +203,8 @@
                         </div>
                         <div class="text-xl sm:text-2xl font-extrabold text-slate-900" id="kpiTotalSchoolCount">0</div>
                         <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 flex items-center gap-1 truncate">
-                            <span class="text-emerald-600 font-semibold"><i class="fa-solid fa-cloud"></i> Master</span>
-                            <span>terintegrasi</span>
+                            <span class="text-emerald-600 font-semibold"><i class="fa-solid fa-database"></i> Master</span>
+                            <span>lokal</span>
                         </div>
                     </div>
 
@@ -313,7 +307,7 @@
                         </div>
                         <div class="text-lg sm:text-xl font-extrabold text-slate-900 truncate" id="kpiOmzetValue">Rp 0</div>
                         <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 truncate flex items-center gap-1">
-                            <i class="fa-solid fa-circle-check text-emerald-500"></i> Verified Cloud
+                            <i class="fa-solid fa-circle-check text-emerald-500"></i> Disimpan Lokal
                         </div>
                     </div>
 
@@ -357,7 +351,7 @@
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                             <div>
                                 <h3 class="text-sm sm:text-base font-bold text-slate-900">Grafik Performa Marketing & Trend Omzet</h3>
-                                <p class="text-xs text-slate-500">Pencapaian riil terintegrasi dari database cloud</p>
+                                <p class="text-xs text-slate-500">Pencapaian riil dari database lokal</p>
                             </div>
                             <div class="flex items-center gap-2">
                                 <select id="chartMetricSelect" class="bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-brand-500">
@@ -374,9 +368,9 @@
                     <!-- Leaderboard Dynamic Ranking -->
                     <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col">
                         <h3 class="text-sm sm:text-base font-bold text-slate-900 mb-1 flex items-center gap-2">
-                            <i class="fa-solid fa-trophy text-amber-500"></i> Leaderboard Real-Time Tim
+                            <i class="fa-solid fa-trophy text-amber-500"></i> Leaderboard Tim
                         </h3>
-                        <p class="text-xs text-slate-500 mb-4">Peringkat performa individu berdasarkan deal di database pusat</p>
+                        <p class="text-xs text-slate-500 mb-4">Peringkat performa individu berdasarkan deal</p>
 
                         <div class="space-y-3 flex-1 overflow-y-auto" id="leaderboardContainer">
                             <!-- Rendered dynamically -->
@@ -394,9 +388,9 @@
                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-5 pb-4 border-b border-slate-100">
                         <div>
                             <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-                                <i class="fa-solid fa-building-columns text-brand-600"></i> Master Database Sekolah Cloud
+                                <i class="fa-solid fa-building-columns text-brand-600"></i> Master Database Sekolah (Lokal)
                             </h3>
-                            <p class="text-xs text-slate-500">Setiap sekolah yang diinput langsung tersinkronkan ke PC, Laptop, & HP tim lainnya</p>
+                            <p class="text-xs text-slate-500">Data ini hanya tersimpan di browser Anda saat ini.</p>
                         </div>
 
                         <div class="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
@@ -440,7 +434,7 @@
                                 </tr>
                             </thead>
                             <tbody id="schoolTableBody" class="divide-y divide-slate-200">
-                                <!-- Dynamic Render from Cloud DB -->
+                                <!-- Dynamic Render from LocalStorage -->
                             </tbody>
                         </table>
                     </div>
@@ -450,14 +444,48 @@
 
             <!-- SECTION 3: VIEW DAILY ACTIVITY MARKETING -->
             <div id="viewDailyActivitySection" class="space-y-6 hidden">
+                
+                <!-- Helper Table Kategori Market -->
+                <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 sm:p-5">
+                    <h3 class="font-bold text-slate-900 text-sm mb-3"><i class="fa-solid fa-circle-info text-blue-500"></i> Panduan Status Target Market</h3>
+                    <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                        <table class="w-full text-xs text-left text-slate-600">
+                            <thead class="bg-slate-50 uppercase text-slate-500 font-semibold border-b border-slate-200">
+                                <tr>
+                                    <th class="px-4 py-3 w-32">Target Market</th>
+                                    <th class="px-4 py-3">Pengertian</th>
+                                    <th class="px-4 py-3">Contoh Marketing BTS</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200">
+                                <tr>
+                                    <td class="px-4 py-3 font-bold text-red-700 bg-red-50/30">🔥 Hot</td>
+                                    <td class="px-4 py-3">Sangat tertarik dan <strong>berpotensi segera deal</strong></td>
+                                    <td class="px-4 py-3">Sekolah sudah minta proposal, jadwal presentasi, atau sedang negosiasi</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 font-bold text-amber-700 bg-amber-50/30">💥 Warm</td>
+                                    <td class="px-4 py-3">Sudah tertarik tetapi <strong>belum siap mengambil keputusan</strong></td>
+                                    <td class="px-4 py-3">Sudah komunikasi dengan PIC, tertarik produk, tetapi masih perlu follow-up</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 font-bold text-blue-700 bg-blue-50/30">❄️ Cold</td>
+                                    <td class="px-4 py-3">Belum memiliki ketertarikan atau <strong>belum ada komunikasi</strong></td>
+                                    <td class="px-4 py-3">Database sekolah baru, belum pernah dihubungi atau belum merespons</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- Log Daily Activity Table & Add Button -->
                 <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 sm:p-5">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5 pb-4 border-b border-slate-100">
                         <div>
                             <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-                                <i class="fa-solid fa-list-check text-brand-600"></i> Log Activity Marketing (Cloud Synced)
+                                <i class="fa-solid fa-list-check text-brand-600"></i> Log Activity Marketing
                             </h3>
-                            <p class="text-xs text-slate-500">Rekapitulasi kunjungan harian, jam check-in/out, GPS, dan foto langsung tersimpan online</p>
+                            <p class="text-xs text-slate-500">Rekapitulasi kunjungan harian, jam check-in/out, GPS, dan foto tersimpan secara lokal.</p>
                         </div>
 
                         <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
@@ -486,7 +514,7 @@
                                 </tr>
                             </thead>
                             <tbody id="dailyActivityTableBody" class="divide-y divide-slate-200">
-                                <!-- Dynamic Render from Cloud DB -->
+                                <!-- Dynamic Render -->
                             </tbody>
                         </table>
                     </div>
@@ -498,14 +526,14 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-sm">
                     <div>
                         <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-border-all text-brand-600"></i> Kanban Pipeline Sync
+                            <i class="fa-solid fa-border-all text-brand-600"></i> Kanban Pipeline
                         </h3>
-                        <p class="text-xs text-slate-500">Perubahan tahap tersinkron otomatis antar HP, Laptop & PC secara real-time</p>
+                        <p class="text-xs text-slate-500">Otomatis berubah berdasarkan input dari Daily Activity</p>
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <span class="text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 font-bold flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-live"></span> Live Websocket Active
+                        <span class="text-xs text-amber-700 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200 font-bold flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Local Mode
                         </span>
                     </div>
                 </div>
@@ -577,12 +605,12 @@
                         <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
                             <i class="fa-solid fa-map-location-dot text-emerald-600"></i> Live GPS Monitoring Tim Marketing (Khusus Owner & HR)
                         </h3>
-                        <p class="text-xs text-slate-500">Pelacakan lokasi kunjungan, jam absensi visit, dan bukti foto lapangan terpusat</p>
+                        <p class="text-xs text-slate-500">Pelacakan lokasi kunjungan, jam absensi visit, dan bukti foto lapangan dari data lokal.</p>
                     </div>
 
                     <div class="flex items-center gap-2">
                         <span class="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-emerald-200 flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-live"></span> Cloud GPS Tracker
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-live"></span> GPS Tracker
                         </span>
                     </div>
                 </div>
@@ -593,8 +621,8 @@
                         
                         <div class="relative z-10 flex justify-between items-center">
                             <div>
-                                <span class="bg-indigo-500/20 text-indigo-300 text-[10px] font-mono px-2 py-0.5 rounded border border-indigo-500/30">MONITORING LOKASI CLOUD</span>
-                                <h4 class="text-base sm:text-lg font-bold mt-1">Sistem Pemantauan Terpusat</h4>
+                                <span class="bg-indigo-500/20 text-indigo-300 text-[10px] font-mono px-2 py-0.5 rounded border border-indigo-500/30">MONITORING LOKASI</span>
+                                <h4 class="text-base sm:text-lg font-bold mt-1">Sistem Pemantauan Titik Visit</h4>
                             </div>
                             <span class="text-xs font-mono text-slate-400" id="gpsLiveClock">Live Updates</span>
                         </div>
@@ -605,7 +633,7 @@
 
                         <div class="relative z-10 text-[11px] text-slate-400 border-t border-slate-800 pt-3 flex justify-between">
                             <span>Akurasi GPS Mobile: <strong>High (&lt; 10m)</strong></span>
-                            <span>Akses Perangkat: <strong>Online Cloud</strong></span>
+                            <span>Akses Perangkat: <strong>Offline Local</strong></span>
                         </div>
                     </div>
 
@@ -639,7 +667,7 @@
                                 <input type="checkbox" id="toggleRestrictMarketing" checked class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500 border-slate-300">
                             </div>
                             <p class="text-[11px] text-slate-500 italic">
-                                * Jika diaktifkan, akun Marketing A tidak dapat melihat atau mengubah sekolah milik Marketing B di seluruh HP/PC.
+                                * Jika diaktifkan, akun Marketing A tidak dapat melihat atau mengubah sekolah milik Marketing B.
                             </p>
                         </div>
 
@@ -655,11 +683,11 @@
 
                     <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-5 md:col-span-2">
                         <h3 class="font-bold text-slate-900 text-sm border-b border-slate-100 pb-3 flex items-center gap-2">
-                            <i class="fa-solid fa-bullseye text-amber-500"></i> Target KPI & Konfigurasi Cloud Database
+                            <i class="fa-solid fa-bullseye text-amber-500"></i> Target KPI & Konfigurasi Lokal
                         </h3>
 
                         <form id="settingsTargetsForm" class="space-y-4 text-xs">
-                            <div class="font-bold text-slate-800 text-xs">Target KPI Perusahaan (Disimpan di Cloud)</div>
+                            <div class="font-bold text-slate-800 text-xs">Target KPI Perusahaan</div>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
                                     <label class="block text-slate-600 mb-1 font-medium">Target Database Baru</label>
@@ -688,7 +716,7 @@
 
                             <div class="pt-4 border-t border-slate-100 flex justify-end">
                                 <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 px-5 rounded-lg shadow transition flex items-center gap-2">
-                                    <i class="fa-solid fa-floppy-disk"></i> Simpan Target ke Cloud
+                                    <i class="fa-solid fa-floppy-disk"></i> Simpan Target ke Browser
                                 </button>
                             </div>
                         </form>
@@ -707,7 +735,7 @@
         <div class="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100">
                 <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2" id="modalSchoolTitle">
-                    <i class="fa-solid fa-school-flag text-emerald-600"></i> Tambah Data Sekolah Baru (Cloud Sync)
+                    <i class="fa-solid fa-school-flag text-emerald-600"></i> Tambah Data Sekolah Baru (Lokal)
                 </h3>
                 <button id="btnCloseSchoolModal" class="text-slate-400 hover:text-slate-600 p-1">
                     <i class="fa-solid fa-xmark text-lg"></i>
@@ -769,7 +797,7 @@
                 <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
                     <button type="button" id="btnCancelSchoolModal" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg">Batal</button>
                     <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-md transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> Simpan ke Cloud Database
+                        <i class="fa-solid fa-save"></i> Simpan Data
                     </button>
                 </div>
             </form>
@@ -781,7 +809,7 @@
         <div class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100">
                 <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
-                    <i class="fa-solid fa-calendar-plus text-brand-600"></i> Form Daily Activity (Cloud Sync)
+                    <i class="fa-solid fa-calendar-plus text-brand-600"></i> Form Daily Activity
                 </h3>
                 <button id="btnCloseDailyModal" class="text-slate-400 hover:text-slate-600 p-1">
                     <i class="fa-solid fa-xmark text-lg"></i>
@@ -799,7 +827,7 @@
                         Sekolah Yang Dikunjungi <span class="text-red-500">*</span>
                     </label>
                     <select id="inputDailySchool" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                        <!-- Populated dynamically from Cloud DB -->
+                        <!-- Populated dynamically -->
                     </select>
                 </div>
 
@@ -882,7 +910,7 @@
                 <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
                     <button type="button" id="btnCancelDailyModal" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg">Batal</button>
                     <button type="submit" id="btnSubmitDailyForm" class="px-5 py-2.5 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-md transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> Simpan Daily Activity
+                        <i class="fa-solid fa-save"></i> Simpan Activity
                     </button>
                 </div>
             </form>
@@ -896,7 +924,7 @@
                 <i class="fa-solid fa-trash-can"></i>
             </div>
             <h3 class="font-bold text-slate-900 text-base mb-1">Hapus Data Sekolah?</h3>
-            <p class="text-xs text-slate-500 mb-5" id="deleteConfirmText">Penghapusan akan tersinkronkan ke seluruh perangkat tim.</p>
+            <p class="text-xs text-slate-500 mb-5" id="deleteConfirmText">Penghapusan data tidak dapat dibatalkan.</p>
             <div class="flex justify-center gap-3">
                 <button id="btnCancelDelete" class="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg w-full">Batal</button>
                 <button id="btnConfirmDelete" class="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow w-full">Ya, Hapus</button>
@@ -907,48 +935,18 @@
     <!-- Toast Notification Box -->
     <div id="toastNotification" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-3 border border-slate-800 transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none">
         <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
-        <span id="toastMessage">Database Cloud tersinkronkan</span>
+        <span id="toastMessage">Tersimpan di Local Storage</span>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             
             // -------------------------------------------------------------
-            // 1. CONFIGURATION & CLOUD DATABASE INITIALIZATION
+            // 1. DATA INITIALIZATION (LOCAL STORAGE)
             // -------------------------------------------------------------
-            // Pre-configured Firebase Public Cloud Endpoint for seamless zero-setup testing.
-            // On production Vercel deployment, this automatically reads from Window Env or custom Config.
-            const firebaseConfig = {
-                databaseURL: "https://yearbook-crm-default-rtdb.asia-southeast1.firebasedatabase.app"
-            };
-
-            let db = null;
-            let schoolsRef = null;
-            let activitiesRef = null;
-            let settingsRef = null;
-            let isCloudConnected = false;
-
-            try {
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-                }
-                db = firebase.database();
-                schoolsRef = db.ref('yearbook_master_schools');
-                activitiesRef = db.ref('yearbook_daily_activities');
-                settingsRef = db.ref('yearbook_app_settings');
-                isCloudConnected = true;
-            } catch (err) {
-                console.warn("Cloud DB initialized in Local Sync fallback mode:", err);
-            }
-
-            // Global State
-            let currentUser = {
-                name: "Andi Susanto",
-                role: "Marketing", // Owner, HR, Marketing
-                avatar: "https://placehold.co/100x100/4f46e5/white?text=A"
-            };
-
-            let appSettings = {
+            let masterSchools = JSON.parse(localStorage.getItem('yearbook_schools')) || {};
+            let dailyActivities = JSON.parse(localStorage.getItem('yearbook_activities')) || [];
+            let appSettings = JSON.parse(localStorage.getItem('yearbook_settings')) || {
                 restrictMarketingView: true,
                 targetDatabase: 300,
                 targetVisit: 150,
@@ -957,12 +955,68 @@
                 targetOmzet: 2000000000
             };
 
-            // Master Records
-            let masterSchools = {};
-            let dailyActivities = [];
+            // Global State
+            let currentUser = {
+                name: "Andi Susanto",
+                role: "Marketing", // Owner, HR, Marketing
+                avatar: "https://placehold.co/100x100/4f46e5/white?text=A"
+            };
+
             let editingKey = null;
             let deletingKey = null;
             let myChartInstance = null;
+
+            function seedInitialLocalDataIfEmpty() {
+                if (Object.keys(masterSchools).length === 0) {
+                    masterSchools = {
+                        "SCH_001": {
+                            nama: "SMA NEGERI 1 JAKARTA",
+                            jenjang: "SMA",
+                            wilayah: "Jakarta Pusat",
+                            alamat: "Jl. Budi Utomo No. 7, Pasar Baru",
+                            pic: "Drs. Hendra (Kasek)",
+                            wa: "081298765432",
+                            marketing: "Andi Susanto",
+                            stage: "Presentasi",
+                            kategori: "Hot",
+                            nilai: 85000000
+                        },
+                        "SCH_002": {
+                            nama: "SMA KRISTEN BPK PENABUR 1",
+                            jenjang: "SMA",
+                            wilayah: "Jakarta Barat",
+                            alamat: "Jl. Tanjung Duren Raya No. 4",
+                            pic: "Sisca (Ketua Panitia OSIS)",
+                            wa: "081311223344",
+                            marketing: "Rian Ardianto",
+                            stage: "Follow Up",
+                            kategori: "Warm",
+                            nilai: 120000000
+                        },
+                        "SCH_003": {
+                            nama: "SMK TELKOM MALANG",
+                            jenjang: "SMK",
+                            wilayah: "Kota Malang",
+                            alamat: "Jl. Danau Ranau, Sawojajar",
+                            pic: "Pak Rizky (Pembina OSIS)",
+                            wa: "085678901234",
+                            marketing: "Budi Prasetyo",
+                            stage: "Deal",
+                            kategori: "Hot",
+                            nilai: 60000000
+                        }
+                    };
+                    saveToLocal();
+                }
+            }
+
+            // Function to commit changes to local storage and refresh views
+            function saveToLocal() {
+                localStorage.setItem('yearbook_schools', JSON.stringify(masterSchools));
+                localStorage.setItem('yearbook_activities', JSON.stringify(dailyActivities));
+                localStorage.setItem('yearbook_settings', JSON.stringify(appSettings));
+                renderAllViews();
+            }
 
             // Toast Helper
             function showToast(message, isError = false) {
@@ -993,104 +1047,6 @@
                 if (!str) return '';
                 return str.replace(/\w\S*/g, function(txt) {
                     return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-                });
-            }
-
-            // -------------------------------------------------------------
-            // 2. REALTIME CLOUD DATABASE LISTENERS (MULTI-DEVICE WEBSOCKETS)
-            // -------------------------------------------------------------
-            function setupCloudRealtimeListeners() {
-                if (!isCloudConnected || !db) return;
-
-                // Monitor Connection state
-                db.ref('.info/connected').on('value', function(snap) {
-                    const statusDot = document.getElementById('cloudStatusDot');
-                    const statusText = document.getElementById('cloudStatusText');
-                    if (snap.val() === true) {
-                        if (statusDot) statusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-live";
-                        if (statusText) statusText.innerText = "Cloud Sync Active";
-                    } else {
-                        if (statusDot) statusDot.className = "w-2.5 h-2.5 rounded-full bg-amber-500";
-                        if (statusText) statusText.innerText = "Reconnecting...";
-                    }
-                });
-
-                // Real-time Schools Observer
-                schoolsRef.on('value', (snapshot) => {
-                    const data = snapshot.val() || {};
-                    masterSchools = data;
-                    renderAllViews();
-                }, (error) => {
-                    console.error("Cloud fetch error:", error);
-                });
-
-                // Real-time Activities Observer
-                activitiesRef.on('value', (snapshot) => {
-                    const data = snapshot.val() || {};
-                    dailyActivities = Object.keys(data).map(k => ({ key: k, ...data[k] })).reverse();
-                    renderAllViews();
-                });
-
-                // Real-time Settings Observer
-                settingsRef.on('value', (snapshot) => {
-                    const data = snapshot.val();
-                    if (data) {
-                        appSettings = { ...appSettings, ...data };
-                        document.getElementById('toggleRestrictMarketing').checked = appSettings.restrictMarketingView;
-                        document.getElementById('cfgTargetDatabase').value = appSettings.targetDatabase;
-                        document.getElementById('cfgTargetVisit').value = appSettings.targetVisit;
-                        document.getElementById('cfgTargetPresentasi').value = appSettings.targetPresentasi;
-                        document.getElementById('cfgTargetDealCount').value = appSettings.targetDeal;
-                        document.getElementById('cfgTargetOmzet').value = appSettings.targetOmzet;
-                        renderAllViews();
-                    }
-                });
-            }
-
-            function seedInitialCloudDataIfEmpty() {
-                if (!isCloudConnected) return;
-                schoolsRef.once('value', (snapshot) => {
-                    if (!snapshot.exists()) {
-                        const seed = {
-                            "SCH_001": {
-                                nama: "SMA NEGERI 1 JAKARTA",
-                                jenjang: "SMA",
-                                wilayah: "Jakarta Pusat",
-                                alamat: "Jl. Budi Utomo No. 7, Pasar Baru",
-                                pic: "Drs. Hendra (Kasek)",
-                                wa: "081298765432",
-                                marketing: "Andi Susanto",
-                                stage: "Presentasi",
-                                kategori: "Hot",
-                                nilai: 85000000
-                            },
-                            "SCH_002": {
-                                nama: "SMA KRISTEN BPK PENABUR 1",
-                                jenjang: "SMA",
-                                wilayah: "Jakarta Barat",
-                                alamat: "Jl. Tanjung Duren Raya No. 4",
-                                pic: "Sisca (Ketua Panitia OSIS)",
-                                wa: "081311223344",
-                                marketing: "Rian Ardianto",
-                                stage: "Follow Up",
-                                kategori: "Warm",
-                                nilai: 120000000
-                            },
-                            "SCH_003": {
-                                nama: "SMK TELKOM MALANG",
-                                jenjang: "SMK",
-                                wilayah: "Kota Malang",
-                                alamat: "Jl. Danau Ranau, Sawojajar",
-                                pic: "Pak Rizky (Pembina OSIS)",
-                                wa: "085678901234",
-                                marketing: "Budi Prasetyo",
-                                stage: "Deal",
-                                kategori: "Hot",
-                                nilai: 60000000
-                            }
-                        };
-                        schoolsRef.set(seed);
-                    }
                 });
             }
 
@@ -1246,7 +1202,7 @@
                         <tr>
                             <td colspan="7" class="text-center py-8 text-slate-400">
                                 <i class="fa-solid fa-school-circle-xmark text-3xl mb-2"></i>
-                                <p>Tidak ada data sekolah di database cloud.</p>
+                                <p>Tidak ada data sekolah di database lokal.</p>
                             </td>
                         </tr>
                     `;
@@ -1390,7 +1346,7 @@
             }
 
             // -------------------------------------------------------------
-            // 5. ATURAN PENTING & INTEGRASI DB TRANSACTION
+            // 5. DATA MUTATION LOGIC (LOCAL CRUD)
             // -------------------------------------------------------------
             const modalAddSchool = document.getElementById('modalAddSchool');
             const schoolForm = document.getElementById('schoolForm');
@@ -1407,12 +1363,12 @@
                     document.getElementById('inputSchoolPic').value = item.pic;
                     document.getElementById('inputSchoolWa').value = item.wa;
                     document.getElementById('inputSchoolMarketing').value = item.marketing;
-                    if (modalSchoolTitle) modalSchoolTitle.innerHTML = `<i class="fa-solid fa-pen-to-square text-brand-600"></i> Edit Data Sekolah (Cloud)`;
+                    if (modalSchoolTitle) modalSchoolTitle.innerHTML = `<i class="fa-solid fa-pen-to-square text-brand-600"></i> Edit Data Sekolah (Lokal)`;
                 } else {
                     editingKey = null;
                     schoolForm.reset();
                     document.getElementById('inputSchoolMarketing').value = currentUser.name;
-                    if (modalSchoolTitle) modalSchoolTitle.innerHTML = `<i class="fa-solid fa-school-flag text-emerald-600"></i> Tambah Data Sekolah Baru (Cloud)`;
+                    if (modalSchoolTitle) modalSchoolTitle.innerHTML = `<i class="fa-solid fa-school-flag text-emerald-600"></i> Tambah Data Sekolah Baru (Lokal)`;
                 }
                 modalAddSchool?.classList.remove('hidden');
             }
@@ -1426,7 +1382,7 @@
                 e.target.value = e.target.value.toUpperCase();
             });
 
-            // Handle Cloud Commit for School (with Duplication Lock Rules)
+            // Submit School Form (Save to LocalStorage)
             schoolForm?.addEventListener('submit', function(e) {
                 e.preventDefault();
 
@@ -1456,22 +1412,19 @@
                     stage: editingKey ? (masterSchools[editingKey].stage || 'Canvassing') : 'Canvassing',
                     kategori: editingKey ? (masterSchools[editingKey].kategori || 'Cold') : 'Cold',
                     nilai: editingKey ? (masterSchools[editingKey].nilai || 0) : 0,
-                    updatedAt: firebase.database.ServerValue.TIMESTAMP
+                    updatedAt: Date.now()
                 };
 
-                if (isCloudConnected && schoolsRef) {
-                    if (editingKey) {
-                        schoolsRef.child(editingKey).update(schoolData).then(() => {
-                            showToast(`Sekolah ${schoolData.nama} diperbarui di Cloud!`);
-                        });
-                    } else {
-                        const newRef = schoolsRef.push();
-                        newRef.set(schoolData).then(() => {
-                            showToast(`Sekolah ${schoolData.nama} tersimpan ke Cloud Database!`);
-                        });
-                    }
+                if (editingKey) {
+                    masterSchools[editingKey] = schoolData;
+                    showToast(`Sekolah ${schoolData.nama} diperbarui!`);
+                } else {
+                    const newKey = 'SCH_' + Date.now();
+                    masterSchools[newKey] = schoolData;
+                    showToast(`Sekolah ${schoolData.nama} tersimpan secara lokal!`);
                 }
 
+                saveToLocal();
                 modalAddSchool?.classList.add('hidden');
                 schoolForm.reset();
             });
@@ -1488,7 +1441,7 @@
                     deletingKey = deleteBtn.getAttribute('data-key');
                     const item = masterSchools[deletingKey];
                     if (item) {
-                        document.getElementById('deleteConfirmText').innerText = `Apakah Anda yakin ingin menghapus data "${item.nama}" dari Cloud Database?`;
+                        document.getElementById('deleteConfirmText').innerText = `Apakah Anda yakin ingin menghapus data "${item.nama}" dari Database Lokal?`;
                         document.getElementById('modalDeleteConfirm')?.classList.remove('hidden');
                     }
                 }
@@ -1500,17 +1453,17 @@
             });
 
             document.getElementById('btnConfirmDelete')?.addEventListener('click', () => {
-                if (deletingKey && isCloudConnected) {
-                    schoolsRef.child(deletingKey).remove().then(() => {
-                        showToast("Data sekolah berhasil dihapus dari Cloud.");
-                    });
+                if (deletingKey) {
+                    delete masterSchools[deletingKey];
+                    saveToLocal();
+                    showToast("Data sekolah berhasil dihapus.");
                 }
                 document.getElementById('modalDeleteConfirm')?.classList.add('hidden');
                 deletingKey = null;
             });
 
             // -------------------------------------------------------------
-            // 6. DAILY ACTIVITY CLOUD SYNC & AUTO PIPELINE TRANSITION
+            // 6. DAILY ACTIVITY LOGIC & AUTO PIPELINE TRANSITION
             // -------------------------------------------------------------
             const modalDailyActivity = document.getElementById('modalDailyActivity');
             const dailyActivityForm = document.getElementById('dailyActivityForm');
@@ -1582,6 +1535,7 @@
                 }
             });
 
+            // Submit Activity Form (Save to LocalStorage)
             dailyActivityForm?.addEventListener('submit', function(e) {
                 e.preventDefault();
 
@@ -1590,8 +1544,8 @@
                 const categoryStatus = document.getElementById('inputDailyCategory').value;
                 const dealValue = parseFloat(document.getElementById('inputDailyDealValue').value) || 0;
 
-                // 1. Save Activity Log
                 const newActivity = {
+                    id: 'ACT_' + Date.now(),
                     tgl: document.getElementById('inputDailyDate').value,
                     checkIn: document.getElementById('inputDailyCheckIn').value,
                     checkOut: document.getElementById('inputDailyCheckOut').value,
@@ -1603,24 +1557,24 @@
                     gps: document.getElementById('inputDailyGps').value,
                     foto: photoPreviewImg?.src || 'https://placehold.co/100x100/4f46e5/white?text=Foto+Visit',
                     nilai: dealValue,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                    timestamp: Date.now()
                 };
 
-                if (isCloudConnected && activitiesRef) {
-                    activitiesRef.push(newActivity);
-                    
-                    // 2. Auto Sync Master School Pipeline Stage in Cloud
-                    const matchedKey = Object.keys(masterSchools).find(k => masterSchools[k].nama === selectedSchoolName);
-                    if (matchedKey) {
-                        schoolsRef.child(matchedKey).update({
-                            stage: activityType,
-                            kategori: categoryStatus,
-                            nilai: dealValue > 0 ? dealValue : (masterSchools[matchedKey].nilai || 0)
-                        });
+                // Add to array (newest first)
+                dailyActivities.unshift(newActivity);
+                
+                // Auto Sync Master School Pipeline Stage
+                const matchedKey = Object.keys(masterSchools).find(k => masterSchools[k].nama === selectedSchoolName);
+                if (matchedKey) {
+                    masterSchools[matchedKey].stage = activityType;
+                    masterSchools[matchedKey].kategori = categoryStatus;
+                    if (dealValue > 0) {
+                        masterSchools[matchedKey].nilai = dealValue;
                     }
-                    showToast(`Activity tersimpan & Pipeline ${selectedSchoolName} berpindah ke ${activityType}!`);
                 }
 
+                saveToLocal();
+                showToast(`Activity tersimpan secara lokal. Pipeline diperbarui!`);
                 modalDailyActivity?.classList.add('hidden');
             });
 
@@ -1706,7 +1660,7 @@
                 if (inputDailyMarketingName) inputDailyMarketingName.value = currentUser.name;
 
                 renderAllViews();
-                showToast(`Role Akun: ${currentUser.name} (${currentUser.role})`);
+                showToast(`Role Akun Aktif: ${currentUser.name} (${currentUser.role})`);
             }
 
             roleSelector?.addEventListener('change', updateRoleState);
@@ -1767,16 +1721,13 @@
             });
 
             document.getElementById('refreshDataBtn')?.addEventListener('click', () => {
-                showToast("Menyinkronkan ulang data Cloud...");
+                showToast("Memuat ulang data lokal...");
                 renderAllViews();
             });
 
             document.getElementById('toggleRestrictMarketing')?.addEventListener('change', function(e) {
                 appSettings.restrictMarketingView = e.target.checked;
-                if (isCloudConnected && settingsRef) {
-                    settingsRef.update({ restrictMarketingView: e.target.checked });
-                }
-                renderAllViews();
+                saveToLocal();
                 showToast(`Aturan Privasi: ${e.target.checked ? 'Aktif' : 'Non-aktif'}`);
             });
 
@@ -1788,18 +1739,23 @@
                 appSettings.targetDeal = parseInt(document.getElementById('cfgTargetDealCount').value) || 55;
                 appSettings.targetOmzet = parseInt(document.getElementById('cfgTargetOmzet').value) || 2000000000;
 
-                if (isCloudConnected && settingsRef) {
-                    settingsRef.update(appSettings);
-                }
-                renderAllViews();
-                showToast('Target KPI berhasil tersimpan ke Cloud Database!');
+                saveToLocal();
+                showToast('Target KPI berhasil tersimpan di memori lokal!');
             });
 
             // App Startup Init
             initPerformanceChart();
+            seedInitialLocalDataIfEmpty();
+            
+            // Set initial settings inputs
+            document.getElementById('toggleRestrictMarketing').checked = appSettings.restrictMarketingView;
+            document.getElementById('cfgTargetDatabase').value = appSettings.targetDatabase;
+            document.getElementById('cfgTargetVisit').value = appSettings.targetVisit;
+            document.getElementById('cfgTargetPresentasi').value = appSettings.targetPresentasi;
+            document.getElementById('cfgTargetDealCount').value = appSettings.targetDeal;
+            document.getElementById('cfgTargetOmzet').value = appSettings.targetOmzet;
+            
             updateRoleState();
-            setupCloudRealtimeListeners();
-            seedInitialCloudDataIfEmpty();
         });
     </script>
 </body>
