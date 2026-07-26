@@ -10,6 +10,18 @@
     
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // ============================================================
+        // SUPABASE CONFIGURATION
+        // Ganti 2 nilai berikut dengan URL Project dan anon/publishable key
+        // dari Supabase Anda. Jangan gunakan service_role key di HTML.
+        // ============================================================
+        window.SUPABASE_CONFIG = {
+            url: "PASTE_SUPABASE_PROJECT_URL_HERE",
+            anonKey: "PASTE_SUPABASE_ANON_OR_PUBLISHABLE_KEY_HERE"
+        };
+    </script>
 
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1682,6 +1694,10 @@
                     return;
                 }
 
+                const previousSchoolName = editingIndex !== null && initialSchools[editingIndex]
+                    ? initialSchools[editingIndex].nama
+                    : null;
+
                 const schoolData = {
                     nama: inputName,
                     jenjang: document.getElementById('inputSchoolJenjang').value,
@@ -1702,6 +1718,9 @@
                     initialSchools.unshift(schoolData);
                     showToast(`Sekolah ${schoolData.nama} berhasil ditambahkan!`);
                 }
+
+                // Kirim perubahan ke database online (jika Supabase sudah dikonfigurasi).
+                window.__cloudSync?.upsertSchool(schoolData, previousSchoolName);
 
                 editingIndex = null;
                 recalculateKpiValues();
@@ -1821,6 +1840,7 @@
                 };
 
                 dailyActivities.unshift(newActivity);
+                window.__cloudSync?.upsertActivity(newActivity, schoolObj?.nama || selectedSchoolName);
                 modalDailyActivity?.classList.add('hidden');
                 
                 recalculateKpiValues();
@@ -1916,6 +1936,7 @@
                 if (deletingIndex !== null && initialSchools[deletingIndex]) {
                     const deletedName = initialSchools[deletingIndex].nama;
                     initialSchools.splice(deletingIndex, 1);
+                    window.__cloudSync?.deleteSchool(deletedName);
                     showToast(`Sekolah ${deletedName} berhasil dihapus.`);
                     recalculateKpiValues();
                     applySchoolFilters();
@@ -1977,6 +1998,186 @@
                 recalculateKpiValues();
                 showToast('Konfigurasi target KPI berhasil disimpan!');
             });
+
+            // ============================================================
+            // CLOUD SYNC LAYER — VERCEL + SUPABASE
+            // Menjaga tampilan aplikasi lama, tetapi data disimpan online.
+            // ============================================================
+            (function initCloudSync() {
+                const cfg = window.SUPABASE_CONFIG || {};
+                const configured = cfg.url && cfg.anonKey &&
+                    !cfg.url.includes('PASTE_SUPABASE') &&
+                    !cfg.anonKey.includes('PASTE_SUPABASE');
+                const statusText = document.querySelector('#liveTimer');
+                const statusDot = statusText?.previousElementSibling;
+                let client = null;
+
+                function setStatus(ok, text) {
+                    if (statusText) statusText.textContent = text;
+                    if (statusDot) {
+                        statusDot.classList.toggle('bg-emerald-500', !!ok);
+                        statusDot.classList.toggle('bg-red-500', !ok);
+                    }
+                }
+
+                if (!configured || !window.supabase?.createClient) {
+                    setStatus(false, 'Mode Lokal');
+                    window.__cloudSync = {
+                        enabled: false,
+                        upsertSchool: () => {},
+                        deleteSchool: () => {},
+                        upsertActivity: () => {}
+                    };
+                    return;
+                }
+
+                client = window.supabase.createClient(cfg.url, cfg.anonKey);
+                setStatus(true, 'Menghubungkan...');
+
+                const schoolToRow = s => ({
+                    nama: s.nama,
+                    nama_normalized: String(s.nama || '').trim().toUpperCase(),
+                    jenjang: s.jenjang || '', wilayah: s.wilayah || '', alamat: s.alamat || '',
+                    pic: s.pic || '', wa: s.wa || '', marketing: s.marketing || '',
+                    stage: s.stage || 'Canvassing', kategori: s.kategori || 'Cold',
+                    nilai: Number(s.nilai || 0)
+                });
+                const rowToSchool = r => ({
+                    _id: r.id, nama: r.nama, jenjang: r.jenjang, wilayah: r.wilayah,
+                    alamat: r.alamat, pic: r.pic, wa: r.wa, marketing: r.marketing,
+                    stage: r.stage, kategori: r.kategori, nilai: Number(r.nilai || 0)
+                });
+                const activityToRow = a => ({
+                    tgl: a.tgl || '', check_in: a.checkIn || '', check_out: a.checkOut || '',
+                    marketing: a.marketing || '', sekolah: a.sekolah || '', aktivitas: a.aktivitas || '',
+                    pihak: a.pihak || '', kategori: a.kategori || '', gps: a.gps || '',
+                    foto: a.foto || '', nilai: Number(a.nilai || 0)
+                });
+                const rowToActivity = r => ({
+                    _id: r.id, tgl: r.tgl, checkIn: r.check_in, checkOut: r.check_out,
+                    marketing: r.marketing, sekolah: r.sekolah, aktivitas: r.aktivitas,
+                    pihak: r.pihak, kategori: r.kategori, gps: r.gps, foto: r.foto,
+                    nilai: Number(r.nilai || 0)
+                });
+
+                async function pull() {
+                    try {
+                        const [schoolsRes, activitiesRes] = await Promise.all([
+                            client.from('schools').select('*').order('created_at', { ascending: false }),
+                            client.from('daily_activities').select('*').order('created_at', { ascending: false })
+                        ]);
+                        if (schoolsRes.error) throw schoolsRes.error;
+                        if (activitiesRes.error) throw activitiesRes.error;
+
+                        if (schoolsRes.data?.length) initialSchools = schoolsRes.data.map(rowToSchool);
+                        if (activitiesRes.data?.length) dailyActivities = activitiesRes.data.map(rowToActivity);
+
+                        recalculateKpiValues();
+                        applySchoolFilters();
+                        renderDailyActivityTable();
+                        renderKanbanBoard();
+                        renderGpsMonitoringView();
+                        setStatus(true, 'Online • Sinkron');
+                        return true;
+                    } catch (err) {
+                        console.error('Cloud pull error:', err);
+                        setStatus(false, 'Offline / Error');
+                        return false;
+                    }
+                }
+
+                async function seedIfEmpty() {
+                    try {
+                        const { count: schoolCount, error: schoolCountError } = await client
+                            .from('schools').select('*', { count: 'exact', head: true });
+                        if (schoolCountError) throw schoolCountError;
+                        if (schoolCount === 0 && initialSchools.length) {
+                            const { error } = await client.from('schools').insert(initialSchools.map(schoolToRow));
+                            if (error) console.warn('Seed schools:', error);
+                        }
+
+                        const { count: activityCount, error: activityCountError } = await client
+                            .from('daily_activities').select('*', { count: 'exact', head: true });
+                        if (activityCountError) throw activityCountError;
+                        if (activityCount === 0 && dailyActivities.length) {
+                            const { error } = await client.from('daily_activities').insert(dailyActivities.map(activityToRow));
+                            if (error) console.warn('Seed activities:', error);
+                        }
+                    } catch (err) {
+                        console.error('Cloud seed error:', err);
+                    }
+                }
+
+                async function upsertSchool(school, previousName = null) {
+                    try {
+                        const payload = schoolToRow(school);
+                        if (previousName && previousName !== school.nama) {
+                            const { error: delError } = await client.from('schools')
+                                .delete().eq('nama_normalized', String(previousName).trim().toUpperCase());
+                            if (delError) throw delError;
+                        }
+                        const { error } = await client.from('schools').upsert(payload, { onConflict: 'nama_normalized' });
+                        if (error) {
+                            if (error.code === '23505') {
+                                showToast('Data sekolah sudah dimiliki / sedang ditangani marketing lain.', true);
+                            } else throw error;
+                        }
+                        await pull();
+                    } catch (err) {
+                        console.error('School sync error:', err);
+                        showToast('Data tersimpan di perangkat, tetapi gagal sinkron ke server.', true);
+                    }
+                }
+
+                async function deleteSchool(name) {
+                    try {
+                        const { error } = await client.from('schools').delete()
+                            .eq('nama_normalized', String(name).trim().toUpperCase());
+                        if (error) throw error;
+                        await pull();
+                    } catch (err) {
+                        console.error('School delete sync error:', err);
+                        showToast('Penghapusan server gagal. Periksa koneksi database.', true);
+                    }
+                }
+
+                async function upsertActivity(activity, schoolName) {
+                    try {
+                        const { error } = await client.from('daily_activities').insert(activityToRow(activity));
+                        if (error) throw error;
+
+                        // Sinkron stage/category/value sekolah yang terkait.
+                        const school = initialSchools.find(s => s.nama === schoolName);
+                        if (school) {
+                            const { error: schoolError } = await client.from('schools')
+                                .update({ stage: school.stage, kategori: school.kategori, nilai: Number(school.nilai || 0) })
+                                .eq('nama_normalized', String(school.nama).trim().toUpperCase());
+                            if (schoolError) console.warn('School stage sync:', schoolError);
+                        }
+                        await pull();
+                    } catch (err) {
+                        console.error('Activity sync error:', err);
+                        showToast('Daily Activity tersimpan di perangkat, tetapi gagal sinkron ke server.', true);
+                    }
+                }
+
+                window.__cloudSync = { enabled: true, pull, upsertSchool, deleteSchool, upsertActivity };
+
+                // Initial cloud load + periodic refresh agar HP/Laptop melihat data terbaru.
+                (async () => {
+                    await seedIfEmpty();
+                    await pull();
+                })();
+                setInterval(() => pull(), 15000);
+
+                // Realtime Supabase: update langsung ketika ada perubahan dari perangkat lain.
+                client.channel('marketing-report-realtime')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'schools' }, pull)
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'daily_activities' }, pull)
+                    .subscribe((status) => {
+                        if (status === 'SUBSCRIBED') setStatus(true, 'Live • Realtime');
+                    });
+            })();
 
             // App Startup Initialization
             initPerformanceChart();
