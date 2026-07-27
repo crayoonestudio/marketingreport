@@ -193,19 +193,31 @@
     <script>
         // --- 1. KONEKSI SUPABASE ---
         // GANTI INI: Salin URL dan KEY dari Project Settings -> API di dashboard Supabase Anda
-        const supabaseUrl = 'https://xovljmaawbkelojfpobr.supabase.co/rest/v1/'; 
-        const supabaseKey = 'sb_publishable_FqikdEgA_MfHJaaVfUk42g_EatzPk5Z'; 
+        var supabaseUrl = 'https://xovljmaawbkelojfpobr.supabase.co'; 
+        var supabaseKey = 'sb_publishable_FqikdEgA_MfHJaaVfUk42g_EatzPk5Z'; 
         
-        // Inisialisasi client Supabase
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        // Inisialisasi client Supabase (menggunakan nama supabaseClient agar tidak bentrok)
+        var supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         // Variabel untuk menyimpan data asli dari database
-        let transactionsData = []; 
+        var transactionsData = []; 
 
         // Fungsi untuk mengambil data asli dari tabel 'transactions' di Supabase
         async function fetchTransactions() {
+            // Pengecekan cerdas: Jika masih pakai URL placeholder, gunakan data dummy tanpa error
+            if (supabaseUrl.includes('KODE_PROJECT_ANDA')) {
+                console.warn("PEMBERITAHUAN: URL Supabase belum diisi. Aplikasi menampilkan data simulasi sementara.");
+                transactionsData = [
+                    { id: "TRX-1029", name: "Budi Santoso", class: "XII IPA 1", package: "Premium", status: "Lunas", amount: 250000 },
+                    { id: "TRX-1028", name: "Siti Aminah", class: "XII IPS 2", package: "Standar", status: "DP", amount: 150000 },
+                    { id: "TRX-1027", name: "Rizky Darmawan", class: "XII IPA 3", package: "Premium", status: "Lunas", amount: 250000 }
+                ];
+                renderTable();
+                return; // Hentikan eksekusi di sini agar tidak terjadi error 'Failed to fetch'
+            }
+
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('transactions')
                     .select('*')
                     .order('created_at', { ascending: false });
@@ -220,14 +232,6 @@
                 
             } catch (error) {
                 console.error("Gagal terhubung ke Supabase:", error.message);
-                
-                // Fallback: Jika Supabase belum disetting, tampilkan data dummy ini agar tabel tidak kosong
-                transactionsData = [
-                    { id: "TRX-1029", name: "Budi Santoso", class: "XII IPA 1", package: "Premium", status: "Lunas", amount: 250000 },
-                    { id: "TRX-1028", name: "Siti Aminah", class: "XII IPS 2", package: "Standar", status: "DP", amount: 150000 },
-                    { id: "TRX-1027", name: "Rizky Darmawan", class: "XII IPA 3", package: "Premium", status: "Lunas", amount: 250000 }
-                ];
-                renderTable();
             }
         }
 
