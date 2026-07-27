@@ -9,27 +9,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Library Supabase ditambahkan di sini -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        
-        /* Custom scrollbars */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        /* Hide scrollbar for kanban but allow scroll */
         .kanban-scroll { scrollbar-width: none; -ms-overflow-style: none; }
         .kanban-scroll::-webkit-scrollbar { display: none; }
-
         .sidebar-active { background-color: #eff6ff; color: #2563eb; font-weight: 600; border-right: 3px solid #2563eb; }
-        
-        /* Modal transitions */
         .modal-enter { opacity: 0; transform: scale(0.95); }
         .modal-enter-active { opacity: 1; transform: scale(1); transition: opacity 200ms, transform 200ms; }
+        
+        /* Uppercase otomatis saat mengetik */
+        .auto-uppercase { text-transform: uppercase; }
+        .auto-capitalize { text-transform: capitalize; }
     </style>
 </head>
 <body class="text-slate-800 antialiased overflow-hidden flex h-screen">
@@ -54,9 +50,6 @@
                 <button onclick="handleLogin()" class="w-full bg-blue-600 text-white rounded-lg px-4 py-2.5 font-medium hover:bg-blue-700 transition-colors flex justify-center items-center">
                     Masuk ke Dasbor <i class="ph ph-arrow-right ml-2"></i>
                 </button>
-            </div>
-            <div class="mt-6 text-center bg-blue-50 p-3 rounded-lg text-xs text-blue-800">
-                <i class="ph-fill ph-info mr-1"></i> Aplikasi berjalan dalam mode simulasi lokal.
             </div>
         </div>
     </div>
@@ -117,7 +110,6 @@
     </aside>
 
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <!-- Header Mobile -->
         <header class="md:hidden bg-white h-16 border-b border-slate-200 flex items-center justify-between px-4">
             <div class="flex items-center">
                 <i class="ph-fill ph-book-open text-blue-600 text-xl mr-2"></i>
@@ -128,10 +120,9 @@
             </button>
         </header>
 
-        <!-- Area Tampilan Dinamis -->
         <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" id="mainContent">
             
-            <!-- VIEW: DASHBOARD (Diperbarui) -->
+            <!-- VIEW: DASHBOARD -->
             <div id="view-dashboard" class="view-section">
                 <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
                     <div>
@@ -139,7 +130,6 @@
                         <p class="text-sm text-slate-500 mt-1">Ringkasan performa tim dan proyeksi pendapatan.</p>
                     </div>
                 </div>
-                <!-- Stats -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                         <div class="flex justify-between items-start"><h3 class="text-sm font-medium text-slate-500">Total Prospek</h3><i class="ph ph-users text-blue-500 text-xl"></i></div>
@@ -150,7 +140,7 @@
                         <div class="text-2xl font-bold text-slate-900 mt-2" id="dashTotalDeal">0</div>
                     </div>
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                        <div class="flex justify-between items-start"><h3 class="text-sm font-medium text-slate-500">Potensi Omzet (Pipeline)</h3><i class="ph ph-coins text-amber-500 text-xl"></i></div>
+                        <div class="flex justify-between items-start"><h3 class="text-sm font-medium text-slate-500">Potensi Omzet (Deal)</h3><i class="ph ph-coins text-amber-500 text-xl"></i></div>
                         <div class="text-2xl font-bold text-slate-900 mt-2" id="dashPotensi">Rp 0</div>
                     </div>
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
@@ -158,7 +148,6 @@
                         <div class="text-2xl font-bold text-slate-900 mt-2" id="dashAktivitas">0</div>
                     </div>
                 </div>
-                <!-- Charts -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <h3 class="text-base font-semibold text-slate-800 mb-4">Grafik Pipeline Status</h3>
                     <div class="h-64"><canvas id="pipelineChart"></canvas></div>
@@ -176,7 +165,6 @@
                         <i class="ph ph-plus font-bold mr-2"></i> Tambah Baru
                     </button>
                 </div>
-
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
@@ -203,7 +191,6 @@
                     <h1 class="text-2xl font-bold text-slate-900">Input Daily Activity</h1>
                     <p class="text-sm text-slate-500 mt-1">Catat aktivitas harian dan update status prospek.</p>
                 </div>
-
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 max-w-3xl">
                     <form id="activityForm" onsubmit="submitActivity(event)" class="space-y-5">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -245,7 +232,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-1">Pihak Yang Ditemui <span class="text-red-500">*</span></label>
-                                <input type="text" id="actPerson" required oninput="capitalizeWords(this)" placeholder="Misal: Bapak Kepala Sekolah" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                                <input type="text" id="actPerson" required oninput="capitalizeWords(this)" placeholder="Misal: Bapak Kepala Sekolah" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none auto-capitalize">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-1">Kategori / Status <span class="text-red-500">*</span></label>
@@ -267,7 +254,7 @@
                                     <span>Validasi Lokasi GPS <span class="text-red-500">*</span></span>
                                     <span id="gpsStatus" class="text-xs font-normal text-slate-400">Belum dipindai</span>
                                 </label>
-                                <button type="button" onclick="simulateGPS()" class="w-full bg-slate-100 border border-slate-300 text-slate-700 rounded-lg px-3 py-2 text-sm hover:bg-slate-200 flex justify-center items-center">
+                                <button type="button" onclick="simulateGPS()" class="w-full bg-slate-100 border border-slate-300 text-slate-700 rounded-lg px-3 py-2 text-sm hover:bg-slate-200 flex justify-center items-center transition-colors">
                                     <i class="ph ph-crosshair mr-2"></i> Ambil Titik Lokasi
                                 </button>
                                 <input type="hidden" id="actGPS" required>
@@ -279,7 +266,7 @@
                         </div>
                         
                         <div class="pt-4 flex justify-end">
-                            <button type="submit" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 flex items-center shadow-md">
+                            <button type="submit" id="btnSubmitAct" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 flex items-center shadow-md transition-colors">
                                 <i class="ph ph-floppy-disk mr-2 text-lg"></i> Simpan Aktivitas
                             </button>
                         </div>
@@ -293,11 +280,8 @@
                     <h1 class="text-2xl font-bold text-slate-900">Pipeline Penjualan</h1>
                     <p class="text-sm text-slate-500 mt-1">Pergerakan otomatis berdasarkan histori Daily Activity.</p>
                 </div>
-                
                 <div class="flex-1 overflow-x-auto kanban-scroll pb-4">
-                    <div class="flex space-x-4 min-w-max h-full" id="kanbanBoard">
-                        <!-- Kolom Kanban akan di-generate via JS -->
-                    </div>
+                    <div class="flex space-x-4 min-w-max h-full" id="kanbanBoard"></div>
                 </div>
             </div>
 
@@ -320,10 +304,8 @@
                     <p class="text-sm text-slate-500 mt-1">Konfigurasi hak akses dan KPI.</p>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Config Hak Akses -->
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                         <h3 class="text-lg font-semibold border-b border-slate-100 pb-3 mb-4"><i class="ph ph-shield-check text-blue-500 mr-2"></i> Konfigurasi Sistem</h3>
-                        
                         <div class="flex items-center justify-between mb-4">
                             <div>
                                 <p class="font-medium text-slate-800">Isolasi Data Marketing</p>
@@ -335,29 +317,8 @@
                             </label>
                         </div>
                     </div>
-                    
-                    <!-- KPI Settings (Mockup) -->
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                        <h3 class="text-lg font-semibold border-b border-slate-100 pb-3 mb-4"><i class="ph ph-target text-red-500 mr-2"></i> Target KPI (Bulanan)</h3>
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-slate-700">Target Database Baru</span>
-                                <input type="number" value="50" class="w-20 border border-slate-300 rounded p-1 text-center text-sm">
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-slate-700">Target Presentasi</span>
-                                <input type="number" value="20" class="w-20 border border-slate-300 rounded p-1 text-center text-sm">
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-slate-700">Target Omzet (Deal)</span>
-                                <input type="text" value="150.000.000" class="w-32 border border-slate-300 rounded p-1 text-right text-sm">
-                            </div>
-                            <button class="w-full mt-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium py-2 rounded transition">Simpan KPI</button>
-                        </div>
-                    </div>
                 </div>
             </div>
-
         </main>
     </div>
 
@@ -371,8 +332,7 @@
             <form onsubmit="saveNewSchool(event)" class="p-6 space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Nama Sekolah <span class="text-red-500">*</span></label>
-                    <!-- Fitur: Otomatis huruf besar via CSS (uppercase) dan JS saat disubmit -->
-                    <input type="text" id="msName" required class="w-full border border-slate-300 rounded-lg px-3 py-2 uppercase focus:ring-2 focus:ring-blue-500 outline-none">
+                    <input type="text" id="msName" required oninput="uppercaseWords(this)" class="w-full border border-slate-300 rounded-lg px-3 py-2 auto-uppercase focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -396,7 +356,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Nama PIC <span class="text-red-500">*</span></label>
-                        <input type="text" id="msPic" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <input type="text" id="msPic" required oninput="capitalizeWords(this)" class="w-full border border-slate-300 rounded-lg px-3 py-2 auto-capitalize focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">No. WhatsApp <span class="text-red-500">*</span></label>
@@ -412,96 +372,74 @@
                 </div>
                 <div class="pt-4 border-t border-slate-100 flex justify-end space-x-3">
                     <button type="button" onclick="closeModal('modal-add-school')" class="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition-colors">Batal</button>
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">Simpan Data</button>
+                    <button type="submit" id="btnSubmitSchool" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">Simpan Data</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Kotak Pesan Notifikasi (Toast) -->
-    <div id="toast" class="fixed bottom-4 right-4 bg-slate-900 text-white px-5 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-y-20 opacity-0 z-50 flex items-center">
-        <i class="ph-fill ph-check-circle text-green-400 text-xl mr-2"></i>
-        <span id="toastMsg">Tindakan berhasil!</span>
+    <!-- Kotak Pesan Notifikasi (Toast) - DIUPDATE UNTUK ERROR MERAH -->
+    <div id="toast" class="fixed bottom-4 right-4 text-white px-5 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-y-20 opacity-0 z-50 flex items-center">
+        <i id="toastIcon" class="ph-fill ph-check-circle text-xl mr-2"></i>
+        <span id="toastMsg" class="font-medium text-sm">Tindakan berhasil!</span>
     </div>
 
     <script>
-        // --- KONFIGURASI SUPABASE (VERSI FINAL) ---
-        // GANTI INI: Salin URL dan KEY dari Project Settings -> API di dashboard Supabase Anda
-        const supabaseUrl = 'https://xovljmaawbkelojfpobr.supabase.co/rest/v1/';
-        const supabaseKey = 'sb_publishable_FqikdEgA_MfHJaaVfUk42g_EatzPk5Z';
+        // --- 1. KONEKSI SUPABASE ---
+        // MASUKKAN URL DAN KEY ANDA DI SINI
+        var supabaseUrl = 'https://xovljmaawbkelojfpobr.supabase.co/rest/v1/'; 
+        var supabaseKey = 'sb_publishable_FqikdEgA_MfHJaaVfUk42g_EatzPk5Z'; 
         
-        // Pengecekan Cerdas: Deteksi apakah Supabase sudah diisi
-        const isLive = !supabaseUrl.includes('URL_ASLI');
-        const supabaseClient = isLive ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
+        var isLive = !supabaseUrl.includes('URL_ASLI');
+        var supabaseClient = isLive ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
 
+        // REALTIME LISTENER (Jika terjadi perubahan di HP, web di Laptop ikut update)
+        if (isLive) {
+            supabaseClient.channel('custom-all-channel')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'master_schools' }, () => {
+                    if(currentUser) refreshAllData();
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'daily_activities' }, () => {
+                    if(currentUser) refreshAllData();
+                })
+                .subscribe();
+        }
 
-        // --- DATA STATE (In-Memory Database Simulasi) ---
-        // Karena sistem diminta kompleks, kita simpan data di variabel agar berfungsi seperti database asli.
-        
-        let currentUser = null; // Menyimpan info user yang login
-        let configIsolateData = true; // Konfigurasi: Marketing hanya lihat datanya
-
-        // Tabel Data Sekolah (Master)
-        let dataSchools = [
-            { id: 'SCH01', name: 'SMA NEGERI 1 JAKARTA', level: 'SMA', address: 'Jl. Budi Utomo No.7', region: 'Jakarta Pusat', pic: 'Bpk. Supriadi', wa: '08123456789', marketing: 'Budi', status: 'Canvassing', dealValue: 0 },
-            { id: 'SCH02', name: 'SMK BINA BANGSA', level: 'SMK', address: 'Jl. Merdeka Raya', region: 'Jakarta Selatan', pic: 'Ibu Ratna', wa: '08987654321', marketing: 'Siti', status: 'Presentasi', dealValue: 0 },
-            { id: 'SCH03', name: 'SMA HARAPAN', level: 'SMA', address: 'Jl. Sudirman', region: 'Jakarta Pusat', pic: 'Bpk. Anton', wa: '0811223344', marketing: 'Budi', status: 'Deal', dealValue: 25000000 },
-        ];
-
-        // Tabel Aktivitas (History)
+        // --- 2. STATE DATA ---
+        let currentUser = null; 
+        let configIsolateData = true; 
+        let dataSchools = [];
         let dataActivities = [];
 
-        // Konfigurasi Kanban Columns
         const kanbanStages = [
-            { id: 'Canvassing', label: 'Canvassing', color: 'bg-slate-100 border-slate-200' },
-            { id: 'Follow Up', label: 'Follow Up', color: 'bg-blue-50 border-blue-200' },
-            { id: 'Presentasi', label: 'Presentasi', color: 'bg-purple-50 border-purple-200' },
-            { id: 'Negosiasi', label: 'Negosiasi', color: 'bg-amber-50 border-amber-200' },
-            { id: 'Deal', label: 'Deal', color: 'bg-green-50 border-green-200' },
-            { id: 'Belum Deal', label: 'Belum Deal', color: 'bg-red-50 border-red-200' }
+            { id: 'Canvassing', label: 'Canvassing' }, { id: 'Follow Up', label: 'Follow Up' },
+            { id: 'Presentasi', label: 'Presentasi' }, { id: 'Negosiasi', label: 'Negosiasi' },
+            { id: 'Deal', label: 'Deal' }, { id: 'Belum Deal', label: 'Belum Deal' }
         ];
 
-        // --- SISTEM LOGIN & HAK AKSES ---
+        // --- STREAMING_CHUNK:Auth and Role Logic... ---
         function handleLogin() {
             const roleSelect = document.getElementById('loginRole').value;
-            
-            // Tentukan data user berdasarkan pilihan
-            if (roleSelect === 'owner') {
-                currentUser = { role: 'owner', name: 'Pimpinan', isMarketing: false };
-            } else if (roleSelect === 'hr') {
-                currentUser = { role: 'hr', name: 'HR Manager', isMarketing: false };
-            } else if (roleSelect === 'marketing_budi') {
-                currentUser = { role: 'marketing', name: 'Budi', isMarketing: true };
-            } else if (roleSelect === 'marketing_siti') {
-                currentUser = { role: 'marketing', name: 'Siti', isMarketing: true };
-            }
+            if (roleSelect === 'owner') currentUser = { role: 'owner', name: 'Pimpinan', isMarketing: false };
+            else if (roleSelect === 'hr') currentUser = { role: 'hr', name: 'HR Manager', isMarketing: false };
+            else if (roleSelect === 'marketing_budi') currentUser = { role: 'marketing', name: 'Budi', isMarketing: true };
+            else if (roleSelect === 'marketing_siti') currentUser = { role: 'marketing', name: 'Siti', isMarketing: true };
 
-            // Update UI Sidebar
             document.getElementById('userNameDisplay').innerText = currentUser.name;
             document.getElementById('userRoleDisplay').innerText = currentUser.role.toUpperCase();
             document.getElementById('userAvatar').innerText = currentUser.name.charAt(0);
-            document.getElementById('userAvatar').className = `h-10 w-10 rounded-full flex items-center justify-center font-bold border ${currentUser.isMarketing ? 'bg-orange-100 text-orange-600 border-orange-200' : 'bg-blue-100 text-blue-600 border-blue-200'}`;
             
-            // Atur Hak Akses Menu
             const adminMenus = document.querySelectorAll('.admin-only');
             const adminViews = document.querySelectorAll('.admin-only-view');
             
-            if (currentUser.isMarketing) {
-                adminMenus.forEach(el => el.classList.add('hidden'));
-            } else {
-                adminMenus.forEach(el => el.classList.remove('hidden'));
-            }
+            if (currentUser.isMarketing) adminMenus.forEach(el => el.classList.add('hidden'));
+            else adminMenus.forEach(el => el.classList.remove('hidden'));
 
-            // Set default nama di form aktivitas
             document.getElementById('actMarketing').value = currentUser.name;
-
-            // Sembunyikan Modal Login
             document.getElementById('loginOverlay').style.opacity = '0';
             setTimeout(() => { document.getElementById('loginOverlay').style.display = 'none'; }, 300);
 
-            // Inisialisasi awal ke Dashboard
             navigate('dashboard');
-            refreshAllData();
         }
 
         function logout() {
@@ -510,57 +448,18 @@
             currentUser = null;
         }
 
-        function toggleSettingIsolate() {
-            configIsolateData = document.getElementById('settingIsolateData').checked;
-            showToast("Konfigurasi disimpan: Isolasi Data " + (configIsolateData ? "Aktif" : "Nonaktif"));
-        }
-
-        // --- FILTERING DATA BERDASARKAN HAK AKSES ---
-        function getVisibleSchools() {
-            if (currentUser.isMarketing && configIsolateData) {
-                return dataSchools.filter(s => s.marketing === currentUser.name);
-            }
-            return dataSchools; // Owner/HR lihat semua, atau jika isolasi dimatikan
-        }
-
-        // --- NAVIGASI ---
-        function navigate(viewId) {
-            // Sembunyikan semua view
-            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-            // Tampilkan view yang dipilih
-            document.getElementById('view-' + viewId).classList.remove('hidden');
-            
-            // Update active state di menu
-            document.querySelectorAll('aside nav a').forEach(el => el.classList.remove('sidebar-active', 'bg-slate-50'));
-            const activeLink = document.getElementById('nav-' + viewId);
-            if(activeLink) activeLink.classList.add('sidebar-active');
-
-            // Tutup sidebar di mobile
-            const sidebar = document.getElementById('sidebar');
-            if(window.innerWidth < 768) {
-                sidebar.classList.add('-translate-x-full');
-            }
-
-            // Trigger render ulang spesifik jika perlu
-            if(viewId === 'master' || viewId === 'activity' || viewId === 'pipeline' || viewId === 'dashboard') {
-                refreshAllData();
-            }
-        }
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('-translate-x-full');
-        }
-
-        // --- FUNGSI RENDER DATA UTAMA (TERHUBUNG KE SUPABASE) ---
+        // --- STREAMING_CHUNK:Data Fetching & Rendering... ---
         async function refreshAllData() {
             if(!currentUser) return;
             
-            // Tarik data dari Supabase jika API Key sudah disetel
             if (isLive) {
                 try {
-                    const { data: schools } = await supabaseClient.from('master_schools').select('*');
-                    const { data: acts } = await supabaseClient.from('daily_activities').select('*');
+                    // MENGAMBIL DATA DARI DB
+                    const { data: schools, error: errSchools } = await supabaseClient.from('master_schools').select('*');
+                    if (errSchools) throw errSchools;
+                    
+                    const { data: acts, error: errActs } = await supabaseClient.from('daily_activities').select('*');
+                    if (errActs) throw errActs;
                     
                     if (schools) {
                         dataSchools = schools.map(s => ({
@@ -571,253 +470,177 @@
                     if (acts) dataActivities = acts;
                 } catch (err) {
                     console.error("Gagal menarik data:", err);
+                    showToast("Error tarik data DB: " + err.message, true);
+                    return;
                 }
             }
 
-            const visibleSchools = getVisibleSchools();
-            
-            // 1. Render Dashboard
+            // ISOLASI DATA (Marketing hanya melihat sekolahnya sendiri)
+            let visibleSchools = dataSchools;
+            if (currentUser.isMarketing && configIsolateData) {
+                visibleSchools = dataSchools.filter(s => s.marketing === currentUser.name);
+            }
+
+            // RENDER DASHBOARD
             document.getElementById('dashTotalSekolah').innerText = visibleSchools.length;
-            const totalDeal = visibleSchools.filter(s => s.status === 'Deal').length;
-            document.getElementById('dashTotalDeal').innerText = totalDeal;
-            
-            const totalPotensi = visibleSchools.reduce((sum, s) => sum + (s.dealValue || 0), 0);
-            document.getElementById('dashPotensi').innerText = formatRupiah(totalPotensi);
-            
-            const todayActs = dataActivities.filter(a => a.date === new Date().toISOString().split('T')[0] && (currentUser.isMarketing ? a.marketing === currentUser.name : true)).length;
-            document.getElementById('dashAktivitas').innerText = todayActs;
+            document.getElementById('dashTotalDeal').innerText = visibleSchools.filter(s => s.status === 'Deal').length;
+            document.getElementById('dashPotensi').innerText = formatRupiah(visibleSchools.reduce((sum, s) => sum + (Number(s.dealValue) || 0), 0));
+            document.getElementById('dashAktivitas').innerText = dataActivities.length;
 
+            // RENDER TABEL & KANBAN
             renderDashboardChart(visibleSchools);
-
-            // 2. Render Tabel Master
             renderMasterTable(visibleSchools);
+            renderKanbanBoard(visibleSchools);
             
-            // 3. Update Dropdown di form Activity
+            // UPDATE DROPDOWN SEKOLAH DI DAILY ACTIVITY
             const schoolSelect = document.getElementById('actSchool');
             schoolSelect.innerHTML = '<option value="">Pilih Sekolah...</option>';
             visibleSchools.forEach(s => {
                 schoolSelect.innerHTML += `<option value="${s.id}">${s.name} - ${s.region}</option>`;
             });
-
-            // 4. Render Kanban
-            renderKanbanBoard(visibleSchools);
         }
 
-        function renderMasterTable(schools) {
-            const tbody = document.getElementById('schoolTableBody');
-            tbody.innerHTML = '';
-            
-            if(schools.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-slate-500">Belum ada data sekolah.</td></tr>`;
-                return;
-            }
-
-            schools.forEach(sch => {
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-6 py-3 whitespace-nowrap font-medium text-slate-900">
-                            ${sch.name}
-                            <div class="text-xs font-normal text-slate-500">${sch.address}</div>
-                        </td>
-                        <td class="px-6 py-3 whitespace-nowrap"><span class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-semibold">${sch.level}</span></td>
-                        <td class="px-6 py-3 whitespace-nowrap text-sm">${sch.region}</td>
-                        <td class="px-6 py-3 whitespace-nowrap text-sm">${sch.pic}<br><span class="text-xs text-slate-400">${sch.wa}</span></td>
-                        <td class="px-6 py-3 whitespace-nowrap">
-                            <span class="flex items-center text-sm"><i class="ph-fill ph-user-circle text-slate-400 mr-1.5 text-lg"></i> ${sch.marketing}</span>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        function renderKanbanBoard(schools) {
-            const board = document.getElementById('kanbanBoard');
-            board.innerHTML = '';
-
-            kanbanStages.forEach(stage => {
-                // Filter sekolah berdasarkan status
-                const stageSchools = schools.filter(s => s.status === stage.id);
-                
-                // Hitung total nominal deal di kolom ini
-                const totalValue = stageSchools.reduce((sum, s) => sum + (s.dealValue || 0), 0);
-                const valueHtml = totalValue > 0 ? `<div class="text-xs font-bold mt-1 text-slate-600">${formatRupiah(totalValue)}</div>` : '';
-
-                // Buat Kolom
-                let columnHtml = `
-                    <div class="w-72 flex flex-col flex-shrink-0 bg-slate-100 rounded-xl overflow-hidden max-h-full">
-                        <div class="p-3 border-b border-slate-200 bg-white flex justify-between items-center shadow-sm">
-                            <div>
-                                <h3 class="font-bold text-sm text-slate-700 uppercase tracking-wide">${stage.label}</h3>
-                                ${valueHtml}
-                            </div>
-                            <span class="bg-slate-200 text-slate-600 py-0.5 px-2 rounded-full text-xs font-bold">${stageSchools.length}</span>
-                        </div>
-                        <div class="p-3 overflow-y-auto flex-1 space-y-3 kanban-scroll">
-                `;
-
-                // Isi Kartu
-                stageSchools.forEach(sch => {
-                    const dealBadge = sch.status === 'Deal' ? `<div class="mt-2 text-xs font-bold text-green-600 bg-green-50 p-1.5 rounded text-center border border-green-100">${formatRupiah(sch.dealValue)}</div>` : '';
-                    const markBadge = !currentUser.isMarketing ? `<div class="mt-2 text-[10px] text-slate-400 flex items-center"><i class="ph ph-user mr-1"></i> ${sch.marketing}</div>` : '';
-                    
-                    columnHtml += `
-                        <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-200 hover:border-blue-300 transition-colors">
-                            <div class="text-xs text-slate-400 mb-1 flex justify-between">
-                                <span>${sch.level}</span>
-                                <span>${sch.region}</span>
-                            </div>
-                            <h4 class="font-bold text-slate-800 text-sm leading-tight">${sch.name}</h4>
-                            <div class="text-xs text-slate-500 mt-1 flex items-center">
-                                <i class="ph ph-user-list mr-1"></i> ${sch.pic}
-                            </div>
-                            ${dealBadge}
-                            ${markBadge}
-                        </div>
-                    `;
-                });
-
-                if(stageSchools.length === 0) {
-                    columnHtml += `<div class="text-center p-4 text-sm text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">Kosong</div>`;
-                }
-
-                columnHtml += `</div></div>`;
-                board.innerHTML += columnHtml;
-            });
-        }
-
-        // --- FORM HANDLING (TERHUBUNG KE SUPABASE) ---
-        
-        // Form Tambah Master Sekolah
+        // --- STREAMING_CHUNK:Saving Data to DB... ---
         async function saveNewSchool(e) {
             e.preventDefault();
-            // Ambil value dan format Uppercase otomatis untuk ID dan nama (sesuai req)
-            const rawName = document.getElementById('msName').value;
-            const finalName = rawName.toUpperCase(); 
-            
+            const btn = document.getElementById('btnSubmitSchool');
+            btn.innerHTML = 'Menyimpan...'; btn.disabled = true;
+
             const newSchool = {
-                id: 'SCH' + Math.floor(Math.random() * 10000), // Generate ID random
-                name: finalName,
+                id: 'SCH' + Date.now(),
+                name: document.getElementById('msName').value.toUpperCase(),
                 level: document.getElementById('msLevel').value,
                 region: document.getElementById('msRegion').value,
                 address: document.getElementById('msAddress').value,
                 pic: document.getElementById('msPic').value,
                 wa: document.getElementById('msWa').value,
                 marketing: document.getElementById('msMarketing').value,
-                status: 'Canvassing', // Status default
-                dealValue: 0
+                status: 'Canvassing',
+                deal_value: 0
             };
 
-            // Simpan Data
             if (isLive) {
-                const dbSchool = {...newSchool, deal_value: newSchool.dealValue};
-                delete dbSchool.dealValue;
-                await supabaseClient.from('master_schools').insert([dbSchool]);
+                const { error } = await supabaseClient.from('master_schools').insert([newSchool]);
+                if (error) {
+                    showToast("Gagal simpan sekolah: " + error.message, true);
+                    btn.innerHTML = 'Simpan Data'; btn.disabled = false;
+                    return;
+                }
             } else {
-                dataSchools.push(newSchool);
+                dataSchools.push({...newSchool, dealValue: 0});
             }
 
             closeModal('modal-add-school');
-            e.target.reset(); // clear form
-            showToast("Sekolah baru berhasil ditambahkan!");
-            refreshAllData(); // render ulang tabel & dropdown
+            e.target.reset();
+            btn.innerHTML = 'Simpan Data'; btn.disabled = false;
+            showToast("Sekolah berhasil ditambahkan!");
+            refreshAllData();
         }
 
-        // Validasi GPS (Simulasi)
-        function simulateGPS() {
-            const statusEl = document.getElementById('gpsStatus');
-            statusEl.innerHTML = '<i class="ph ph-spinner animate-spin"></i> Mencari lokasi...';
-            setTimeout(() => {
-                document.getElementById('actGPS').value = "-6.2088, 106.8456"; // Koordinat Jakarta
-                statusEl.innerHTML = '<span class="text-green-600 font-medium"><i class="ph ph-check-circle"></i> Lokasi divalidasi</span>';
-            }, 1000);
-        }
-
-        // Logic memunculkan Input Deal Value
-        function checkActivityType() {
-            const type = document.getElementById('actType').value;
-            const dealContainer = document.getElementById('dealValueContainer');
-            const dealInput = document.getElementById('actDealValue');
-            
-            if (type === 'Deal') {
-                dealContainer.classList.remove('hidden');
-                dealInput.setAttribute('required', 'true');
-            } else {
-                dealContainer.classList.add('hidden');
-                dealInput.removeAttribute('required');
-                dealInput.value = ''; // reset
-            }
-        }
-
-        // Form Submit Daily Activity
         async function submitActivity(e) {
             e.preventDefault();
-            
+            const actGPS = document.getElementById('actGPS').value;
+            if(!actGPS) { showToast("Silakan ambil lokasi GPS terlebih dahulu!", true); return; }
+
+            const btn = document.getElementById('btnSubmitAct');
+            btn.innerHTML = 'Menyimpan...'; btn.disabled = true;
+
             const schoolId = document.getElementById('actSchool').value;
             const actType = document.getElementById('actType').value;
-            const dealValue = actType === 'Deal' ? parseInt(document.getElementById('actDealValue').value || 0) : 0;
-            const actDate = document.getElementById('actDate').value;
+            const dealVal = actType === 'Deal' ? parseInt(document.getElementById('actDealValue').value || 0) : 0;
 
             const newAct = {
                 school_id: schoolId,
                 marketing: document.getElementById('actMarketing').value,
                 type: actType,
-                date: actDate,
-                gps: document.getElementById('actGPS').value
+                date: document.getElementById('actDate').value,
+                gps: actGPS
             };
 
             if (isLive) {
-                // 1. Catat ke tabel activities di Supabase
-                await supabaseClient.from('daily_activities').insert([newAct]);
+                const { error: actError } = await supabaseClient.from('daily_activities').insert([newAct]);
+                if (actError) { showToast("Gagal catat aktivitas: " + actError.message, true); btn.innerHTML = 'Simpan Aktivitas'; btn.disabled = false; return; }
                 
-                // 2. Update status dan deal_value di tabel master_schools Supabase
-                await supabaseClient.from('master_schools')
-                    .update({ status: actType, deal_value: dealValue })
-                    .eq('id', schoolId);
+                const { error: updError } = await supabaseClient.from('master_schools').update({ status: actType, deal_value: dealVal }).eq('id', schoolId);
+                if (updError) { showToast("Gagal update status: " + updError.message, true); btn.innerHTML = 'Simpan Aktivitas'; btn.disabled = false; return; }
             } else {
-                // Mode Simulasi Lokal
-                dataActivities.push({
-                    schoolId: schoolId, marketing: newAct.marketing, 
-                    type: actType, date: actDate, gps: newAct.gps
-                });
-
-                const schoolIndex = dataSchools.findIndex(s => s.id === schoolId);
-                if (schoolIndex !== -1) {
-                    dataSchools[schoolIndex].status = actType;
-                    if (actType === 'Deal') dataSchools[schoolIndex].dealValue = dealValue;
-                }
+                dataActivities.push(newAct);
+                const idx = dataSchools.findIndex(s => s.id === schoolId);
+                if (idx !== -1) { dataSchools[idx].status = actType; if (actType === 'Deal') dataSchools[idx].dealValue = dealVal; }
             }
 
             e.target.reset();
             document.getElementById('gpsStatus').innerHTML = 'Belum dipindai';
-            checkActivityType(); // hide deal input again
+            document.getElementById('actGPS').value = '';
+            checkActivityType();
             
-            showToast("Aktivitas tersimpan. Status Pipeline diperbarui!");
+            btn.innerHTML = 'Simpan Aktivitas'; btn.disabled = false;
+            showToast("Aktivitas berhasil disimpan!");
             refreshAllData();
-            navigate('pipeline'); // Arahkan pengguna ke pipeline untuk melihat perubahannya
+            navigate('pipeline'); // Otomatis pindah ke kanban setelah simpan
         }
 
-
-        // --- HELPERS (Formatting) ---
-        function formatRupiah(angka) {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+        // --- STREAMING_CHUNK:UI Helpers & Validation... ---
+        function checkActivityType() {
+            const type = document.getElementById('actType').value;
+            const dealContainer = document.getElementById('dealValueContainer');
+            const dealInput = document.getElementById('actDealValue');
+            if (type === 'Deal') { dealContainer.classList.remove('hidden'); dealInput.setAttribute('required', 'true'); } 
+            else { dealContainer.classList.add('hidden'); dealInput.removeAttribute('required'); dealInput.value = ''; }
         }
 
-        // Mengubah huruf pertama setiap kata jadi Besar (Capitalize Words)
-        function capitalizeWords(inputElement) {
-            let str = inputElement.value;
-            inputElement.value = str.replace(/\b\w/g, function(l) { return l.toUpperCase() });
+        function simulateGPS() {
+            const statusEl = document.getElementById('gpsStatus');
+            statusEl.innerHTML = '<i class="ph ph-spinner animate-spin"></i> Mencari lokasi...';
+            setTimeout(() => {
+                document.getElementById('actGPS').value = "-6.2088, 106.8456";
+                statusEl.innerHTML = '<span class="text-green-600 font-medium"><i class="ph ph-check-circle"></i> Lokasi divalidasi</span>';
+            }, 800);
         }
 
-        // Modal Controls
+        // TAMPILAN NOTIFIKASI WARNA MERAH/HIJAU (TOAST)
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            
+            if (isError) {
+                toast.classList.remove('bg-slate-900'); toast.classList.add('bg-red-600');
+                icon.className = "ph-fill ph-warning-circle text-xl mr-2 text-white";
+            } else {
+                toast.classList.remove('bg-red-600'); toast.classList.add('bg-slate-900');
+                icon.className = "ph-fill ph-check-circle text-xl mr-2 text-green-400";
+            }
+            
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 4000);
+        }
+
+        // FORMAT TULISAN
+        function uppercaseWords(input) { input.value = input.value.toUpperCase(); }
+        function capitalizeWords(input) { input.value = input.value.replace(/\b\w/g, l => l.toUpperCase()); }
+        function formatRupiah(angka) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka); }
+
+        function navigate(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById('view-' + viewId).classList.remove('hidden');
+            document.querySelectorAll('aside nav a').forEach(el => el.classList.remove('sidebar-active', 'bg-slate-50'));
+            const activeLink = document.getElementById('nav-' + viewId);
+            if(activeLink) activeLink.classList.add('sidebar-active');
+            if(window.innerWidth < 768) document.getElementById('sidebar').classList.add('-translate-x-full');
+            if(viewId !== 'settings') refreshAllData();
+        }
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
+        function toggleSettingIsolate() { configIsolateData = document.getElementById('settingIsolateData').checked; refreshAllData(); showToast("Pengaturan disimpan!"); }
+
         function openModal(id) {
             const modal = document.getElementById(id);
             modal.style.display = 'flex';
             setTimeout(() => { modal.querySelector('div').classList.add('modal-enter-active'); }, 10);
-            
-            // Set default marketing option to current user if they are marketing
             if(id === 'modal-add-school' && currentUser.isMarketing) {
                 document.getElementById('msMarketing').value = currentUser.name;
-                document.getElementById('msMarketing').disabled = true; // Kunci pilihan
+                document.getElementById('msMarketing').disabled = true;
                 document.getElementById('msMarketing').classList.add('bg-slate-100');
             } else {
                 document.getElementById('msMarketing').disabled = false;
@@ -830,48 +653,69 @@
             setTimeout(() => { modal.style.display = 'none'; }, 200);
         }
 
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMsg').innerText = msg;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 3000);
+        // --- STREAMING_CHUNK:Rendering Sub-components... ---
+        function renderMasterTable(schools) {
+            const tbody = document.getElementById('schoolTableBody');
+            tbody.innerHTML = '';
+            if(schools.length === 0) { tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-slate-500">Belum ada data sekolah.</td></tr>`; return; }
+            schools.forEach(sch => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-3 whitespace-nowrap font-medium text-slate-900">${sch.name}<div class="text-xs font-normal text-slate-500">${sch.address}</div></td>
+                        <td class="px-6 py-3 whitespace-nowrap"><span class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-semibold">${sch.level}</span></td>
+                        <td class="px-6 py-3 whitespace-nowrap text-sm">${sch.region}</td>
+                        <td class="px-6 py-3 whitespace-nowrap text-sm">${sch.pic}<br><span class="text-xs text-slate-400">${sch.wa}</span></td>
+                        <td class="px-6 py-3 whitespace-nowrap"><span class="flex items-center text-sm"><i class="ph-fill ph-user-circle text-slate-400 mr-1.5 text-lg"></i> ${sch.marketing}</span></td>
+                    </tr>`;
+            });
         }
 
-        // --- CHART JS ---
+        function renderKanbanBoard(schools) {
+            const board = document.getElementById('kanbanBoard');
+            board.innerHTML = '';
+            kanbanStages.forEach(stage => {
+                const stageSchools = schools.filter(s => s.status === stage.id);
+                const totalValue = stageSchools.reduce((sum, s) => sum + (Number(s.dealValue) || 0), 0);
+                const valueHtml = totalValue > 0 ? `<div class="text-xs font-bold mt-1 text-slate-600">${formatRupiah(totalValue)}</div>` : '';
+
+                let columnHtml = `
+                    <div class="w-72 flex flex-col flex-shrink-0 bg-slate-100 rounded-xl overflow-hidden max-h-full">
+                        <div class="p-3 border-b border-slate-200 bg-white flex justify-between items-center shadow-sm">
+                            <div><h3 class="font-bold text-sm text-slate-700 uppercase tracking-wide">${stage.label}</h3>${valueHtml}</div>
+                            <span class="bg-slate-200 text-slate-600 py-0.5 px-2 rounded-full text-xs font-bold">${stageSchools.length}</span>
+                        </div>
+                        <div class="p-3 overflow-y-auto flex-1 space-y-3 kanban-scroll">`;
+
+                stageSchools.forEach(sch => {
+                    const dealBadge = sch.status === 'Deal' ? `<div class="mt-2 text-xs font-bold text-green-600 bg-green-50 p-1.5 rounded text-center border border-green-100">${formatRupiah(sch.dealValue)}</div>` : '';
+                    columnHtml += `
+                        <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-200">
+                            <div class="text-xs text-slate-400 mb-1 flex justify-between"><span>${sch.level}</span><span>${sch.region}</span></div>
+                            <h4 class="font-bold text-slate-800 text-sm leading-tight">${sch.name}</h4>
+                            <div class="text-xs text-slate-500 mt-1 flex items-center"><i class="ph ph-user-list mr-1"></i> ${sch.pic}</div>
+                            ${dealBadge}
+                        </div>`;
+                });
+                if(stageSchools.length === 0) columnHtml += `<div class="text-center p-4 text-sm text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">Kosong</div>`;
+                columnHtml += `</div></div>`;
+                board.innerHTML += columnHtml;
+            });
+        }
+
         let pipeChartInstance = null;
         function renderDashboardChart(schools) {
             const ctx = document.getElementById('pipelineChart').getContext('2d');
-            
-            // Hitung distribusi
-            const counts = kanbanStages.map(stage => {
-                return schools.filter(s => s.status === stage.id).length;
-            });
-
+            const counts = kanbanStages.map(stage => schools.filter(s => s.status === stage.id).length);
             if (pipeChartInstance) pipeChartInstance.destroy();
-
             pipeChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: kanbanStages.map(s => s.label),
-                    datasets: [{
-                        label: 'Jumlah Sekolah',
-                        data: counts,
-                        backgroundColor: ['#e2e8f0', '#bfdbfe', '#e9d5ff', '#fde68a', '#bbf7d0', '#fecaca'],
-                        borderRadius: 6
-                    }]
+                    datasets: [{ label: 'Sekolah', data: counts, backgroundColor: ['#e2e8f0', '#bfdbfe', '#e9d5ff', '#fde68a', '#bbf7d0', '#fecaca'], borderRadius: 6 }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
-                        x: { grid: { display: false } }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } }
             });
         }
-
     </script>
 </body>
 </html>
