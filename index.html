@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Library Supabase ditambahkan di sini -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
@@ -423,6 +425,16 @@
     </div>
 
     <script>
+        // --- KONFIGURASI SUPABASE (VERSI FINAL) ---
+        // GANTI INI: Salin URL dan KEY dari Project Settings -> API di dashboard Supabase Anda
+        const supabaseUrl = 'https://xovljmaawbkelojfpobr.supabase.co/rest/v1/';
+        const supabaseKey = 'sb_publishable_FqikdEgA_MfHJaaVfUk42g_EatzPk5Z';
+        
+        // Pengecekan Cerdas: Deteksi apakah Supabase sudah diisi
+        const isLive = !supabaseUrl.includes('URL_ASLI');
+        const supabaseClient = isLive ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
+
+
         // --- DATA STATE (In-Memory Database Simulasi) ---
         // Karena sistem diminta kompleks, kita simpan data di variabel agar berfungsi seperti database asli.
         
@@ -540,9 +552,28 @@
             sidebar.classList.toggle('-translate-x-full');
         }
 
-        // --- FUNGSI RENDER DATA UTAMA ---
-        function refreshAllData() {
+        // --- FUNGSI RENDER DATA UTAMA (TERHUBUNG KE SUPABASE) ---
+        async function refreshAllData() {
             if(!currentUser) return;
+            
+            // Tarik data dari Supabase jika API Key sudah disetel
+            if (isLive) {
+                try {
+                    const { data: schools } = await supabaseClient.from('master_schools').select('*');
+                    const { data: acts } = await supabaseClient.from('daily_activities').select('*');
+                    
+                    if (schools) {
+                        dataSchools = schools.map(s => ({
+                            id: s.id, name: s.name, level: s.level, address: s.address, region: s.region,
+                            pic: s.pic, wa: s.wa, marketing: s.marketing, status: s.status, dealValue: s.deal_value
+                        }));
+                    }
+                    if (acts) dataActivities = acts;
+                } catch (err) {
+                    console.error("Gagal menarik data:", err);
+                }
+            }
+
             const visibleSchools = getVisibleSchools();
             
             // 1. Render Dashboard
@@ -654,17 +685,17 @@
             });
         }
 
-        // --- FORM HANDLING ---
+        // --- FORM HANDLING (TERHUBUNG KE SUPABASE) ---
         
         // Form Tambah Master Sekolah
-        function saveNewSchool(e) {
+        async function saveNewSchool(e) {
             e.preventDefault();
             // Ambil value dan format Uppercase otomatis untuk ID dan nama (sesuai req)
             const rawName = document.getElementById('msName').value;
             const finalName = rawName.toUpperCase(); 
             
             const newSchool = {
-                id: 'SCH' + Math.floor(Math.random() * 1000), // Generate ID random
+                id: 'SCH' + Math.floor(Math.random() * 10000), // Generate ID random
                 name: finalName,
                 level: document.getElementById('msLevel').value,
                 region: document.getElementById('msRegion').value,
@@ -676,7 +707,15 @@
                 dealValue: 0
             };
 
-            dataSchools.push(newSchool);
+            // Simpan Data
+            if (isLive) {
+                const dbSchool = {...newSchool, deal_value: newSchool.dealValue};
+                delete dbSchool.dealValue;
+                await supabaseClient.from('master_schools').insert([dbSchool]);
+            } else {
+                dataSchools.push(newSchool);
+            }
+
             closeModal('modal-add-school');
             e.target.reset(); // clear form
             showToast("Sekolah baru berhasil ditambahkan!");
@@ -710,7 +749,7 @@
         }
 
         // Form Submit Daily Activity
-        function submitActivity(e) {
+        async function submitActivity(e) {
             e.preventDefault();
             
             const schoolId = document.getElementById('actSchool').value;
@@ -718,21 +757,33 @@
             const dealValue = actType === 'Deal' ? parseInt(document.getElementById('actDealValue').value || 0) : 0;
             const actDate = document.getElementById('actDate').value;
 
-            // Catat history (Monitoring GPS)
-            dataActivities.push({
-                schoolId: schoolId,
+            const newAct = {
+                school_id: schoolId,
                 marketing: document.getElementById('actMarketing').value,
                 type: actType,
                 date: actDate,
                 gps: document.getElementById('actGPS').value
-            });
+            };
 
-            // UPDATE STATUS SEKOLAH DI MASTER (Otomatis geser Kanban)
-            const schoolIndex = dataSchools.findIndex(s => s.id === schoolId);
-            if (schoolIndex !== -1) {
-                dataSchools[schoolIndex].status = actType;
-                if (actType === 'Deal') {
-                    dataSchools[schoolIndex].dealValue = dealValue;
+            if (isLive) {
+                // 1. Catat ke tabel activities di Supabase
+                await supabaseClient.from('daily_activities').insert([newAct]);
+                
+                // 2. Update status dan deal_value di tabel master_schools Supabase
+                await supabaseClient.from('master_schools')
+                    .update({ status: actType, deal_value: dealValue })
+                    .eq('id', schoolId);
+            } else {
+                // Mode Simulasi Lokal
+                dataActivities.push({
+                    schoolId: schoolId, marketing: newAct.marketing, 
+                    type: actType, date: actDate, gps: newAct.gps
+                });
+
+                const schoolIndex = dataSchools.findIndex(s => s.id === schoolId);
+                if (schoolIndex !== -1) {
+                    dataSchools[schoolIndex].status = actType;
+                    if (actType === 'Deal') dataSchools[schoolIndex].dealValue = dealValue;
                 }
             }
 
