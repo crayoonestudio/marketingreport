@@ -3,374 +3,824 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketing Report - Buku Tahunan</title>
+    <title>Marketing Report Pro - Buku Tahunan</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts (Inter) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Supabase JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        /* Custom scrollbar for table */
-        .table-scroll::-webkit-scrollbar { height: 8px; }
-        .table-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .table-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Hide scrollbar for kanban but allow scroll */
+        .kanban-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+        .kanban-scroll::-webkit-scrollbar { display: none; }
+
+        .sidebar-active { background-color: #eff6ff; color: #2563eb; font-weight: 600; border-right: 3px solid #2563eb; }
+        
+        /* Modal transitions */
+        .modal-enter { opacity: 0; transform: scale(0.95); }
+        .modal-enter-active { opacity: 1; transform: scale(1); transition: opacity 200ms, transform 200ms; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased">
+<body class="text-slate-800 antialiased overflow-hidden flex h-screen">
 
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <i class="ph-fill ph-book-open text-blue-600 text-3xl mr-2"></i>
-                    <span class="font-bold text-xl tracking-tight text-slate-900">Yearbook<span class="text-blue-600">Analytics</span></span>
+    <div id="loginOverlay" class="fixed inset-0 bg-slate-900 bg-opacity-90 z-50 flex items-center justify-center transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 transform transition-transform duration-300">
+            <div class="text-center mb-8">
+                <i class="ph-fill ph-book-open text-blue-600 text-5xl mb-3"></i>
+                <h1 class="text-2xl font-bold text-slate-900">Yearbook<span class="text-blue-600">Analytics</span></h1>
+                <p class="text-slate-500 mt-2 text-sm">Masuk untuk mengakses dasbor Anda</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Pilih Peran (Role)</label>
+                    <select id="loginRole" class="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        <option value="owner">Owner / Pimpinan</option>
+                        <option value="hr">HR Manager</option>
+                        <option value="marketing_budi">Tim Marketing (Budi)</option>
+                        <option value="marketing_siti">Tim Marketing (Siti)</option>
+                    </select>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <button class="text-slate-500 hover:text-slate-700 p-2 transition-colors">
-                        <i class="ph ph-bell text-xl"></i>
-                    </button>
-                    <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold border border-blue-200">
-                        A
-                    </div>
-                </div>
+                <button onclick="handleLogin()" class="w-full bg-blue-600 text-white rounded-lg px-4 py-2.5 font-medium hover:bg-blue-700 transition-colors flex justify-center items-center">
+                    Masuk ke Dasbor <i class="ph ph-arrow-right ml-2"></i>
+                </button>
+            </div>
+            <div class="mt-6 text-center bg-blue-50 p-3 rounded-lg text-xs text-blue-800">
+                <i class="ph-fill ph-info mr-1"></i> Aplikasi berjalan dalam mode simulasi lokal.
             </div>
         </div>
-    </nav>
+    </div>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <aside id="sidebar" class="w-64 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col transition-all duration-300 transform -translate-x-full md:translate-x-0 absolute md:relative z-40 h-full">
+        <div class="h-16 flex items-center px-6 border-b border-slate-200">
+            <i class="ph-fill ph-book-open text-blue-600 text-2xl mr-2"></i>
+            <span class="font-bold text-lg tracking-tight text-slate-900">Yearbook<span class="text-blue-600">App</span></span>
+        </div>
         
-        <!-- Header Section -->
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div class="p-4 flex items-center space-x-3 border-b border-slate-100">
+            <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200" id="userAvatar">O</div>
             <div>
-                <h1 class="text-2xl font-bold text-slate-900">Laporan Pemasaran</h1>
-                <p class="text-sm text-slate-500 mt-1">Periode: Tahun Ajaran 2025/2026</p>
-            </div>
-            <div class="mt-4 md:mt-0 flex space-x-3">
-                <button class="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 flex items-center transition-colors shadow-sm">
-                    <i class="ph ph-download-simple mr-2 text-lg"></i> Export CSV
-                </button>
-                <button onclick="alert('Fitur ini akan membuka modal untuk sinkronisasi dengan Supabase.')" class="bg-blue-600 border border-transparent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center transition-colors shadow-sm">
-                    <i class="ph ph-arrows-clockwise mr-2 text-lg"></i> Sync Data
-                </button>
+                <p class="text-sm font-semibold text-slate-900" id="userNameDisplay">Owner</p>
+                <p class="text-xs text-slate-500 capitalize" id="userRoleDisplay">Administrator</p>
             </div>
         </div>
 
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1 px-3">
+                <li>
+                    <a href="#" onclick="navigate('dashboard')" id="nav-dashboard" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 sidebar-active">
+                        <i class="ph ph-squares-four text-lg mr-3"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="navigate('master')" id="nav-master" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">
+                        <i class="ph ph-buildings text-lg mr-3"></i> Data Master
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="navigate('activity')" id="nav-activity" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">
+                        <i class="ph ph-clipboard-text text-lg mr-3"></i> Daily Activity
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="navigate('pipeline')" id="nav-pipeline" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">
+                        <i class="ph ph-kanban text-lg mr-3"></i> Pipeline
+                    </a>
+                </li>
+                <li class="admin-only">
+                    <a href="#" onclick="navigate('gps')" id="nav-gps" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">
+                        <i class="ph ph-map-pin-line text-lg mr-3"></i> Monitoring GPS
+                    </a>
+                </li>
+                <li class="admin-only pt-4 mt-4 border-t border-slate-100">
+                    <a href="#" onclick="navigate('settings')" id="nav-settings" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">
+                        <i class="ph ph-gear text-lg mr-3"></i> Pengaturan
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <div class="p-4 border-t border-slate-200">
+            <button onclick="logout()" class="flex items-center w-full px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                <i class="ph ph-sign-out text-lg mr-3"></i> Keluar
+            </button>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <!-- Header Mobile -->
+        <header class="md:hidden bg-white h-16 border-b border-slate-200 flex items-center justify-between px-4">
+            <div class="flex items-center">
+                <i class="ph-fill ph-book-open text-blue-600 text-xl mr-2"></i>
+                <span class="font-bold text-lg">Yearbook</span>
+            </div>
+            <button onclick="toggleSidebar()" class="text-slate-600 p-2">
+                <i class="ph ph-list text-2xl"></i>
+            </button>
+        </header>
+
+        <!-- Area Tampilan Dinamis -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" id="mainContent">
             
-            <!-- Card 1: Total Revenue -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-sm font-medium text-slate-500">Total Pendapatan</h3>
-                    <div class="p-2 bg-green-50 rounded-lg text-green-600">
-                        <i class="ph ph-money text-xl"></i>
+            <!-- VIEW: DASHBOARD (Diperbarui) -->
+            <div id="view-dashboard" class="view-section">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900">Dashboard Utama</h1>
+                        <p class="text-sm text-slate-500 mt-1">Ringkasan performa tim dan proyeksi pendapatan.</p>
                     </div>
                 </div>
-                <div class="text-2xl font-bold text-slate-900 mb-1">Rp 42.500.000</div>
-                <div class="flex items-center text-sm">
-                    <span class="text-green-600 font-medium flex items-center mr-2">
-                        <i class="ph ph-trend-up mr-1"></i> +12%
-                    </span>
-                    <span class="text-slate-400">dari bulan lalu</span>
+                <!-- Stats -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <div class="flex justify-between items-start"><h3 class="text-sm font-medium text-slate-500">Total Prospek</h3><i class="ph ph-users text-blue-500 text-xl"></i></div>
+                        <div class="text-2xl font-bold text-slate-900 mt-2" id="dashTotalSekolah">0</div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <div class="flex justify-between items-start"><h3 class="text-sm font-medium text-slate-500">Sekolah Deal</h3><i class="ph ph-handshake text-green-500 text-xl"></i></div>
+                        <div class="text-2xl font-bold text-slate-900 mt-2" id="dashTotalDeal">0</div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <div class="flex justify-between items-start"><h3 class="text-sm font-medium text-slate-500">Potensi Omzet (Pipeline)</h3><i class="ph ph-coins text-amber-500 text-xl"></i></div>
+                        <div class="text-2xl font-bold text-slate-900 mt-2" id="dashPotensi">Rp 0</div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <div class="flex justify-between items-start"><h3 class="text-sm font-medium text-slate-500">Aktivitas Hari Ini</h3><i class="ph ph-calendar-check text-purple-500 text-xl"></i></div>
+                        <div class="text-2xl font-bold text-slate-900 mt-2" id="dashAktivitas">0</div>
+                    </div>
+                </div>
+                <!-- Charts -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-base font-semibold text-slate-800 mb-4">Grafik Pipeline Status</h3>
+                    <div class="h-64"><canvas id="pipelineChart"></canvas></div>
                 </div>
             </div>
 
-            <!-- Card 2: Books Sold -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-sm font-medium text-slate-500">Buku Terjual</h3>
-                    <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
-                        <i class="ph ph-books text-xl"></i>
+            <!-- VIEW: DATA MASTER -->
+            <div id="view-master" class="view-section hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900">Data Master Sekolah</h1>
+                        <p class="text-sm text-slate-500 mt-1">Kelola database sekolah prospek.</p>
                     </div>
+                    <button onclick="openModal('modal-add-school')" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center shadow-sm">
+                        <i class="ph ph-plus font-bold mr-2"></i> Tambah Baru
+                    </button>
                 </div>
-                <div class="text-2xl font-bold text-slate-900 mb-1">285 <span class="text-sm font-normal text-slate-500">eks</span></div>
-                <div class="flex items-center text-sm">
-                    <span class="text-slate-500">Target: 350 eks (81%)</span>
-                </div>
-                <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2.5">
-                    <div class="bg-blue-600 h-1.5 rounded-full" style="width: 81%"></div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
+                                    <th class="px-6 py-4 font-medium">Nama Sekolah</th>
+                                    <th class="px-6 py-4 font-medium">Jenjang</th>
+                                    <th class="px-6 py-4 font-medium">Wilayah</th>
+                                    <th class="px-6 py-4 font-medium">PIC & WA</th>
+                                    <th class="px-6 py-4 font-medium">Tim Marketing</th>
+                                </tr>
+                            </thead>
+                            <tbody id="schoolTableBody" class="text-sm text-slate-700 divide-y divide-slate-100">
+                                <!-- Data diisi via JS -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- Card 3: Pending Payments -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-sm font-medium text-slate-500">Belum Lunas / DP</h3>
-                    <div class="p-2 bg-amber-50 rounded-lg text-amber-600">
-                        <i class="ph ph-clock-countdown text-xl"></i>
-                    </div>
+            <!-- VIEW: DAILY ACTIVITY -->
+            <div id="view-activity" class="view-section hidden">
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold text-slate-900">Input Daily Activity</h1>
+                    <p class="text-sm text-slate-500 mt-1">Catat aktivitas harian dan update status prospek.</p>
                 </div>
-                <div class="text-2xl font-bold text-slate-900 mb-1">42 <span class="text-sm font-normal text-slate-500">siswa</span></div>
-                <div class="flex items-center text-sm">
-                    <span class="text-amber-600 font-medium flex items-center mr-2">
-                        Rp 6.300.000
-                    </span>
-                    <span class="text-slate-400">sisa piutang</span>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 max-w-3xl">
+                    <form id="activityForm" onsubmit="submitActivity(event)" class="space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Nama Marketing</label>
+                                <input type="text" id="actMarketing" readonly class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-slate-50 text-slate-500 cursor-not-allowed">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Sekolah Yang Dikunjungi <span class="text-red-500">*</span></label>
+                                <select id="actSchool" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <!-- Diisi JS -->
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal Kunjungan <span class="text-red-500">*</span></label>
+                                <input type="date" id="actDate" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                            </div>
+                            <div class="flex gap-3">
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Check In <span class="text-red-500">*</span></label>
+                                    <input type="time" id="actCheckIn" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                                </div>
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Check Out <span class="text-red-500">*</span></label>
+                                    <input type="time" id="actCheckOut" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Jenis Aktivitas <span class="text-red-500">*</span></label>
+                                <select id="actType" required onchange="checkActivityType()" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <option value="">Pilih...</option>
+                                    <option value="Canvassing">Canvassing</option>
+                                    <option value="Follow Up">Follow Up</option>
+                                    <option value="Presentasi">Presentasi</option>
+                                    <option value="Negosiasi">Negosiasi</option>
+                                    <option value="Deal">Deal</option>
+                                    <option value="Belum Deal">Belum Deal</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Pihak Yang Ditemui <span class="text-red-500">*</span></label>
+                                <input type="text" id="actPerson" required oninput="capitalizeWords(this)" placeholder="Misal: Bapak Kepala Sekolah" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Kategori / Status <span class="text-red-500">*</span></label>
+                                <select id="actStatus" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <option value="Hot">🔥 Hot (Peluang Besar)</option>
+                                    <option value="Warm">⚡ Warm (Berpotensi)</option>
+                                    <option value="Cold">❄️ Cold (Perlu Pendekatan)</option>
+                                </select>
+                            </div>
+                            <div id="dealValueContainer" class="hidden">
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Nilai Kesepakatan Deal (Rp) <span class="text-red-500">*</span></label>
+                                <input type="number" id="actDealValue" placeholder="Contoh: 15000000" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2 border-t border-slate-100">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1 flex justify-between">
+                                    <span>Validasi Lokasi GPS <span class="text-red-500">*</span></span>
+                                    <span id="gpsStatus" class="text-xs font-normal text-slate-400">Belum dipindai</span>
+                                </label>
+                                <button type="button" onclick="simulateGPS()" class="w-full bg-slate-100 border border-slate-300 text-slate-700 rounded-lg px-3 py-2 text-sm hover:bg-slate-200 flex justify-center items-center">
+                                    <i class="ph ph-crosshair mr-2"></i> Ambil Titik Lokasi
+                                </button>
+                                <input type="hidden" id="actGPS" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Foto Lokasi <span class="text-red-500">*</span></label>
+                                <input type="file" id="actPhoto" accept="image/*" required class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-slate-300 rounded-lg p-1">
+                            </div>
+                        </div>
+                        
+                        <div class="pt-4 flex justify-end">
+                            <button type="submit" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 flex items-center shadow-md">
+                                <i class="ph ph-floppy-disk mr-2 text-lg"></i> Simpan Aktivitas
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
-            <!-- Card 4: Packages Sold -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-sm font-medium text-slate-500">Paket Premium</h3>
-                    <div class="p-2 bg-purple-50 rounded-lg text-purple-600">
-                        <i class="ph ph-star text-xl"></i>
-                    </div>
+            <!-- VIEW: PIPELINE (KANBAN) -->
+            <div id="view-pipeline" class="view-section hidden h-full flex flex-col">
+                <div class="mb-4 flex-shrink-0">
+                    <h1 class="text-2xl font-bold text-slate-900">Pipeline Penjualan</h1>
+                    <p class="text-sm text-slate-500 mt-1">Pergerakan otomatis berdasarkan histori Daily Activity.</p>
                 </div>
-                <div class="text-2xl font-bold text-slate-900 mb-1">86 <span class="text-sm font-normal text-slate-500">pesanan</span></div>
-                <div class="flex items-center text-sm">
-                    <span class="text-slate-500">30% dari total pesanan</span>
+                
+                <div class="flex-1 overflow-x-auto kanban-scroll pb-4">
+                    <div class="flex space-x-4 min-w-max h-full" id="kanbanBoard">
+                        <!-- Kolom Kanban akan di-generate via JS -->
+                    </div>
                 </div>
             </div>
 
+            <!-- VIEW: MONITORING GPS -->
+            <div id="view-gps" class="view-section hidden admin-only-view">
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold text-slate-900">Monitoring GPS</h1>
+                    <p class="text-sm text-slate-500 mt-1">Log kunjungan tim di lapangan.</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col items-center justify-center text-slate-500 h-64 text-center">
+                    <i class="ph ph-map-trifold text-5xl mb-3 text-slate-300"></i>
+                    <p>Integrasi Peta Interaktif (Google Maps) dapat ditambahkan di sini.<br>Data GPS saat ini: <strong id="gpsCountDisplay">0 titik tersimpan</strong> dari Daily Activity.</p>
+                </div>
+            </div>
+
+            <!-- VIEW: PENGATURAN -->
+            <div id="view-settings" class="view-section hidden admin-only-view">
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold text-slate-900">Pengaturan Aplikasi</h1>
+                    <p class="text-sm text-slate-500 mt-1">Konfigurasi hak akses dan KPI.</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Config Hak Akses -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <h3 class="text-lg font-semibold border-b border-slate-100 pb-3 mb-4"><i class="ph ph-shield-check text-blue-500 mr-2"></i> Konfigurasi Sistem</h3>
+                        
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <p class="font-medium text-slate-800">Isolasi Data Marketing</p>
+                                <p class="text-xs text-slate-500">Marketing hanya bisa melihat sekolahnya sendiri.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="settingIsolateData" checked onchange="toggleSettingIsolate()" class="sr-only peer">
+                                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- KPI Settings (Mockup) -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <h3 class="text-lg font-semibold border-b border-slate-100 pb-3 mb-4"><i class="ph ph-target text-red-500 mr-2"></i> Target KPI (Bulanan)</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-slate-700">Target Database Baru</span>
+                                <input type="number" value="50" class="w-20 border border-slate-300 rounded p-1 text-center text-sm">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-slate-700">Target Presentasi</span>
+                                <input type="number" value="20" class="w-20 border border-slate-300 rounded p-1 text-center text-sm">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-slate-700">Target Omzet (Deal)</span>
+                                <input type="text" value="150.000.000" class="w-32 border border-slate-300 rounded p-1 text-right text-sm">
+                            </div>
+                            <button class="w-full mt-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium py-2 rounded transition">Simpan KPI</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal Tambah Sekolah -->
+    <div id="modal-add-school" class="fixed inset-0 bg-slate-900 bg-opacity-50 z-50 hidden flex-col items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-lg text-slate-800">Tambah Data Sekolah</h3>
+                <button onclick="closeModal('modal-add-school')" class="text-slate-400 hover:text-slate-600"><i class="ph ph-x text-xl"></i></button>
+            </div>
+            <form onsubmit="saveNewSchool(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Nama Sekolah <span class="text-red-500">*</span></label>
+                    <!-- Fitur: Otomatis huruf besar via CSS (uppercase) dan JS saat disubmit -->
+                    <input type="text" id="msName" required class="w-full border border-slate-300 rounded-lg px-3 py-2 uppercase focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Jenjang <span class="text-red-500">*</span></label>
+                        <select id="msLevel" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="SMA">SMA</option>
+                            <option value="SMK">SMK</option>
+                            <option value="SMP">SMP</option>
+                            <option value="MAN">MAN</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Wilayah <span class="text-red-500">*</span></label>
+                        <input type="text" id="msRegion" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Alamat Lengkap</label>
+                    <textarea id="msAddress" rows="2" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Nama PIC <span class="text-red-500">*</span></label>
+                        <input type="text" id="msPic" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">No. WhatsApp <span class="text-red-500">*</span></label>
+                        <input type="text" id="msWa" required placeholder="08..." class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Tim Marketing <span class="text-red-500">*</span></label>
+                    <select id="msMarketing" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="Budi">Budi</option>
+                        <option value="Siti">Siti</option>
+                    </select>
+                </div>
+                <div class="pt-4 border-t border-slate-100 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('modal-add-school')" class="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition-colors">Batal</button>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">Simpan Data</button>
+                </div>
+            </form>
         </div>
+    </div>
 
-        <!-- Charts Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <!-- Line Chart (Trend Penjualan) -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 lg:col-span-2">
-                <h3 class="text-base font-semibold text-slate-800 mb-4">Tren Penjualan Mingguan</h3>
-                <div class="relative h-72 w-full">
-                    <canvas id="salesTrendChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Doughnut Chart (Penjualan per Kelas) -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <h3 class="text-base font-semibold text-slate-800 mb-4">Distribusi per Jurusan</h3>
-                <div class="relative h-64 w-full flex justify-center">
-                    <canvas id="classDistributionChart"></canvas>
-                </div>
-                <div class="mt-4 flex justify-center space-x-4 text-xs text-slate-500">
-                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-blue-500 mr-1.5"></span> IPA</div>
-                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-indigo-400 mr-1.5"></span> IPS</div>
-                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-cyan-300 mr-1.5"></span> Bahasa</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Transactions Table -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-            <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
-                <h3 class="text-base font-semibold text-slate-800">Transaksi Terbaru</h3>
-                <button class="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">Lihat Semua</button>
-            </div>
-            
-            <div class="overflow-x-auto table-scroll">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
-                            <th class="px-6 py-4 font-medium">ID Transaksi</th>
-                            <th class="px-6 py-4 font-medium">Nama Siswa</th>
-                            <th class="px-6 py-4 font-medium">Kelas</th>
-                            <th class="px-6 py-4 font-medium">Paket</th>
-                            <th class="px-6 py-4 font-medium">Status Pembayaran</th>
-                            <th class="px-6 py-4 font-medium text-right">Nominal</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transactionTableBody" class="text-sm text-slate-700 divide-y divide-slate-100">
-                        <!-- Rows will be injected via JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-    </main>
+    <!-- Kotak Pesan Notifikasi (Toast) -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-slate-900 text-white px-5 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-y-20 opacity-0 z-50 flex items-center">
+        <i class="ph-fill ph-check-circle text-green-400 text-xl mr-2"></i>
+        <span id="toastMsg">Tindakan berhasil!</span>
+    </div>
 
     <script>
-        // --- 1. KONEKSI SUPABASE ---
-        // GANTI INI: Salin URL dan KEY dari Project Settings -> API di dashboard Supabase Anda
-        var supabaseUrl = 'https://xovljmaawbkelojfpobr.supabase.co'; 
-        var supabaseKey = 'sb_publishable_FqikdEgA_MfHJaaVfUk42g_EatzPk5Z'; 
+        // --- DATA STATE (In-Memory Database Simulasi) ---
+        // Karena sistem diminta kompleks, kita simpan data di variabel agar berfungsi seperti database asli.
         
-        // Inisialisasi client Supabase (menggunakan nama supabaseClient agar tidak bentrok)
-        var supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let currentUser = null; // Menyimpan info user yang login
+        let configIsolateData = true; // Konfigurasi: Marketing hanya lihat datanya
 
-        // Variabel untuk menyimpan data asli dari database
-        var transactionsData = []; 
+        // Tabel Data Sekolah (Master)
+        let dataSchools = [
+            { id: 'SCH01', name: 'SMA NEGERI 1 JAKARTA', level: 'SMA', address: 'Jl. Budi Utomo No.7', region: 'Jakarta Pusat', pic: 'Bpk. Supriadi', wa: '08123456789', marketing: 'Budi', status: 'Canvassing', dealValue: 0 },
+            { id: 'SCH02', name: 'SMK BINA BANGSA', level: 'SMK', address: 'Jl. Merdeka Raya', region: 'Jakarta Selatan', pic: 'Ibu Ratna', wa: '08987654321', marketing: 'Siti', status: 'Presentasi', dealValue: 0 },
+            { id: 'SCH03', name: 'SMA HARAPAN', level: 'SMA', address: 'Jl. Sudirman', region: 'Jakarta Pusat', pic: 'Bpk. Anton', wa: '0811223344', marketing: 'Budi', status: 'Deal', dealValue: 25000000 },
+        ];
 
-        // Fungsi untuk mengambil data asli dari tabel 'transactions' di Supabase
-        async function fetchTransactions() {
-            // Pengecekan cerdas: Jika masih pakai URL placeholder, gunakan data dummy tanpa error
-            if (supabaseUrl.includes('KODE_PROJECT_ANDA')) {
-                console.warn("PEMBERITAHUAN: URL Supabase belum diisi. Aplikasi menampilkan data simulasi sementara.");
-                transactionsData = [
-                    { id: "TRX-1029", name: "Budi Santoso", class: "XII IPA 1", package: "Premium", status: "Lunas", amount: 250000 },
-                    { id: "TRX-1028", name: "Siti Aminah", class: "XII IPS 2", package: "Standar", status: "DP", amount: 150000 },
-                    { id: "TRX-1027", name: "Rizky Darmawan", class: "XII IPA 3", package: "Premium", status: "Lunas", amount: 250000 }
-                ];
-                renderTable();
-                return; // Hentikan eksekusi di sini agar tidak terjadi error 'Failed to fetch'
+        // Tabel Aktivitas (History)
+        let dataActivities = [];
+
+        // Konfigurasi Kanban Columns
+        const kanbanStages = [
+            { id: 'Canvassing', label: 'Canvassing', color: 'bg-slate-100 border-slate-200' },
+            { id: 'Follow Up', label: 'Follow Up', color: 'bg-blue-50 border-blue-200' },
+            { id: 'Presentasi', label: 'Presentasi', color: 'bg-purple-50 border-purple-200' },
+            { id: 'Negosiasi', label: 'Negosiasi', color: 'bg-amber-50 border-amber-200' },
+            { id: 'Deal', label: 'Deal', color: 'bg-green-50 border-green-200' },
+            { id: 'Belum Deal', label: 'Belum Deal', color: 'bg-red-50 border-red-200' }
+        ];
+
+        // --- SISTEM LOGIN & HAK AKSES ---
+        function handleLogin() {
+            const roleSelect = document.getElementById('loginRole').value;
+            
+            // Tentukan data user berdasarkan pilihan
+            if (roleSelect === 'owner') {
+                currentUser = { role: 'owner', name: 'Pimpinan', isMarketing: false };
+            } else if (roleSelect === 'hr') {
+                currentUser = { role: 'hr', name: 'HR Manager', isMarketing: false };
+            } else if (roleSelect === 'marketing_budi') {
+                currentUser = { role: 'marketing', name: 'Budi', isMarketing: true };
+            } else if (roleSelect === 'marketing_siti') {
+                currentUser = { role: 'marketing', name: 'Siti', isMarketing: true };
             }
 
-            try {
-                const { data, error } = await supabaseClient
-                    .from('transactions')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+            // Update UI Sidebar
+            document.getElementById('userNameDisplay').innerText = currentUser.name;
+            document.getElementById('userRoleDisplay').innerText = currentUser.role.toUpperCase();
+            document.getElementById('userAvatar').innerText = currentUser.name.charAt(0);
+            document.getElementById('userAvatar').className = `h-10 w-10 rounded-full flex items-center justify-center font-bold border ${currentUser.isMarketing ? 'bg-orange-100 text-orange-600 border-orange-200' : 'bg-blue-100 text-blue-600 border-blue-200'}`;
+            
+            // Atur Hak Akses Menu
+            const adminMenus = document.querySelectorAll('.admin-only');
+            const adminViews = document.querySelectorAll('.admin-only-view');
+            
+            if (currentUser.isMarketing) {
+                adminMenus.forEach(el => el.classList.add('hidden'));
+            } else {
+                adminMenus.forEach(el => el.classList.remove('hidden'));
+            }
 
-                if (error) {
-                    throw error;
-                }
-                
-                // Jika berhasil mengambil data dari database, simpan ke variabel
-                transactionsData = data || [];
-                renderTable(); // Tampilkan data ke layar
-                
-            } catch (error) {
-                console.error("Gagal terhubung ke Supabase:", error.message);
+            // Set default nama di form aktivitas
+            document.getElementById('actMarketing').value = currentUser.name;
+
+            // Sembunyikan Modal Login
+            document.getElementById('loginOverlay').style.opacity = '0';
+            setTimeout(() => { document.getElementById('loginOverlay').style.display = 'none'; }, 300);
+
+            // Inisialisasi awal ke Dashboard
+            navigate('dashboard');
+            refreshAllData();
+        }
+
+        function logout() {
+            document.getElementById('loginOverlay').style.display = 'flex';
+            setTimeout(() => { document.getElementById('loginOverlay').style.opacity = '1'; }, 10);
+            currentUser = null;
+        }
+
+        function toggleSettingIsolate() {
+            configIsolateData = document.getElementById('settingIsolateData').checked;
+            showToast("Konfigurasi disimpan: Isolasi Data " + (configIsolateData ? "Aktif" : "Nonaktif"));
+        }
+
+        // --- FILTERING DATA BERDASARKAN HAK AKSES ---
+        function getVisibleSchools() {
+            if (currentUser.isMarketing && configIsolateData) {
+                return dataSchools.filter(s => s.marketing === currentUser.name);
+            }
+            return dataSchools; // Owner/HR lihat semua, atau jika isolasi dimatikan
+        }
+
+        // --- NAVIGASI ---
+        function navigate(viewId) {
+            // Sembunyikan semua view
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            // Tampilkan view yang dipilih
+            document.getElementById('view-' + viewId).classList.remove('hidden');
+            
+            // Update active state di menu
+            document.querySelectorAll('aside nav a').forEach(el => el.classList.remove('sidebar-active', 'bg-slate-50'));
+            const activeLink = document.getElementById('nav-' + viewId);
+            if(activeLink) activeLink.classList.add('sidebar-active');
+
+            // Tutup sidebar di mobile
+            const sidebar = document.getElementById('sidebar');
+            if(window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+            }
+
+            // Trigger render ulang spesifik jika perlu
+            if(viewId === 'master' || viewId === 'activity' || viewId === 'pipeline' || viewId === 'dashboard') {
+                refreshAllData();
             }
         }
 
-        // --- 2. RENDER TABEL ---
-        function renderTable() {
-            const tbody = document.getElementById('transactionTableBody');
-            tbody.innerHTML = ''; // Clear existing
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        }
 
-            // Gunakan transactionsData dari database (bukan mockTransactions lagi)
-            transactionsData.forEach(trx => {
-                // Status Badge Logic
-                let statusBadge = '';
-                if (trx.status === 'Lunas') {
-                    statusBadge = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"><span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>Lunas</span>`;
-                } else if (trx.status === 'DP') {
-                    statusBadge = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span>DP / Sebagian</span>`;
-                } else {
-                    statusBadge = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><span class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5"></span>Belum Bayar</span>`;
-                }
+        // --- FUNGSI RENDER DATA UTAMA ---
+        function refreshAllData() {
+            if(!currentUser) return;
+            const visibleSchools = getVisibleSchools();
+            
+            // 1. Render Dashboard
+            document.getElementById('dashTotalSekolah').innerText = visibleSchools.length;
+            const totalDeal = visibleSchools.filter(s => s.status === 'Deal').length;
+            document.getElementById('dashTotalDeal').innerText = totalDeal;
+            
+            const totalPotensi = visibleSchools.reduce((sum, s) => sum + (s.dealValue || 0), 0);
+            document.getElementById('dashPotensi').innerText = formatRupiah(totalPotensi);
+            
+            const todayActs = dataActivities.filter(a => a.date === new Date().toISOString().split('T')[0] && (currentUser.isMarketing ? a.marketing === currentUser.name : true)).length;
+            document.getElementById('dashAktivitas').innerText = todayActs;
 
-                // Format Currency
-                const formattedAmount = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(trx.amount);
+            renderDashboardChart(visibleSchools);
 
-                const row = `
+            // 2. Render Tabel Master
+            renderMasterTable(visibleSchools);
+            
+            // 3. Update Dropdown di form Activity
+            const schoolSelect = document.getElementById('actSchool');
+            schoolSelect.innerHTML = '<option value="">Pilih Sekolah...</option>';
+            visibleSchools.forEach(s => {
+                schoolSelect.innerHTML += `<option value="${s.id}">${s.name} - ${s.region}</option>`;
+            });
+
+            // 4. Render Kanban
+            renderKanbanBoard(visibleSchools);
+        }
+
+        function renderMasterTable(schools) {
+            const tbody = document.getElementById('schoolTableBody');
+            tbody.innerHTML = '';
+            
+            if(schools.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-slate-500">Belum ada data sekolah.</td></tr>`;
+                return;
+            }
+
+            schools.forEach(sch => {
+                tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap font-medium text-slate-900">${trx.id}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">${trx.name}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-slate-500">${trx.class}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">${trx.package}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right font-medium text-slate-900">${formattedAmount}</td>
+                        <td class="px-6 py-3 whitespace-nowrap font-medium text-slate-900">
+                            ${sch.name}
+                            <div class="text-xs font-normal text-slate-500">${sch.address}</div>
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap"><span class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-semibold">${sch.level}</span></td>
+                        <td class="px-6 py-3 whitespace-nowrap text-sm">${sch.region}</td>
+                        <td class="px-6 py-3 whitespace-nowrap text-sm">${sch.pic}<br><span class="text-xs text-slate-400">${sch.wa}</span></td>
+                        <td class="px-6 py-3 whitespace-nowrap">
+                            <span class="flex items-center text-sm"><i class="ph-fill ph-user-circle text-slate-400 mr-1.5 text-lg"></i> ${sch.marketing}</span>
+                        </td>
                     </tr>
                 `;
-                tbody.insertAdjacentHTML('beforeend', row);
             });
         }
 
-        // --- 3. INISIALISASI GRAFIK (CHART.JS) ---
-        function initCharts() {
-            // Konfigurasi Global Chart.js
-            Chart.defaults.font.family = "'Inter', sans-serif";
-            Chart.defaults.color = '#64748b';
-            
-            // 3.1 Line Chart: Tren Penjualan
-            const ctxSales = document.getElementById('salesTrendChart').getContext('2d');
-            
-            // Membuat gradient untuk Line Chart
-            let gradient = ctxSales.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(37, 99, 235, 0.2)'); // Blue-600
-            gradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
+        function renderKanbanBoard(schools) {
+            const board = document.getElementById('kanbanBoard');
+            board.innerHTML = '';
 
-            new Chart(ctxSales, {
-                type: 'line',
+            kanbanStages.forEach(stage => {
+                // Filter sekolah berdasarkan status
+                const stageSchools = schools.filter(s => s.status === stage.id);
+                
+                // Hitung total nominal deal di kolom ini
+                const totalValue = stageSchools.reduce((sum, s) => sum + (s.dealValue || 0), 0);
+                const valueHtml = totalValue > 0 ? `<div class="text-xs font-bold mt-1 text-slate-600">${formatRupiah(totalValue)}</div>` : '';
+
+                // Buat Kolom
+                let columnHtml = `
+                    <div class="w-72 flex flex-col flex-shrink-0 bg-slate-100 rounded-xl overflow-hidden max-h-full">
+                        <div class="p-3 border-b border-slate-200 bg-white flex justify-between items-center shadow-sm">
+                            <div>
+                                <h3 class="font-bold text-sm text-slate-700 uppercase tracking-wide">${stage.label}</h3>
+                                ${valueHtml}
+                            </div>
+                            <span class="bg-slate-200 text-slate-600 py-0.5 px-2 rounded-full text-xs font-bold">${stageSchools.length}</span>
+                        </div>
+                        <div class="p-3 overflow-y-auto flex-1 space-y-3 kanban-scroll">
+                `;
+
+                // Isi Kartu
+                stageSchools.forEach(sch => {
+                    const dealBadge = sch.status === 'Deal' ? `<div class="mt-2 text-xs font-bold text-green-600 bg-green-50 p-1.5 rounded text-center border border-green-100">${formatRupiah(sch.dealValue)}</div>` : '';
+                    const markBadge = !currentUser.isMarketing ? `<div class="mt-2 text-[10px] text-slate-400 flex items-center"><i class="ph ph-user mr-1"></i> ${sch.marketing}</div>` : '';
+                    
+                    columnHtml += `
+                        <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-200 hover:border-blue-300 transition-colors">
+                            <div class="text-xs text-slate-400 mb-1 flex justify-between">
+                                <span>${sch.level}</span>
+                                <span>${sch.region}</span>
+                            </div>
+                            <h4 class="font-bold text-slate-800 text-sm leading-tight">${sch.name}</h4>
+                            <div class="text-xs text-slate-500 mt-1 flex items-center">
+                                <i class="ph ph-user-list mr-1"></i> ${sch.pic}
+                            </div>
+                            ${dealBadge}
+                            ${markBadge}
+                        </div>
+                    `;
+                });
+
+                if(stageSchools.length === 0) {
+                    columnHtml += `<div class="text-center p-4 text-sm text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">Kosong</div>`;
+                }
+
+                columnHtml += `</div></div>`;
+                board.innerHTML += columnHtml;
+            });
+        }
+
+        // --- FORM HANDLING ---
+        
+        // Form Tambah Master Sekolah
+        function saveNewSchool(e) {
+            e.preventDefault();
+            // Ambil value dan format Uppercase otomatis untuk ID dan nama (sesuai req)
+            const rawName = document.getElementById('msName').value;
+            const finalName = rawName.toUpperCase(); 
+            
+            const newSchool = {
+                id: 'SCH' + Math.floor(Math.random() * 1000), // Generate ID random
+                name: finalName,
+                level: document.getElementById('msLevel').value,
+                region: document.getElementById('msRegion').value,
+                address: document.getElementById('msAddress').value,
+                pic: document.getElementById('msPic').value,
+                wa: document.getElementById('msWa').value,
+                marketing: document.getElementById('msMarketing').value,
+                status: 'Canvassing', // Status default
+                dealValue: 0
+            };
+
+            dataSchools.push(newSchool);
+            closeModal('modal-add-school');
+            e.target.reset(); // clear form
+            showToast("Sekolah baru berhasil ditambahkan!");
+            refreshAllData(); // render ulang tabel & dropdown
+        }
+
+        // Validasi GPS (Simulasi)
+        function simulateGPS() {
+            const statusEl = document.getElementById('gpsStatus');
+            statusEl.innerHTML = '<i class="ph ph-spinner animate-spin"></i> Mencari lokasi...';
+            setTimeout(() => {
+                document.getElementById('actGPS').value = "-6.2088, 106.8456"; // Koordinat Jakarta
+                statusEl.innerHTML = '<span class="text-green-600 font-medium"><i class="ph ph-check-circle"></i> Lokasi divalidasi</span>';
+            }, 1000);
+        }
+
+        // Logic memunculkan Input Deal Value
+        function checkActivityType() {
+            const type = document.getElementById('actType').value;
+            const dealContainer = document.getElementById('dealValueContainer');
+            const dealInput = document.getElementById('actDealValue');
+            
+            if (type === 'Deal') {
+                dealContainer.classList.remove('hidden');
+                dealInput.setAttribute('required', 'true');
+            } else {
+                dealContainer.classList.add('hidden');
+                dealInput.removeAttribute('required');
+                dealInput.value = ''; // reset
+            }
+        }
+
+        // Form Submit Daily Activity
+        function submitActivity(e) {
+            e.preventDefault();
+            
+            const schoolId = document.getElementById('actSchool').value;
+            const actType = document.getElementById('actType').value;
+            const dealValue = actType === 'Deal' ? parseInt(document.getElementById('actDealValue').value || 0) : 0;
+            const actDate = document.getElementById('actDate').value;
+
+            // Catat history (Monitoring GPS)
+            dataActivities.push({
+                schoolId: schoolId,
+                marketing: document.getElementById('actMarketing').value,
+                type: actType,
+                date: actDate,
+                gps: document.getElementById('actGPS').value
+            });
+
+            // UPDATE STATUS SEKOLAH DI MASTER (Otomatis geser Kanban)
+            const schoolIndex = dataSchools.findIndex(s => s.id === schoolId);
+            if (schoolIndex !== -1) {
+                dataSchools[schoolIndex].status = actType;
+                if (actType === 'Deal') {
+                    dataSchools[schoolIndex].dealValue = dealValue;
+                }
+            }
+
+            e.target.reset();
+            document.getElementById('gpsStatus').innerHTML = 'Belum dipindai';
+            checkActivityType(); // hide deal input again
+            
+            showToast("Aktivitas tersimpan. Status Pipeline diperbarui!");
+            refreshAllData();
+            navigate('pipeline'); // Arahkan pengguna ke pipeline untuk melihat perubahannya
+        }
+
+
+        // --- HELPERS (Formatting) ---
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+        }
+
+        // Mengubah huruf pertama setiap kata jadi Besar (Capitalize Words)
+        function capitalizeWords(inputElement) {
+            let str = inputElement.value;
+            inputElement.value = str.replace(/\b\w/g, function(l) { return l.toUpperCase() });
+        }
+
+        // Modal Controls
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            modal.style.display = 'flex';
+            setTimeout(() => { modal.querySelector('div').classList.add('modal-enter-active'); }, 10);
+            
+            // Set default marketing option to current user if they are marketing
+            if(id === 'modal-add-school' && currentUser.isMarketing) {
+                document.getElementById('msMarketing').value = currentUser.name;
+                document.getElementById('msMarketing').disabled = true; // Kunci pilihan
+                document.getElementById('msMarketing').classList.add('bg-slate-100');
+            } else {
+                document.getElementById('msMarketing').disabled = false;
+                document.getElementById('msMarketing').classList.remove('bg-slate-100');
+            }
+        }
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            modal.querySelector('div').classList.remove('modal-enter-active');
+            setTimeout(() => { modal.style.display = 'none'; }, 200);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 3000);
+        }
+
+        // --- CHART JS ---
+        let pipeChartInstance = null;
+        function renderDashboardChart(schools) {
+            const ctx = document.getElementById('pipelineChart').getContext('2d');
+            
+            // Hitung distribusi
+            const counts = kanbanStages.map(stage => {
+                return schools.filter(s => s.status === stage.id).length;
+            });
+
+            if (pipeChartInstance) pipeChartInstance.destroy();
+
+            pipeChartInstance = new Chart(ctx, {
+                type: 'bar',
                 data: {
-                    labels: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4', 'Minggu 5', 'Minggu 6'],
+                    labels: kanbanStages.map(s => s.label),
                     datasets: [{
-                        label: 'Buku Terjual (eks)',
-                        data: [12, 35, 68, 120, 185, 285],
-                        borderColor: '#2563eb', // Tailwind blue-600
-                        backgroundColor: gradient,
-                        borderWidth: 2,
-                        pointBackgroundColor: '#ffffff',
-                        pointBorderColor: '#2563eb',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        fill: true,
-                        tension: 0.4 // Membuat kurva melengkung (smooth)
+                        label: 'Jumlah Sekolah',
+                        data: counts,
+                        backgroundColor: ['#e2e8f0', '#bfdbfe', '#e9d5ff', '#fde68a', '#bbf7d0', '#fecaca'],
+                        borderRadius: 6
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: '#1e293b',
-                            padding: 12,
-                            titleFont: { size: 13, weight: 'normal' },
-                            bodyFont: { size: 14, weight: 'bold' },
-                            displayColors: false
-                        }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#f1f5f9', drawBorder: false },
-                            ticks: { stepSize: 50 }
-                        },
-                        x: {
-                            grid: { display: false, drawBorder: false }
-                        }
-                    }
-                }
-            });
-
-            // 3.2 Doughnut Chart: Distribusi Kelas
-            const ctxClass = document.getElementById('classDistributionChart').getContext('2d');
-            new Chart(ctxClass, {
-                type: 'doughnut',
-                data: {
-                    labels: ['IPA', 'IPS', 'Bahasa'],
-                    datasets: [{
-                        data: [150, 105, 30],
-                        backgroundColor: [
-                            '#3b82f6', // blue-500
-                            '#818cf8', // indigo-400
-                            '#67e8f9'  // cyan-300
-                        ],
-                        borderWidth: 0,
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '75%', // Membuat lubang tengah besar (modern)
-                    plugins: {
-                        legend: { display: false }, // Legend custom di HTML
-                        tooltip: {
-                            backgroundColor: '#1e293b',
-                            padding: 12,
-                            callbacks: {
-                                label: function(context) {
-                                    return ` ${context.label}: ${context.raw} siswa`;
-                                }
-                            }
-                        }
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                        x: { grid: { display: false } }
                     }
                 }
             });
         }
 
-        // --- 4. STARTUP SCRIPT ---
-        // Jalankan semua fungsi saat DOM siap
-        document.addEventListener('DOMContentLoaded', () => {
-            // Panggil data dari Supabase sesaat setelah web selesai dimuat
-            fetchTransactions(); 
-            initCharts();
-        });
     </script>
 </body>
 </html>
