@@ -1,721 +1,576 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketing Report Pro - Buku Tahunan</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+'use client';
 
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .kanban-scroll { scrollbar-width: none; -ms-overflow-style: none; }
-        .kanban-scroll::-webkit-scrollbar { display: none; }
-        .sidebar-active { background-color: #eff6ff; color: #2563eb; font-weight: 600; border-right: 3px solid #2563eb; }
-        .modal-enter { opacity: 0; transform: scale(0.95); }
-        .modal-enter-active { opacity: 1; transform: scale(1); transition: opacity 200ms, transform 200ms; }
-        
-        /* Uppercase otomatis saat mengetik */
-        .auto-uppercase { text-transform: uppercase; }
-        .auto-capitalize { text-transform: capitalize; }
-    </style>
-</head>
-<body class="text-slate-800 antialiased overflow-hidden flex h-screen">
+import React, { useState, useEffect, createContext, useContext } from 'react';
+import { 
+  LayoutDashboard, Database, Activity, Trello, Settings, Menu, X, 
+  Search, Bell, User, Plus, MoreVertical, TrendingUp, Target, 
+  Users, Briefcase, Calendar, MapPin, Phone, ChevronRight
+} from 'lucide-react';
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, 
+  Tooltip as RechartsTooltip, ResponsiveContainer, Line 
+} from 'recharts';
 
-    <div id="loginOverlay" class="fixed inset-0 bg-slate-900 bg-opacity-90 z-50 flex items-center justify-center transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 transform transition-transform duration-300">
-            <div class="text-center mb-8">
-                <i class="ph-fill ph-book-open text-blue-600 text-5xl mb-3"></i>
-                <h1 class="text-2xl font-bold text-slate-900">Yearbook<span class="text-blue-600">Analytics</span></h1>
-                <p class="text-slate-500 mt-2 text-sm">Masuk untuk mengakses dasbor Anda</p>
-            </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Pilih Peran (Role)</label>
-                    <select id="loginRole" class="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
-                        <option value="owner">Owner / Pimpinan</option>
-                        <option value="hr">HR Manager</option>
-                        <option value="marketing_budi">Tim Marketing (Budi)</option>
-                        <option value="marketing_siti">Tim Marketing (Siti)</option>
-                    </select>
-                </div>
-                <button onclick="handleLogin()" class="w-full bg-blue-600 text-white rounded-lg px-4 py-2.5 font-medium hover:bg-blue-700 transition-colors flex justify-center items-center">
-                    Masuk ke Dasbor <i class="ph ph-arrow-right ml-2"></i>
-                </button>
-            </div>
+// Removed Supabase client initialization for this preview environment.
+// For GitHub/Vercel, you would uncomment these lines and ensure @supabase/supabase-js is installed.
+/*
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+*/
+
+type ViewState = 'dashboard' | 'master' | 'pipeline';
+
+interface School {
+  id: string;
+  name: string;
+  level: 'SMA' | 'SMK' | 'SMP';
+  city: string;
+  pic: string;
+  phone: string;
+  status: 'Lead' | 'Prospect' | 'Contacted' | 'Presentation' | 'Negotiation' | 'Closing' | 'Lost';
+  project_value: number; // Supabase menggunakan snake_case
+}
+
+interface ActivityLog {
+  id: string;
+  activity_date: string;
+  school_id: string;
+  type: 'Visit' | 'WhatsApp' | 'Call' | 'Meeting';
+  result: string;
+}
+
+interface AppContextType {
+  schools: School[];
+  activities: ActivityLog[];
+  updateSchoolStatus: (id: string, newStatus: School['status']) => Promise<void>;
+  isSyncing: boolean;
+}
+
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
+const Card = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
+  <div className={`bg-white rounded-xl border border-slate-200 shadow-sm ${className}`}>
+    {children}
+  </div>
+);
+
+const Button = ({ children, variant = 'primary', className = '', ...props }: any) => {
+  const base = "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none px-4 py-2";
+  const variants = {
+    primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-sm",
+    outline: "border border-slate-200 bg-white hover:bg-slate-100 text-slate-700",
+    ghost: "hover:bg-slate-100 text-slate-700"
+  };
+  return (
+    <button className={`${base} ${variants[variant as keyof typeof variants]} ${className}`} {...props}>
+      {children}
+    </button>
+  );
+};
+
+const DashboardView = () => {
+  const { schools } = useContext(AppContext)!;
+  
+  const totalOmzet = schools.filter(s => s.status === 'Closing').reduce((acc, curr) => acc + (curr.project_value || 0), 0);
+  const totalSekolah = schools.length;
+  const totalClosing = schools.filter(s => s.status === 'Closing').length;
+
+  const revenueData = [
+    { name: 'Jan', revenue: 4000, target: 5000 },
+    { name: 'Feb', revenue: 3000, target: 5000 },
+    { name: 'Mar', revenue: 6000, target: 5000 },
+    { name: 'Apr', revenue: 8000, target: 6000 },
+    { name: 'Mei', revenue: 7000, target: 6000 },
+    { name: 'Jun', revenue: 12000, target: 8000 },
+    { name: 'Jul', revenue: 15000, target: 10000 },
+  ];
+  
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="flex justify-between items-end">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">Dashboard</h2>
+          <p className="text-slate-500 text-sm mt-1">Ringkasan performa marketing BTS Anda secara Realtime.</p>
         </div>
-    </div>
+        <Button>
+          <Plus className="w-4 h-4 mr-2" /> Buat Laporan
+        </Button>
+      </div>
 
-    <aside id="sidebar" class="w-64 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col transition-all duration-300 transform -translate-x-full md:translate-x-0 absolute md:relative z-40 h-full">
-        <div class="h-16 flex items-center px-6 border-b border-slate-200">
-            <i class="ph-fill ph-book-open text-blue-600 text-2xl mr-2"></i>
-            <span class="font-bold text-lg tracking-tight text-slate-900">Yearbook<span class="text-blue-600">App</span></span>
-        </div>
-        
-        <div class="p-4 flex items-center space-x-3 border-b border-slate-100">
-            <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200" id="userAvatar">O</div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="p-5">
+          <div className="flex items-center justify-between">
             <div>
-                <p class="text-sm font-semibold text-slate-900" id="userNameDisplay">Owner</p>
-                <p class="text-xs text-slate-500 capitalize" id="userRoleDisplay">Administrator</p>
+              <p className="text-sm font-medium text-slate-500">Total Omzet</p>
+              <h3 className="text-2xl font-bold text-slate-800 mt-1">
+                Rp {(totalOmzet / 1000000).toFixed(1)}M
+              </h3>
             </div>
-        </div>
-
-        <nav class="flex-1 overflow-y-auto py-4">
-            <ul class="space-y-1 px-3">
-                <li>
-                    <a href="#" onclick="navigate('dashboard')" id="nav-dashboard" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 sidebar-active">
-                        <i class="ph ph-squares-four text-lg mr-3"></i> Dashboard
-                    </a>
-                </li>
-                <li>
-                    <a href="#" onclick="navigate('master')" id="nav-master" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">
-                        <i class="ph ph-buildings text-lg mr-3"></i> Data Master
-                    </a>
-                </li>
-                <li>
-                    <a href="#" onclick="navigate('activity')" id="nav-activity" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">
-                        <i class="ph ph-clipboard-text text-lg mr-3"></i> Daily Activity
-                    </a>
-                </li>
-                <li>
-                    <a href="#" onclick="navigate('pipeline')" id="nav-pipeline" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">
-                        <i class="ph ph-kanban text-lg mr-3"></i> Pipeline
-                    </a>
-                </li>
-                <li class="admin-only">
-                    <a href="#" onclick="navigate('gps')" id="nav-gps" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">
-                        <i class="ph ph-map-pin-line text-lg mr-3"></i> Monitoring GPS
-                    </a>
-                </li>
-                <li class="admin-only pt-4 mt-4 border-t border-slate-100">
-                    <a href="#" onclick="navigate('settings')" id="nav-settings" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">
-                        <i class="ph ph-gear text-lg mr-3"></i> Pengaturan
-                    </a>
-                </li>
-            </ul>
-        </nav>
-        <div class="p-4 border-t border-slate-200">
-            <button onclick="logout()" class="flex items-center w-full px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                <i class="ph ph-sign-out text-lg mr-3"></i> Keluar
-            </button>
-        </div>
-    </aside>
-
-    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header class="md:hidden bg-white h-16 border-b border-slate-200 flex items-center justify-between px-4">
-            <div class="flex items-center">
-                <i class="ph-fill ph-book-open text-blue-600 text-xl mr-2"></i>
-                <span class="font-bold text-lg">Yearbook</span>
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
+              <TrendingUp className="w-5 h-5" />
             </div>
-            <button onclick="toggleSidebar()" class="text-slate-600 p-2">
-                <i class="ph ph-list text-2xl"></i>
-            </button>
-        </header>
+          </div>
+        </Card>
 
-        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" id="mainContent">
-            
-            <!-- VIEW: DASHBOARD -->
-            <div id="view-dashboard" class="view-section">
-                <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
-                    <div>
-                        <h1 class="text-2xl font-bold text-slate-900">Dashboard Utama</h1>
-                        <p class="text-sm text-slate-500 mt-1">Ringkasan performa tim dan proyeksi pendapatan.</p>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                        <div class="flex justify-between items-start"><h3 class="text-sm font-medium text-slate-500">Total Prospek</h3><i class="ph ph-users text-blue-500 text-xl"></i></div>
-                        <div class="text-2xl font-bold text-slate-900 mt-2" id="dashTotalSekolah">0</div>
-                    </div>
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                        <div class="flex justify-between items-start"><h3 class="text-sm font-medium text-slate-500">Sekolah Deal</h3><i class="ph ph-handshake text-green-500 text-xl"></i></div>
-                        <div class="text-2xl font-bold text-slate-900 mt-2" id="dashTotalDeal">0</div>
-                    </div>
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                        <div class="flex justify-between items-start"><h3 class="text-sm font-medium text-slate-500">Potensi Omzet (Deal)</h3><i class="ph ph-coins text-amber-500 text-xl"></i></div>
-                        <div class="text-2xl font-bold text-slate-900 mt-2" id="dashPotensi">Rp 0</div>
-                    </div>
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                        <div class="flex justify-between items-start"><h3 class="text-sm font-medium text-slate-500">Aktivitas Hari Ini</h3><i class="ph ph-calendar-check text-purple-500 text-xl"></i></div>
-                        <div class="text-2xl font-bold text-slate-900 mt-2" id="dashAktivitas">0</div>
-                    </div>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <h3 class="text-base font-semibold text-slate-800 mb-4">Grafik Pipeline Status</h3>
-                    <div class="h-64"><canvas id="pipelineChart"></canvas></div>
-                </div>
+        <Card className="p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-500">Sekolah Prospek</p>
+              <h3 className="text-2xl font-bold text-slate-800 mt-1">{totalSekolah}</h3>
             </div>
+            <div className="p-3 bg-purple-50 text-purple-600 rounded-lg">
+              <Briefcase className="w-5 h-5" />
+            </div>
+          </div>
+        </Card>
 
-            <!-- VIEW: DATA MASTER -->
-            <div id="view-master" class="view-section hidden">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                    <div>
-                        <h1 class="text-2xl font-bold text-slate-900">Data Master Sekolah</h1>
-                        <p class="text-sm text-slate-500 mt-1">Kelola database sekolah prospek.</p>
-                    </div>
-                    <button onclick="openModal('modal-add-school')" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center shadow-sm">
-                        <i class="ph ph-plus font-bold mr-2"></i> Tambah Baru
-                    </button>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
-                                    <th class="px-6 py-4 font-medium">Nama Sekolah</th>
-                                    <th class="px-6 py-4 font-medium">Jenjang</th>
-                                    <th class="px-6 py-4 font-medium">Wilayah</th>
-                                    <th class="px-6 py-4 font-medium">PIC & WA</th>
-                                    <th class="px-6 py-4 font-medium">Tim Marketing</th>
-                                </tr>
-                            </thead>
-                            <tbody id="schoolTableBody" class="text-sm text-slate-700 divide-y divide-slate-100">
-                                <!-- Data diisi via JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+        <Card className="p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-500">Target Bulanan</p>
+              <h3 className="text-2xl font-bold text-slate-800 mt-1">85%</h3>
             </div>
+            <div className="p-3 bg-amber-50 text-amber-600 rounded-lg">
+              <Target className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-4 w-full bg-slate-100 rounded-full h-2">
+            <div className="bg-amber-500 h-2 rounded-full" style={{ width: '85%' }}></div>
+          </div>
+        </Card>
 
-            <!-- VIEW: DAILY ACTIVITY -->
-            <div id="view-activity" class="view-section hidden">
-                <div class="mb-6">
-                    <h1 class="text-2xl font-bold text-slate-900">Input Daily Activity</h1>
-                    <p class="text-sm text-slate-500 mt-1">Catat aktivitas harian dan update status prospek.</p>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 max-w-3xl">
-                    <form id="activityForm" onsubmit="submitActivity(event)" class="space-y-5">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Nama Marketing</label>
-                                <input type="text" id="actMarketing" readonly class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-slate-50 text-slate-500 cursor-not-allowed">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Sekolah Yang Dikunjungi <span class="text-red-500">*</span></label>
-                                <select id="actSchool" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-                                    <!-- Diisi JS -->
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal Kunjungan <span class="text-red-500">*</span></label>
-                                <input type="date" id="actDate" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-                            </div>
-                            <div class="flex gap-3">
-                                <div class="flex-1">
-                                    <label class="block text-sm font-medium text-slate-700 mb-1">Check In <span class="text-red-500">*</span></label>
-                                    <input type="time" id="actCheckIn" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-                                </div>
-                                <div class="flex-1">
-                                    <label class="block text-sm font-medium text-slate-700 mb-1">Check Out <span class="text-red-500">*</span></label>
-                                    <input type="time" id="actCheckOut" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Jenis Aktivitas <span class="text-red-500">*</span></label>
-                                <select id="actType" required onchange="checkActivityType()" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-                                    <option value="">Pilih...</option>
-                                    <option value="Canvassing">Canvassing</option>
-                                    <option value="Follow Up">Follow Up</option>
-                                    <option value="Presentasi">Presentasi</option>
-                                    <option value="Negosiasi">Negosiasi</option>
-                                    <option value="Deal">Deal</option>
-                                    <option value="Belum Deal">Belum Deal</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Pihak Yang Ditemui <span class="text-red-500">*</span></label>
-                                <input type="text" id="actPerson" required oninput="capitalizeWords(this)" placeholder="Misal: Bapak Kepala Sekolah" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none auto-capitalize">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Kategori / Status <span class="text-red-500">*</span></label>
-                                <select id="actStatus" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-                                    <option value="Hot">🔥 Hot (Peluang Besar)</option>
-                                    <option value="Warm">⚡ Warm (Berpotensi)</option>
-                                    <option value="Cold">❄️ Cold (Perlu Pendekatan)</option>
-                                </select>
-                            </div>
-                            <div id="dealValueContainer" class="hidden">
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Nilai Kesepakatan Deal (Rp) <span class="text-red-500">*</span></label>
-                                <input type="number" id="actDealValue" placeholder="Contoh: 15000000" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2 border-t border-slate-100">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1 flex justify-between">
-                                    <span>Validasi Lokasi GPS <span class="text-red-500">*</span></span>
-                                    <span id="gpsStatus" class="text-xs font-normal text-slate-400">Belum dipindai</span>
-                                </label>
-                                <button type="button" onclick="simulateGPS()" class="w-full bg-slate-100 border border-slate-300 text-slate-700 rounded-lg px-3 py-2 text-sm hover:bg-slate-200 flex justify-center items-center transition-colors">
-                                    <i class="ph ph-crosshair mr-2"></i> Ambil Titik Lokasi
-                                </button>
-                                <input type="hidden" id="actGPS" required>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Foto Lokasi <span class="text-red-500">*</span></label>
-                                <input type="file" id="actPhoto" accept="image/*" required class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-slate-300 rounded-lg p-1">
-                            </div>
-                        </div>
-                        
-                        <div class="pt-4 flex justify-end">
-                            <button type="submit" id="btnSubmitAct" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 flex items-center shadow-md transition-colors">
-                                <i class="ph ph-floppy-disk mr-2 text-lg"></i> Simpan Aktivitas
-                            </button>
-                        </div>
-                    </form>
-                </div>
+        <Card className="p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-500">Total Closing</p>
+              <h3 className="text-2xl font-bold text-slate-800 mt-1">{totalClosing}</h3>
             </div>
+            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+              <Users className="w-5 h-5" />
+            </div>
+          </div>
+        </Card>
+      </div>
 
-            <!-- VIEW: PIPELINE (KANBAN) -->
-            <div id="view-pipeline" class="view-section hidden h-full flex flex-col">
-                <div class="mb-4 flex-shrink-0">
-                    <h1 class="text-2xl font-bold text-slate-900">Pipeline Penjualan</h1>
-                    <p class="text-sm text-slate-500 mt-1">Pergerakan otomatis berdasarkan histori Daily Activity.</p>
-                </div>
-                <div class="flex-1 overflow-x-auto kanban-scroll pb-4">
-                    <div class="flex space-x-4 min-w-max h-full" id="kanbanBoard"></div>
-                </div>
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="p-5 lg:col-span-2">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4">Grafik Realisasi & Target (Juta)</h3>
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
+                <RechartsTooltip />
+                <Area type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" name="Realisasi" />
+                <Line type="monotone" dataKey="target" stroke="#94a3b8" strokeWidth={2} strokeDasharray="5 5" dot={false} name="Target" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
 
-            <!-- VIEW: MONITORING GPS -->
-            <div id="view-gps" class="view-section hidden admin-only-view">
-                <div class="mb-6">
-                    <h1 class="text-2xl font-bold text-slate-900">Monitoring GPS</h1>
-                    <p class="text-sm text-slate-500 mt-1">Log kunjungan tim di lapangan.</p>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col items-center justify-center text-slate-500 h-64 text-center">
-                    <i class="ph ph-map-trifold text-5xl mb-3 text-slate-300"></i>
-                    <p>Integrasi Peta Interaktif (Google Maps) dapat ditambahkan di sini.<br>Data GPS saat ini: <strong id="gpsCountDisplay">0 titik tersimpan</strong> dari Daily Activity.</p>
-                </div>
-            </div>
-
-            <!-- VIEW: PENGATURAN -->
-            <div id="view-settings" class="view-section hidden admin-only-view">
-                <div class="mb-6">
-                    <h1 class="text-2xl font-bold text-slate-900">Pengaturan Aplikasi</h1>
-                    <p class="text-sm text-slate-500 mt-1">Konfigurasi hak akses dan KPI.</p>
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                        <h3 class="text-lg font-semibold border-b border-slate-100 pb-3 mb-4"><i class="ph ph-shield-check text-blue-500 mr-2"></i> Konfigurasi Sistem</h3>
-                        <div class="flex items-center justify-between mb-4">
-                            <div>
-                                <p class="font-medium text-slate-800">Isolasi Data Marketing</p>
-                                <p class="text-xs text-slate-500">Marketing hanya bisa melihat sekolahnya sendiri.</p>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="settingIsolateData" checked onchange="toggleSettingIsolate()" class="sr-only peer">
-                                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+        <Card className="p-5 flex flex-col justify-center items-center text-center">
+            <Activity className="w-12 h-12 text-slate-300 mb-3" />
+            <h3 className="text-lg font-medium text-slate-800">Aktivitas Terbaru</h3>
+            <p className="text-sm text-slate-500 mt-1">Modul aktivitas terhubung langsung ke tabel `activities` di Supabase Anda.</p>
+        </Card>
+      </div>
     </div>
+  );
+};
 
-    <!-- Modal Tambah Sekolah -->
-    <div id="modal-add-school" class="fixed inset-0 bg-slate-900 bg-opacity-50 z-50 hidden flex-col items-center justify-center">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                <h3 class="font-bold text-lg text-slate-800">Tambah Data Sekolah</h3>
-                <button onclick="closeModal('modal-add-school')" class="text-slate-400 hover:text-slate-600"><i class="ph ph-x text-xl"></i></button>
-            </div>
-            <form onsubmit="saveNewSchool(event)" class="p-6 space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Nama Sekolah <span class="text-red-500">*</span></label>
-                    <input type="text" id="msName" required oninput="uppercaseWords(this)" class="w-full border border-slate-300 rounded-lg px-3 py-2 auto-uppercase focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Jenjang <span class="text-red-500">*</span></label>
-                        <select id="msLevel" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-                            <option value="SMA">SMA</option>
-                            <option value="SMK">SMK</option>
-                            <option value="SMP">SMP</option>
-                            <option value="MAN">MAN</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Wilayah <span class="text-red-500">*</span></label>
-                        <input type="text" id="msRegion" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Alamat Lengkap</label>
-                    <textarea id="msAddress" rows="2" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Nama PIC <span class="text-red-500">*</span></label>
-                        <input type="text" id="msPic" required oninput="capitalizeWords(this)" class="w-full border border-slate-300 rounded-lg px-3 py-2 auto-capitalize focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">No. WhatsApp <span class="text-red-500">*</span></label>
-                        <input type="text" id="msWa" required placeholder="08..." class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Tim Marketing <span class="text-red-500">*</span></label>
-                    <select id="msMarketing" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-                        <option value="Budi">Budi</option>
-                        <option value="Siti">Siti</option>
-                    </select>
-                </div>
-                <div class="pt-4 border-t border-slate-100 flex justify-end space-x-3">
-                    <button type="button" onclick="closeModal('modal-add-school')" class="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition-colors">Batal</button>
-                    <button type="submit" id="btnSubmitSchool" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">Simpan Data</button>
-                </div>
-            </form>
+const PipelineView = () => {
+  const { schools, updateSchoolStatus, isSyncing } = useContext(AppContext)!;
+  const stages: School['status'][] = ['Lead', 'Prospect', 'Contacted', 'Presentation', 'Negotiation', 'Closing'];
+  
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    setDraggedId(id);
+    e.dataTransfer.setData('text/plain', id);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = async (e: React.DragEvent, status: School['status']) => {
+    e.preventDefault();
+    if (draggedId) {
+      await updateSchoolStatus(draggedId, status);
+      setDraggedId(null);
+    }
+  };
+
+  return (
+    <div className="h-full flex flex-col space-y-6 animate-in fade-in duration-500">
+      <div className="flex justify-between items-end">
+        <div>
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-slate-800">Pipeline Kanban</h2>
+            {isSyncing && (
+              <span className="flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
+                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse mr-1.5"></span>
+                Supabase Realtime Active
+              </span>
+            )}
+          </div>
+          <p className="text-slate-500 text-sm mt-1">Geser kartu untuk mengubah status. Tersinkronisasi secara realtime via Supabase.</p>
         </div>
-    </div>
+      </div>
 
-    <!-- Kotak Pesan Notifikasi (Toast) - DIUPDATE UNTUK ERROR MERAH -->
-    <div id="toast" class="fixed bottom-4 right-4 text-white px-5 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-y-20 opacity-0 z-50 flex items-center">
-        <i id="toastIcon" class="ph-fill ph-check-circle text-xl mr-2"></i>
-        <span id="toastMsg" class="font-medium text-sm">Tindakan berhasil!</span>
-    </div>
-
-    <script>
-        // --- 1. KONEKSI SUPABASE ---
-        // MASUKKAN URL DAN KEY ANDA DI SINI
-        var supabaseUrl = 'https://xovljmaawbkelojfpobr.supabase.co/'; 
-        var supabaseKey = 'sb_publishable_FqikdEgA_MfHJaaVfUk42g_EatzPk5Z'; 
-        
-        var isLive = !supabaseUrl.includes('URL_ASLI');
-        var supabaseClient = isLive ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
-
-        // REALTIME LISTENER (Jika terjadi perubahan di HP, web di Laptop ikut update)
-        if (isLive) {
-            supabaseClient.channel('custom-all-channel')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'master_schools' }, () => {
-                    if(currentUser) refreshAllData();
-                })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'daily_activities' }, () => {
-                    if(currentUser) refreshAllData();
-                })
-                .subscribe();
-        }
-
-        // --- 2. STATE DATA ---
-        let currentUser = null; 
-        let configIsolateData = true; 
-        let dataSchools = [];
-        let dataActivities = [];
-
-        const kanbanStages = [
-            { id: 'Canvassing', label: 'Canvassing' }, { id: 'Follow Up', label: 'Follow Up' },
-            { id: 'Presentasi', label: 'Presentasi' }, { id: 'Negosiasi', label: 'Negosiasi' },
-            { id: 'Deal', label: 'Deal' }, { id: 'Belum Deal', label: 'Belum Deal' }
-        ];
-
-        // --- STREAMING_CHUNK:Auth and Role Logic... ---
-        function handleLogin() {
-            const roleSelect = document.getElementById('loginRole').value;
-            if (roleSelect === 'owner') currentUser = { role: 'owner', name: 'Pimpinan', isMarketing: false };
-            else if (roleSelect === 'hr') currentUser = { role: 'hr', name: 'HR Manager', isMarketing: false };
-            else if (roleSelect === 'marketing_budi') currentUser = { role: 'marketing', name: 'Budi', isMarketing: true };
-            else if (roleSelect === 'marketing_siti') currentUser = { role: 'marketing', name: 'Siti', isMarketing: true };
-
-            document.getElementById('userNameDisplay').innerText = currentUser.name;
-            document.getElementById('userRoleDisplay').innerText = currentUser.role.toUpperCase();
-            document.getElementById('userAvatar').innerText = currentUser.name.charAt(0);
+      <div className="flex-1 overflow-x-auto pb-4">
+        <div className="flex gap-4 h-full min-h-[600px]">
+          {stages.map((stage) => {
+            const stageSchools = schools.filter(s => s.status === stage);
             
-            const adminMenus = document.querySelectorAll('.admin-only');
-            const adminViews = document.querySelectorAll('.admin-only-view');
-            
-            if (currentUser.isMarketing) adminMenus.forEach(el => el.classList.add('hidden'));
-            else adminMenus.forEach(el => el.classList.remove('hidden'));
-
-            document.getElementById('actMarketing').value = currentUser.name;
-            document.getElementById('loginOverlay').style.opacity = '0';
-            setTimeout(() => { document.getElementById('loginOverlay').style.display = 'none'; }, 300);
-
-            navigate('dashboard');
-        }
-
-        function logout() {
-            document.getElementById('loginOverlay').style.display = 'flex';
-            setTimeout(() => { document.getElementById('loginOverlay').style.opacity = '1'; }, 10);
-            currentUser = null;
-        }
-
-        // --- STREAMING_CHUNK:Data Fetching & Rendering... ---
-        async function refreshAllData() {
-            if(!currentUser) return;
-            
-            if (isLive) {
-                try {
-                    // MENGAMBIL DATA DARI DB
-                    const { data: schools, error: errSchools } = await supabaseClient.from('master_schools').select('*');
-                    if (errSchools) throw errSchools;
-                    
-                    const { data: acts, error: errActs } = await supabaseClient.from('daily_activities').select('*');
-                    if (errActs) throw errActs;
-                    
-                    if (schools) {
-                        dataSchools = schools.map(s => ({
-                            id: s.id, name: s.name, level: s.level, address: s.address, region: s.region,
-                            pic: s.pic, wa: s.wa, marketing: s.marketing, status: s.status, dealValue: s.deal_value
-                        }));
-                    }
-                    if (acts) dataActivities = acts;
-                } catch (err) {
-                    console.error("Gagal menarik data:", err);
-                    showToast("Error tarik data DB: " + err.message, true);
-                    return;
-                }
-            }
-
-            // ISOLASI DATA (Marketing hanya melihat sekolahnya sendiri)
-            let visibleSchools = dataSchools;
-            if (currentUser.isMarketing && configIsolateData) {
-                visibleSchools = dataSchools.filter(s => s.marketing === currentUser.name);
-            }
-
-            // RENDER DASHBOARD
-            document.getElementById('dashTotalSekolah').innerText = visibleSchools.length;
-            document.getElementById('dashTotalDeal').innerText = visibleSchools.filter(s => s.status === 'Deal').length;
-            document.getElementById('dashPotensi').innerText = formatRupiah(visibleSchools.reduce((sum, s) => sum + (Number(s.dealValue) || 0), 0));
-            document.getElementById('dashAktivitas').innerText = dataActivities.length;
-
-            // RENDER TABEL & KANBAN
-            renderDashboardChart(visibleSchools);
-            renderMasterTable(visibleSchools);
-            renderKanbanBoard(visibleSchools);
-            
-            // UPDATE DROPDOWN SEKOLAH DI DAILY ACTIVITY
-            const schoolSelect = document.getElementById('actSchool');
-            schoolSelect.innerHTML = '<option value="">Pilih Sekolah...</option>';
-            visibleSchools.forEach(s => {
-                schoolSelect.innerHTML += `<option value="${s.id}">${s.name} - ${s.region}</option>`;
-            });
-        }
-
-        // --- STREAMING_CHUNK:Saving Data to DB... ---
-        async function saveNewSchool(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btnSubmitSchool');
-            btn.innerHTML = 'Menyimpan...'; btn.disabled = true;
-
-            const newSchool = {
-                id: 'SCH' + Date.now(),
-                name: document.getElementById('msName').value.toUpperCase(),
-                level: document.getElementById('msLevel').value,
-                region: document.getElementById('msRegion').value,
-                address: document.getElementById('msAddress').value,
-                pic: document.getElementById('msPic').value,
-                wa: document.getElementById('msWa').value,
-                marketing: document.getElementById('msMarketing').value,
-                status: 'Canvassing',
-                deal_value: 0
-            };
-
-            if (isLive) {
-                const { error } = await supabaseClient.from('master_schools').insert([newSchool]);
-                if (error) {
-                    showToast("Gagal simpan sekolah: " + error.message, true);
-                    btn.innerHTML = 'Simpan Data'; btn.disabled = false;
-                    return;
-                }
-            } else {
-                dataSchools.push({...newSchool, dealValue: 0});
-            }
-
-            closeModal('modal-add-school');
-            e.target.reset();
-            btn.innerHTML = 'Simpan Data'; btn.disabled = false;
-            showToast("Sekolah berhasil ditambahkan!");
-            refreshAllData();
-        }
-
-        async function submitActivity(e) {
-            e.preventDefault();
-            const actGPS = document.getElementById('actGPS').value;
-            if(!actGPS) { showToast("Silakan ambil lokasi GPS terlebih dahulu!", true); return; }
-
-            const btn = document.getElementById('btnSubmitAct');
-            btn.innerHTML = 'Menyimpan...'; btn.disabled = true;
-
-            const schoolId = document.getElementById('actSchool').value;
-            const actType = document.getElementById('actType').value;
-            const dealVal = actType === 'Deal' ? parseInt(document.getElementById('actDealValue').value || 0) : 0;
-
-            const newAct = {
-                school_id: schoolId,
-                marketing: document.getElementById('actMarketing').value,
-                type: actType,
-                date: document.getElementById('actDate').value,
-                gps: actGPS
-            };
-
-            if (isLive) {
-                const { error: actError } = await supabaseClient.from('daily_activities').insert([newAct]);
-                if (actError) { showToast("Gagal catat aktivitas: " + actError.message, true); btn.innerHTML = 'Simpan Aktivitas'; btn.disabled = false; return; }
+            return (
+              <div 
+                key={stage}
+                className="flex-shrink-0 w-72 bg-slate-50/50 rounded-xl p-3 border border-slate-200 flex flex-col"
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, stage)}
+              >
+                <div className="flex justify-between items-center mb-3 px-1">
+                  <h3 className="font-semibold text-slate-700">{stage}</h3>
+                  <span className="bg-slate-200 text-slate-600 text-xs font-bold px-2 py-1 rounded-full">
+                    {stageSchools.length}
+                  </span>
+                </div>
                 
-                const { error: updError } = await supabaseClient.from('master_schools').update({ status: actType, deal_value: dealVal }).eq('id', schoolId);
-                if (updError) { showToast("Gagal update status: " + updError.message, true); btn.innerHTML = 'Simpan Aktivitas'; btn.disabled = false; return; }
-            } else {
-                dataActivities.push(newAct);
-                const idx = dataSchools.findIndex(s => s.id === schoolId);
-                if (idx !== -1) { dataSchools[idx].status = actType; if (actType === 'Deal') dataSchools[idx].dealValue = dealVal; }
-            }
-
-            e.target.reset();
-            document.getElementById('gpsStatus').innerHTML = 'Belum dipindai';
-            document.getElementById('actGPS').value = '';
-            checkActivityType();
-            
-            btn.innerHTML = 'Simpan Aktivitas'; btn.disabled = false;
-            showToast("Aktivitas berhasil disimpan!");
-            refreshAllData();
-            navigate('pipeline'); // Otomatis pindah ke kanban setelah simpan
-        }
-
-        // --- STREAMING_CHUNK:UI Helpers & Validation... ---
-        function checkActivityType() {
-            const type = document.getElementById('actType').value;
-            const dealContainer = document.getElementById('dealValueContainer');
-            const dealInput = document.getElementById('actDealValue');
-            if (type === 'Deal') { dealContainer.classList.remove('hidden'); dealInput.setAttribute('required', 'true'); } 
-            else { dealContainer.classList.add('hidden'); dealInput.removeAttribute('required'); dealInput.value = ''; }
-        }
-
-        function simulateGPS() {
-            const statusEl = document.getElementById('gpsStatus');
-            statusEl.innerHTML = '<i class="ph ph-spinner animate-spin"></i> Mencari lokasi...';
-            setTimeout(() => {
-                document.getElementById('actGPS').value = "-6.2088, 106.8456";
-                statusEl.innerHTML = '<span class="text-green-600 font-medium"><i class="ph ph-check-circle"></i> Lokasi divalidasi</span>';
-            }, 800);
-        }
-
-        // TAMPILAN NOTIFIKASI WARNA MERAH/HIJAU (TOAST)
-        function showToast(msg, isError = false) {
-            const toast = document.getElementById('toast');
-            const icon = document.getElementById('toastIcon');
-            
-            if (isError) {
-                toast.classList.remove('bg-slate-900'); toast.classList.add('bg-red-600');
-                icon.className = "ph-fill ph-warning-circle text-xl mr-2 text-white";
-            } else {
-                toast.classList.remove('bg-red-600'); toast.classList.add('bg-slate-900');
-                icon.className = "ph-fill ph-check-circle text-xl mr-2 text-green-400";
-            }
-            
-            document.getElementById('toastMsg').innerText = msg;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 4000);
-        }
-
-        // FORMAT TULISAN
-        function uppercaseWords(input) { input.value = input.value.toUpperCase(); }
-        function capitalizeWords(input) { input.value = input.value.replace(/\b\w/g, l => l.toUpperCase()); }
-        function formatRupiah(angka) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka); }
-
-        function navigate(viewId) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-            document.getElementById('view-' + viewId).classList.remove('hidden');
-            document.querySelectorAll('aside nav a').forEach(el => el.classList.remove('sidebar-active', 'bg-slate-50'));
-            const activeLink = document.getElementById('nav-' + viewId);
-            if(activeLink) activeLink.classList.add('sidebar-active');
-            if(window.innerWidth < 768) document.getElementById('sidebar').classList.add('-translate-x-full');
-            if(viewId !== 'settings') refreshAllData();
-        }
-
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
-        function toggleSettingIsolate() { configIsolateData = document.getElementById('settingIsolateData').checked; refreshAllData(); showToast("Pengaturan disimpan!"); }
-
-        function openModal(id) {
-            const modal = document.getElementById(id);
-            modal.style.display = 'flex';
-            setTimeout(() => { modal.querySelector('div').classList.add('modal-enter-active'); }, 10);
-            if(id === 'modal-add-school' && currentUser.isMarketing) {
-                document.getElementById('msMarketing').value = currentUser.name;
-                document.getElementById('msMarketing').disabled = true;
-                document.getElementById('msMarketing').classList.add('bg-slate-100');
-            } else {
-                document.getElementById('msMarketing').disabled = false;
-                document.getElementById('msMarketing').classList.remove('bg-slate-100');
-            }
-        }
-        function closeModal(id) {
-            const modal = document.getElementById(id);
-            modal.querySelector('div').classList.remove('modal-enter-active');
-            setTimeout(() => { modal.style.display = 'none'; }, 200);
-        }
-
-        // --- STREAMING_CHUNK:Rendering Sub-components... ---
-        function renderMasterTable(schools) {
-            const tbody = document.getElementById('schoolTableBody');
-            tbody.innerHTML = '';
-            if(schools.length === 0) { tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-slate-500">Belum ada data sekolah.</td></tr>`; return; }
-            schools.forEach(sch => {
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-6 py-3 whitespace-nowrap font-medium text-slate-900">${sch.name}<div class="text-xs font-normal text-slate-500">${sch.address}</div></td>
-                        <td class="px-6 py-3 whitespace-nowrap"><span class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-semibold">${sch.level}</span></td>
-                        <td class="px-6 py-3 whitespace-nowrap text-sm">${sch.region}</td>
-                        <td class="px-6 py-3 whitespace-nowrap text-sm">${sch.pic}<br><span class="text-xs text-slate-400">${sch.wa}</span></td>
-                        <td class="px-6 py-3 whitespace-nowrap"><span class="flex items-center text-sm"><i class="ph-fill ph-user-circle text-slate-400 mr-1.5 text-lg"></i> ${sch.marketing}</span></td>
-                    </tr>`;
-            });
-        }
-
-        function renderKanbanBoard(schools) {
-            const board = document.getElementById('kanbanBoard');
-            board.innerHTML = '';
-            kanbanStages.forEach(stage => {
-                const stageSchools = schools.filter(s => s.status === stage.id);
-                const totalValue = stageSchools.reduce((sum, s) => sum + (Number(s.dealValue) || 0), 0);
-                const valueHtml = totalValue > 0 ? `<div class="text-xs font-bold mt-1 text-slate-600">${formatRupiah(totalValue)}</div>` : '';
-
-                let columnHtml = `
-                    <div class="w-72 flex flex-col flex-shrink-0 bg-slate-100 rounded-xl overflow-hidden max-h-full">
-                        <div class="p-3 border-b border-slate-200 bg-white flex justify-between items-center shadow-sm">
-                            <div><h3 class="font-bold text-sm text-slate-700 uppercase tracking-wide">${stage.label}</h3>${valueHtml}</div>
-                            <span class="bg-slate-200 text-slate-600 py-0.5 px-2 rounded-full text-xs font-bold">${stageSchools.length}</span>
+                <div className="flex-1 space-y-3 overflow-y-auto">
+                  {stageSchools.map(school => (
+                    <div
+                      key={school.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, school.id)}
+                      className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-400 hover:shadow-md transition-all"
+                    >
+                      <h4 className="font-medium text-slate-800 text-sm">{school.name}</h4>
+                      <div className="mt-2 text-xs space-y-1.5 text-slate-500">
+                        <div className="flex items-center gap-1.5">
+                          <User className="w-3.5 h-3.5" /> {school.pic}
                         </div>
-                        <div class="p-3 overflow-y-auto flex-1 space-y-3 kanban-scroll">`;
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5" /> {school.city}
+                        </div>
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center">
+                        <span className="text-xs font-semibold text-blue-600">
+                          Rp {((school.project_value || 0) / 1000000).toFixed(1)} Juta
+                        </span>
+                        <ChevronRight className="w-4 h-4 text-slate-400" />
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {stageSchools.length === 0 && (
+                    <div className="h-24 border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center text-slate-400 text-sm">
+                      Tarik ke sini
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
 
-                stageSchools.forEach(sch => {
-                    const dealBadge = sch.status === 'Deal' ? `<div class="mt-2 text-xs font-bold text-green-600 bg-green-50 p-1.5 rounded text-center border border-green-100">${formatRupiah(sch.dealValue)}</div>` : '';
-                    columnHtml += `
-                        <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-200">
-                            <div class="text-xs text-slate-400 mb-1 flex justify-between"><span>${sch.level}</span><span>${sch.region}</span></div>
-                            <h4 class="font-bold text-slate-800 text-sm leading-tight">${sch.name}</h4>
-                            <div class="text-xs text-slate-500 mt-1 flex items-center"><i class="ph ph-user-list mr-1"></i> ${sch.pic}</div>
-                            ${dealBadge}
-                        </div>`;
-                });
-                if(stageSchools.length === 0) columnHtml += `<div class="text-center p-4 text-sm text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">Kosong</div>`;
-                columnHtml += `</div></div>`;
-                board.innerHTML += columnHtml;
-            });
-        }
+const DataMasterView = () => {
+  const { schools } = useContext(AppContext)!;
+  
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="flex justify-between items-end">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">Data Master Sekolah</h2>
+          <p className="text-slate-500 text-sm mt-1">Data master terhubung ke tabel `schools` di PostgreSQL.</p>
+        </div>
+        <Button>
+          <Plus className="w-4 h-4 mr-2" /> Tambah Sekolah
+        </Button>
+      </div>
 
-        let pipeChartInstance = null;
-        function renderDashboardChart(schools) {
-            const ctx = document.getElementById('pipelineChart').getContext('2d');
-            const counts = kanbanStages.map(stage => schools.filter(s => s.status === stage.id).length);
-            if (pipeChartInstance) pipeChartInstance.destroy();
-            pipeChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: kanbanStages.map(s => s.label),
-                    datasets: [{ label: 'Sekolah', data: counts, backgroundColor: ['#e2e8f0', '#bfdbfe', '#e9d5ff', '#fde68a', '#bbf7d0', '#fecaca'], borderRadius: 6 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } }
-            });
+      <Card className="overflow-hidden">
+        <div className="p-4 border-b border-slate-200 flex gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Cari sekolah..." 
+              className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+              <tr>
+                <th className="px-4 py-3">Nama Sekolah</th>
+                <th className="px-4 py-3">Jenjang</th>
+                <th className="px-4 py-3">Kota</th>
+                <th className="px-4 py-3">PIC / Kontak</th>
+                <th className="px-4 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {schools.map((school) => (
+                <tr key={school.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                  <td className="px-4 py-3 font-medium text-slate-800">{school.name}</td>
+                  <td className="px-4 py-3 text-slate-600">{school.level}</td>
+                  <td className="px-4 py-3 text-slate-600">{school.city}</td>
+                  <td className="px-4 py-3 text-slate-600">
+                    <div>{school.pic}</div>
+                    <div className="text-xs text-slate-400">{school.phone}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      school.status === 'Closing' ? 'bg-green-100 text-green-700' :
+                      school.status === 'Lost' ? 'bg-red-100 text-red-700' :
+                      'bg-blue-100 text-blue-700'
+                    }`}>
+                      {school.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {schools.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                    Tidak ada data sekolah ditemukan. Pastikan Anda sudah menjalankan script SQL di Supabase.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </div>
+  );
+};
+
+export default function App() {
+  const [currentView, setCurrentView] = useState<ViewState>('pipeline');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // State Data Global
+  const [schools, setSchools] = useState<School[]>([]);
+  const [activities, setActivities] = useState<ActivityLog[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false); // Default to false for static preview
+
+  // Simulated initial data fetch and setup (replacing actual Supabase calls for this preview)
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      setIsSyncing(true);
+      try {
+        // Simulate a network request
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Mock data
+        const mockSchools: School[] = [
+          { id: '1', name: 'SMA Negeri 1 Jakarta', level: 'SMA', city: 'Jakarta Pusat', pic: 'Bpk. Budi', phone: '08123456789', status: 'Closing', project_value: 45000000 },
+          { id: '2', name: 'SMK Telkom Malang', level: 'SMK', city: 'Malang', pic: 'Ibu Siti', phone: '08234567890', status: 'Negotiation', project_value: 35000000 },
+          { id: '3', name: 'SMP Al Azhar 1', level: 'SMP', city: 'Jakarta Selatan', pic: 'Bpk. Ahmad', phone: '08345678901', status: 'Presentation', project_value: 20000000 },
+          { id: '4', name: 'SMA Taruna Nusantara', level: 'SMA', city: 'Magelang', pic: 'Ibu Ratna', phone: '08456789012', status: 'Prospect', project_value: 80000000 },
+          { id: '5', name: 'SMA BPK Penabur', level: 'SMA', city: 'Bandung', pic: 'Bpk. Candra', phone: '08567890123', status: 'Lead', project_value: 50000000 },
+        ];
+        setSchools(mockSchools);
+        
+        /* Uncomment for actual Supabase usage
+        const { data, error } = await supabase
+          .from('schools')
+          .select('*')
+          .order('created_at', { ascending: false });
+          
+        if (error) throw error;
+        if (data) setSchools(data as School[]);
+        */
+      } catch (err) {
+        console.error("Gagal mengambil data awal:", err);
+      } finally {
+        setIsSyncing(false);
+      }
+    };
+
+    fetchInitialData();
+
+    /* Uncomment for actual Supabase Realtime usage
+    // Supabase Realtime Subscription untuk tabel 'schools'
+    const schoolsSubscription = supabase
+      .channel('public:schools')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'schools' },
+        (payload) => {
+          console.log('Realtime change received!', payload);
+          setIsSyncing(true);
+          
+          if (payload.eventType === 'INSERT') {
+            setSchools(prev => [payload.new as School, ...prev]);
+          } else if (payload.eventType === 'UPDATE') {
+            setSchools(prev => prev.map(s => s.id === payload.new.id ? payload.new as School : s));
+          } else if (payload.eventType === 'DELETE') {
+            setSchools(prev => prev.filter(s => s.id !== payload.old.id));
+          }
+          
+          setTimeout(() => setIsSyncing(false), 800);
         }
-    </script>
-</body>
-</html>
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(schoolsSubscription);
+    };
+    */
+  }, []);
+
+  // Simulated status update
+  const updateSchoolStatus = async (id: string, newStatus: School['status']) => {
+    // Optimistic UI Update
+    setSchools(prev => prev.map(s => s.id === id ? { ...s, status: newStatus } : s));
+
+    /* Uncomment for actual Supabase usage
+    try {
+      const { error } = await supabase
+        .from('schools')
+        .update({ status: newStatus })
+        .eq('id', id);
+        
+      if (error) {
+        console.error("Update ke Supabase gagal, memulihkan state:", error);
+      }
+    } catch (err) {
+      console.error("Terjadi kesalahan koneksi:", err);
+    }
+    */
+  };
+
+  // Navigasi Sidebar
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'master', label: 'Data Master', icon: Database },
+    { id: 'pipeline', label: 'Pipeline', icon: Trello },
+  ];
+
+  const renderView = () => {
+    switch (currentView) {
+      case 'dashboard': return <DashboardView />;
+      case 'master': return <DataMasterView />;
+      case 'pipeline': return <PipelineView />;
+      default: return <DashboardView />;
+    }
+  };
+
+  return (
+    <AppContext.Provider value={{ schools, activities, updateSchoolStatus, isSyncing }}>
+      <div className="min-h-screen bg-slate-50 font-sans flex text-slate-900">
+        
+        {/* Mobile Sidebar Overlay */}
+        {isSidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
+        {/* Sidebar */}
+        <aside className={`
+          fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 
+          transform transition-transform duration-200 ease-in-out lg:transform-none flex flex-col
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}>
+          <div className="h-16 flex items-center px-6 border-b border-slate-200 bg-white">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3 shadow-sm">
+              <span className="text-white font-bold text-sm">BTS</span>
+            </div>
+            <span className="font-bold text-lg tracking-tight text-slate-800">ProReport</span>
+            <button className="ml-auto lg:hidden p-1 hover:bg-slate-100 rounded-md" onClick={() => setIsSidebarOpen(false)}>
+              <X className="w-5 h-5 text-slate-500" />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+            <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 mt-4">Menu Navigasi</p>
+            {navItems.map((item) => {
+              const IconComponent = item.icon;
+              const isActive = currentView === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setCurrentView(item.id as ViewState);
+                    setIsSidebarOpen(false);
+                  }}
+                  className={`
+                    w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                    ${isActive 
+                      ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100/50' 
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}
+                  `}
+                >
+                  <IconComponent className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+          
+          {/* User Profile Area */}
+          <div className="p-4 border-t border-slate-200">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden border border-slate-300">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Marketing" alt="User" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-slate-900 truncate">Marketing Staff</p>
+                <p className="text-xs text-slate-500 truncate">marketing@bts.co.id</p>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 z-10 sticky top-0">
+            <div className="flex items-center gap-4">
+              <button 
+                className="lg:hidden p-2 rounded-md text-slate-500 hover:bg-slate-100 border border-slate-200"
+                onClick={() => setIsSidebarOpen(true)}
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <h1 className="font-semibold text-slate-800 lg:hidden">ProReport</h1>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button className="relative p-2 rounded-full text-slate-500 hover:bg-slate-100 transition-colors">
+                <Bell className="w-5 h-5" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+              </button>
+            </div>
+          </header>
+
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto h-full">
+              {renderView()}
+            </div>
+          </div>
+        </main>
+
+      </div>
+    </AppContext.Provider>
+  );
+}
