@@ -3,10 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Yearbook CRM & KPI - LAN Server</title>
+    <title>Yearbook CRM & KPI - Cloud Database</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- SUPABASE SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -43,12 +47,12 @@
         <div class="h-16 flex items-center px-5 border-b border-slate-800 justify-between shrink-0">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-brand-500/30">
-                    <i class="fa-solid fa-network-wired"></i>
+                    <i class="fa-solid fa-cloud"></i>
                 </div>
                 <div>
                     <h1 class="font-bold text-white text-base leading-tight">Yearbook CRM</h1>
                     <p class="text-[10px] text-emerald-400 uppercase tracking-widest font-bold flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-live"></span> LAN Server
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-live"></span> Cloud Sync
                     </p>
                 </div>
             </div>
@@ -72,10 +76,10 @@
 
         <!-- System Sync Status & User -->
         <div class="p-4 border-t border-slate-800 space-y-3 shrink-0">
-            <div id="cloudConnectionBadge" class="bg-amber-950/80 border border-amber-800/80 rounded-lg p-2.5 text-xs flex items-center justify-between">
+            <div id="cloudConnectionBadge" class="bg-emerald-950/80 border border-emerald-800/80 rounded-lg p-2.5 text-xs flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500 pulse-live" id="cloudStatusDot"></span>
-                    <span class="text-amber-300 font-bold" id="cloudStatusText">Menyambungkan...</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-live" id="cloudStatusDot"></span>
+                    <span class="text-emerald-300 font-bold" id="cloudStatusText">Supabase Online</span>
                 </div>
             </div>
             <div class="flex items-center gap-3 pt-1">
@@ -94,7 +98,7 @@
                 <button id="mobileMenuBtn" class="md:hidden text-slate-600 hover:text-slate-900 p-2 rounded-lg bg-slate-100 focus:outline-none shrink-0"><i class="fa-solid fa-bars text-lg"></i></button>
                 <div class="min-w-0">
                     <h2 class="text-sm sm:text-lg font-bold text-slate-900 leading-tight flex items-center gap-2 truncate" id="headerTitle">Dashboard KPI Marketing</h2>
-                    <p class="text-[11px] sm:text-xs text-slate-500 hidden sm:block truncate" id="headerSub">Sinkronisasi data real-time dengan Server Komputer Anda.</p>
+                    <p class="text-[11px] sm:text-xs text-slate-500 hidden sm:block truncate" id="headerSub">Sinkronisasi Cloud Real-time dengan Supabase & Vercel.</p>
                 </div>
             </div>
             
@@ -108,7 +112,7 @@
                         <option value="Owner">Akses: Owner</option>
                     </select>
                 </div>
-                <button id="refreshDataBtn" class="p-2 text-slate-500 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition" title="Sync dengan Server Lokal"><i class="fa-solid fa-arrows-rotate"></i></button>
+                <button id="refreshDataBtn" class="p-2 text-slate-500 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition" title="Force Sync Cloud"><i class="fa-solid fa-arrows-rotate"></i></button>
                 <button id="btnOpenSchoolModal" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold p-2 sm:py-2 sm:px-3 rounded-lg shadow-sm transition flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">Tambah Prospek</span></button>
                 <button id="btnOpenDailyActivityModalHeader" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold p-2 sm:py-2 sm:px-3 rounded-lg shadow-sm transition flex items-center gap-1.5"><i class="fa-solid fa-clipboard-list"></i> <span class="hidden sm:inline">Catat Aktivitas</span></button>
             </div>
@@ -120,65 +124,56 @@
             <div id="viewDashboardSection" class="space-y-6">
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Ikhtisar KPI Target & Pencapaian</h3>
-                    <span class="text-[11px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200"><i class="fa-solid fa-network-wired"></i> Server Tersinkronisasi</span>
+                    <span class="text-[11px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200"><i class="fa-solid fa-cloud-arrow-down"></i> Live Supabase DB</span>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-                    <!-- KPI 1 -->
+                    <!-- KPI Cards ... -->
                     <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
                         <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1"><span class="truncate">1. Database Sekolah</span><div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-school text-xs sm:text-sm"></i></div></div>
                         <div class="text-xl sm:text-2xl font-extrabold text-slate-900" id="kpiTotalSchoolCount">0</div>
-                        <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 flex items-center gap-1 truncate"><span class="text-emerald-600 font-semibold"><i class="fa-solid fa-database"></i> Master</span><span>Server Jaringan</span></div>
+                        <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 flex items-center gap-1 truncate"><span class="text-emerald-600 font-semibold"><i class="fa-solid fa-database"></i> Master</span></div>
                     </div>
-                    <!-- KPI 2 -->
                     <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
                         <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1"><span class="truncate">2. Status Kualifikasi</span><div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-temperature-three-quarters text-xs sm:text-sm"></i></div></div>
                         <div class="flex items-baseline justify-between text-[10px] sm:text-xs font-bold pt-1 gap-1"><span class="text-red-600 bg-red-50 px-1 py-0.5 rounded border border-red-100 truncate" id="kpiHotCount">Hot: 0</span><span class="text-amber-600 bg-amber-50 px-1 py-0.5 rounded border border-amber-100 truncate" id="kpiWarmCount">Warm: 0</span><span class="text-blue-600 bg-blue-50 px-1 py-0.5 rounded border border-blue-100 truncate" id="kpiColdCount">Cold: 0</span></div>
                         <div class="mt-2 text-[10px] sm:text-[11px] text-slate-500">Total: <strong id="kpiTotalLeadsCount">0 Leads</strong></div>
                     </div>
-                    <!-- KPI 3 -->
                     <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
                         <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1"><span class="truncate">3. Total Kunjungan</span><div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-map-location-dot text-xs sm:text-sm"></i></div></div>
                         <div class="text-xl sm:text-2xl font-extrabold text-slate-900" id="kpiVisitCount">0</div>
                         <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 flex items-center gap-1 truncate"><span class="text-emerald-600 font-semibold"><i class="fa-solid fa-check-double"></i> Verified</span><span>GPS Logs</span></div>
                     </div>
-                    <!-- KPI 4 -->
                     <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
                         <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1"><span class="truncate">4. Total Follow Up</span><div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-phone-volume text-xs sm:text-sm"></i></div></div>
                         <div class="text-xl sm:text-2xl font-extrabold text-slate-900" id="kpiFollowUpCount">0</div>
                         <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 truncate">Prospek aktif</div>
                     </div>
-                    <!-- KPI 5 -->
                     <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
                         <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1"><span class="truncate">5. Total Presentasi</span><div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-display text-xs sm:text-sm"></i></div></div>
                         <div class="text-xl sm:text-2xl font-extrabold text-slate-900" id="kpiPresentasiCount">0</div>
                         <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 truncate">OSIS & Panitia</div>
                     </div>
-                    <!-- KPI 6 -->
                     <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
                         <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1"><span class="truncate">6. Total Pipeline</span><div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-filter-circle-dollar text-xs sm:text-sm"></i></div></div>
                         <div class="text-xl sm:text-2xl font-extrabold text-slate-900" id="kpiPipelineValue">Rp 0</div>
                         <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 truncate">Nilai prospek aktif</div>
                     </div>
-                    <!-- KPI 7 -->
                     <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
                         <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1"><span class="truncate">7. Total Deal</span><div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-handshake-angle text-xs sm:text-sm"></i></div></div>
                         <div class="text-xl sm:text-2xl font-extrabold text-emerald-600" id="kpiDealCount">0 <span class="text-xs font-medium text-slate-500">Sklh</span></div>
                         <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 truncate">Closing Kontrak</div>
                     </div>
-                    <!-- KPI 8 -->
                     <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
                         <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1"><span class="truncate">8. Total Omzet</span><div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0"><i class="fa-solid fa-sack-dollar text-xs sm:text-sm"></i></div></div>
                         <div class="text-lg sm:text-xl font-extrabold text-slate-900 truncate" id="kpiOmzetValue">Rp 0</div>
-                        <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 truncate flex items-center gap-1"><i class="fa-solid fa-circle-check text-emerald-500"></i> Sinkron PC</div>
+                        <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 truncate flex items-center gap-1"><i class="fa-solid fa-circle-check text-emerald-500"></i> Cloud Sync</div>
                     </div>
-                    <!-- KPI 9 -->
                     <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition">
                         <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1"><span class="truncate">9. Conversion Rate</span><div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-chart-line text-xs sm:text-sm"></i></div></div>
                         <div class="text-xl sm:text-2xl font-extrabold text-slate-900" id="kpiConversionRate">0%</div>
                         <div class="mt-1.5 text-[10px] sm:text-[11px] text-slate-500 truncate">Database ke Closing</div>
                     </div>
-                    <!-- KPI 10 -->
                     <div class="bg-white rounded-xl p-3.5 sm:p-4 shadow-sm border border-slate-200/80 hover:shadow-md transition col-span-2 sm:col-span-1">
                         <div class="flex items-center justify-between text-slate-500 text-xs font-medium mb-1"><span class="truncate">10. Target Achv.</span><span class="text-xs font-extrabold text-brand-600" id="kpiTargetPercent">0%</span></div>
                         <div class="text-[10px] sm:text-[11px] text-slate-600 font-semibold mb-1.5 truncate" id="kpiTargetText">Rp 0 / Rp 2.00M</div>
@@ -215,8 +210,8 @@
                 <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden p-4 sm:p-5">
                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-5 pb-4 border-b border-slate-100">
                         <div>
-                            <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-building-columns text-brand-600"></i> Master Database Sekolah (Server Lokal)</h3>
-                            <p class="text-xs text-slate-500">Data tersimpan langsung di server jaringan, terlihat oleh seluruh tim.</p>
+                            <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-building-columns text-brand-600"></i> Master Database Sekolah</h3>
+                            <p class="text-xs text-slate-500">Data tersimpan di Supabase Cloud, terlihat oleh seluruh tim.</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
                             <div class="relative flex-1 sm:w-64 min-w-[160px]">
@@ -286,100 +281,84 @@
                         <p class="text-xs text-slate-500">Otomatis berubah berdasarkan input dari Daily Activity seluruh Marketing.</p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 font-bold flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 pulse-live"></span> Live Server</span>
+                        <span class="text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 font-bold flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 pulse-live"></span> Cloud Live</span>
                     </div>
                 </div>
                 <div class="flex sm:grid sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 overflow-x-auto pb-4 kanban-scroll-container">
-                    <div class="kanban-col bg-slate-100/80 rounded-xl p-3 border border-slate-200 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink">
-                        <div class="flex items-center justify-between font-bold text-slate-700 text-xs mb-3 pb-2 border-b border-slate-200"><span class="flex items-center gap-1.5"><i class="fa-solid fa-shoe-prints text-slate-500"></i> Canvassing</span><span class="bg-slate-200 text-slate-800 text-[10px] px-2 py-0.5 rounded-full" id="countCanvassing">0</span></div>
-                        <div class="space-y-3 min-h-[120px]" id="kanbanCanvassing"></div>
-                    </div>
-                    <div class="kanban-col bg-indigo-50/50 rounded-xl p-3 border border-indigo-100 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink">
-                        <div class="flex items-center justify-between font-bold text-indigo-900 text-xs mb-3 pb-2 border-b border-indigo-100"><span class="flex items-center gap-1.5"><i class="fa-solid fa-phone-volume text-indigo-500"></i> Follow Up</span><span class="bg-indigo-100 text-indigo-800 text-[10px] px-2 py-0.5 rounded-full" id="countFollowUp">0</span></div>
-                        <div class="space-y-3 min-h-[120px]" id="kanbanFollowUp"></div>
-                    </div>
-                    <div class="kanban-col bg-purple-50/50 rounded-xl p-3 border border-purple-100 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink">
-                        <div class="flex items-center justify-between font-bold text-purple-900 text-xs mb-3 pb-2 border-b border-purple-100"><span class="flex items-center gap-1.5"><i class="fa-solid fa-display text-purple-500"></i> Presentasi</span><span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.5 rounded-full" id="countPresentasi">0</span></div>
-                        <div class="space-y-3 min-h-[120px]" id="kanbanPresentasi"></div>
-                    </div>
-                    <div class="kanban-col bg-amber-50/50 rounded-xl p-3 border border-amber-100 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink">
-                        <div class="flex items-center justify-between font-bold text-amber-900 text-xs mb-3 pb-2 border-b border-amber-100"><span class="flex items-center gap-1.5"><i class="fa-solid fa-comments-dollar text-amber-500"></i> Negosiasi</span><span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full" id="countNegosiasi">0</span></div>
-                        <div class="space-y-3 min-h-[120px]" id="kanbanNegosiasi"></div>
-                    </div>
-                    <div class="kanban-col bg-emerald-50/50 rounded-xl p-3 border border-emerald-200 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink">
-                        <div class="flex items-center justify-between font-bold text-emerald-900 text-xs mb-3 pb-2 border-b border-emerald-200"><span class="flex items-center gap-1.5"><i class="fa-solid fa-handshake-angle text-emerald-600"></i> Deal (Closing)</span><span class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-full" id="countDeal">0</span></div>
-                        <div class="space-y-3 min-h-[120px]" id="kanbanDeal"></div>
-                    </div>
-                    <div class="kanban-col bg-rose-50/50 rounded-xl p-3 border border-rose-100 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink">
-                        <div class="flex items-center justify-between font-bold text-rose-900 text-xs mb-3 pb-2 border-b border-rose-100"><span class="flex items-center gap-1.5"><i class="fa-solid fa-circle-xmark text-rose-500"></i> Belum Deal</span><span class="bg-rose-100 text-rose-800 text-[10px] px-2 py-0.5 rounded-full" id="countBelumDeal">0</span></div>
-                        <div class="space-y-3 min-h-[120px]" id="kanbanBelumDeal"></div>
-                    </div>
+                    <!-- Columns will be injected by JS -->
+                    <div class="kanban-col bg-slate-100/80 rounded-xl p-3 border border-slate-200 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink"><div class="flex items-center justify-between font-bold text-slate-700 text-xs mb-3 pb-2 border-b border-slate-200"><span class="flex items-center gap-1.5"><i class="fa-solid fa-shoe-prints text-slate-500"></i> Canvassing</span><span class="bg-slate-200 text-slate-800 text-[10px] px-2 py-0.5 rounded-full" id="countCanvassing">0</span></div><div class="space-y-3 min-h-[120px]" id="kanbanCanvassing"></div></div>
+                    <div class="kanban-col bg-indigo-50/50 rounded-xl p-3 border border-indigo-100 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink"><div class="flex items-center justify-between font-bold text-indigo-900 text-xs mb-3 pb-2 border-b border-indigo-100"><span class="flex items-center gap-1.5"><i class="fa-solid fa-phone-volume text-indigo-500"></i> Follow Up</span><span class="bg-indigo-100 text-indigo-800 text-[10px] px-2 py-0.5 rounded-full" id="countFollowUp">0</span></div><div class="space-y-3 min-h-[120px]" id="kanbanFollowUp"></div></div>
+                    <div class="kanban-col bg-purple-50/50 rounded-xl p-3 border border-purple-100 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink"><div class="flex items-center justify-between font-bold text-purple-900 text-xs mb-3 pb-2 border-b border-purple-100"><span class="flex items-center gap-1.5"><i class="fa-solid fa-display text-purple-500"></i> Presentasi</span><span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.5 rounded-full" id="countPresentasi">0</span></div><div class="space-y-3 min-h-[120px]" id="kanbanPresentasi"></div></div>
+                    <div class="kanban-col bg-amber-50/50 rounded-xl p-3 border border-amber-100 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink"><div class="flex items-center justify-between font-bold text-amber-900 text-xs mb-3 pb-2 border-b border-amber-100"><span class="flex items-center gap-1.5"><i class="fa-solid fa-comments-dollar text-amber-500"></i> Negosiasi</span><span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full" id="countNegosiasi">0</span></div><div class="space-y-3 min-h-[120px]" id="kanbanNegosiasi"></div></div>
+                    <div class="kanban-col bg-emerald-50/50 rounded-xl p-3 border border-emerald-200 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink"><div class="flex items-center justify-between font-bold text-emerald-900 text-xs mb-3 pb-2 border-b border-emerald-200"><span class="flex items-center gap-1.5"><i class="fa-solid fa-handshake-angle text-emerald-600"></i> Deal (Closing)</span><span class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-full" id="countDeal">0</span></div><div class="space-y-3 min-h-[120px]" id="kanbanDeal"></div></div>
+                    <div class="kanban-col bg-rose-50/50 rounded-xl p-3 border border-rose-100 min-w-[260px] sm:min-w-0 shrink-0 sm:shrink"><div class="flex items-center justify-between font-bold text-rose-900 text-xs mb-3 pb-2 border-b border-rose-100"><span class="flex items-center gap-1.5"><i class="fa-solid fa-circle-xmark text-rose-500"></i> Belum Deal</span><span class="bg-rose-100 text-rose-800 text-[10px] px-2 py-0.5 rounded-full" id="countBelumDeal">0</span></div><div class="space-y-3 min-h-[120px]" id="kanbanBelumDeal"></div></div>
                 </div>
             </div>
 
             <div id="viewGpsSection" class="space-y-6 hidden">
                 <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
-                        <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-emerald-600"></i> Live GPS Monitoring Tim Marketing (Server Akses)</h3>
+                        <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-emerald-600"></i> Live GPS Monitoring Tim Marketing</h3>
                         <p class="text-xs text-slate-500">Pelacakan lokasi sinkron dari input semua HP Marketing lapangan.</p>
                     </div>
-                    <div class="flex items-center gap-2"><span class="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-emerald-200 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 pulse-live"></span> GPS Tracker</span></div>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                     <div class="lg:col-span-2 bg-slate-900 rounded-xl p-4 sm:p-5 text-white flex flex-col justify-between relative overflow-hidden min-h-[350px] shadow-md border border-slate-800">
                         <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:16px_16px]"></div>
                         <div class="relative z-10 flex justify-between items-center">
                             <div>
-                                <span class="bg-indigo-500/20 text-indigo-300 text-[10px] font-mono px-2 py-0.5 rounded border border-indigo-500/30">NETWORK MONITORING</span>
-                                <h4 class="text-base sm:text-lg font-bold mt-1">Sistem Pemantauan Titik Visit Jaringan</h4>
+                                <span class="bg-indigo-500/20 text-indigo-300 text-[10px] font-mono px-2 py-0.5 rounded border border-indigo-500/30">SATELLITE MONITORING</span>
+                                <h4 class="text-base sm:text-lg font-bold mt-1">Titik Visit Cloud Network</h4>
                             </div>
                             <span class="text-xs font-mono text-emerald-400 flex items-center gap-1 pulse-live"><i class="fa-solid fa-satellite-dish"></i> Live Server</span>
                         </div>
                         <div class="relative z-10 my-6 grid grid-cols-1 sm:grid-cols-2 gap-3" id="gpsMapPins"></div>
-                        <div class="relative z-10 text-[11px] text-slate-400 border-t border-slate-800 pt-3 flex justify-between"><span>Akurasi GPS Mobile: <strong>High (&lt; 10m)</strong></span><span>Status Network: <strong>Online Connected</strong></span></div>
                     </div>
                     <div class="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/80 shadow-sm flex flex-col">
-                        <h4 class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2"><i class="fa-solid fa-camera text-brand-600"></i> Feed Foto Jaringan Server</h4>
+                        <h4 class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2"><i class="fa-solid fa-camera text-brand-600"></i> Feed Foto Upload Terbaru</h4>
                         <div class="space-y-3 flex-1 overflow-y-auto max-h-[320px] pr-1" id="gpsPhotoFeed"></div>
                     </div>
                 </div>
             </div>
 
             <div id="viewSettingsSection" class="space-y-6 hidden">
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
+                    <h3 class="text-amber-800 font-bold text-sm">Integrasi Supabase Cloud DB</h3>
+                    <p class="text-amber-700 text-xs mt-1">Aplikasi ini dirancang untuk membaca Database Supabase. Untuk demo di editor ini (karena kunci Supabase Anda kosong), aplikasi akan otomatis memuat <strong>Local Storage</strong> sebagai pengganti sementara (Mock Database) agar tombol-tombol tetap dapat diuji.</p>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                     <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4 md:col-span-1">
                         <h3 class="font-bold text-slate-900 text-sm border-b border-slate-100 pb-3 flex items-center gap-2"><i class="fa-solid fa-user-lock text-brand-600"></i> Role & Privasi Akses Multi-User</h3>
                         <div class="space-y-3 text-xs">
                             <label class="block font-semibold text-slate-700">Setiap Marketing Hanya Melihat Sekolah Miliknya</label>
                             <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                                <div><div class="font-bold text-slate-900">Privasi Akun Marketing</div><div class="text-[10px] text-slate-500">Membatasi akses antar tim marketing</div></div>
+                                <div><div class="font-bold text-slate-900">Privasi Akun Marketing</div><div class="text-[10px] text-slate-500">Membatasi akses antar tim</div></div>
                                 <input type="checkbox" id="toggleRestrictMarketing" checked class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500 border-slate-300">
                             </div>
-                            <p class="text-[11px] text-slate-500 italic">* Berlaku untuk semua perangkat yang terhubung ke server ini.</p>
                         </div>
                         <div class="pt-3 border-t border-slate-100">
                             <h4 class="font-bold text-xs text-slate-800 mb-2">Aturan Hierarki Akses:</h4>
                             <ul class="text-[11px] space-y-1.5 text-slate-600">
                                 <li class="flex items-center gap-1.5"><i class="fa-solid fa-check text-emerald-500"></i> <strong>Owner:</strong> Akses Penuh Seluruh Data & GPS</li>
-                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-check text-emerald-500"></i> <strong>HR Manager:</strong> Akses Monitoring Kinerja Tim & GPS</li>
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-check text-emerald-500"></i> <strong>HR Manager:</strong> Akses Monitoring Kinerja Tim</li>
                                 <li class="flex items-center gap-1.5"><i class="fa-solid fa-check text-indigo-500"></i> <strong>Marketing:</strong> Akses Privat (Data Sendiri)</li>
                             </ul>
                         </div>
                     </div>
                     <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-5 md:col-span-2">
-                        <h3 class="font-bold text-slate-900 text-sm border-b border-slate-100 pb-3 flex items-center gap-2"><i class="fa-solid fa-bullseye text-amber-500"></i> Target KPI & Konfigurasi Jaringan</h3>
+                        <h3 class="font-bold text-slate-900 text-sm border-b border-slate-100 pb-3 flex items-center gap-2"><i class="fa-solid fa-bullseye text-amber-500"></i> Target KPI & Konfigurasi</h3>
                         <form id="settingsTargetsForm" class="space-y-4 text-xs">
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div><label class="block text-slate-600 mb-1 font-medium">Target Database Baru</label><input type="number" id="cfgTargetDatabase" value="300" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"></div>
-                                <div><label class="block text-slate-600 mb-1 font-medium">Target Kunjungan</label><input type="number" id="cfgTargetVisit" value="150" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"></div>
-                                <div><label class="block text-slate-600 mb-1 font-medium">Target Presentasi</label><input type="number" id="cfgTargetPresentasi" value="50" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"></div>
+                                <div><label class="block text-slate-600 mb-1 font-medium">Target Database Baru</label><input type="number" id="cfgTargetDatabase" value="300" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-bold text-slate-800"></div>
+                                <div><label class="block text-slate-600 mb-1 font-medium">Target Kunjungan</label><input type="number" id="cfgTargetVisit" value="150" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-bold text-slate-800"></div>
+                                <div><label class="block text-slate-600 mb-1 font-medium">Target Presentasi</label><input type="number" id="cfgTargetPresentasi" value="50" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-bold text-slate-800"></div>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div><label class="block text-slate-600 mb-1 font-medium">Target Total Deal (Sekolah)</label><input type="number" id="cfgTargetDealCount" value="55" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"></div>
-                                <div><label class="block text-slate-600 mb-1 font-medium">Target Total Omzet (Rp)</label><input type="number" id="cfgTargetOmzet" value="2000000000" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-extrabold text-emerald-700 focus:ring-2 focus:ring-brand-500 focus:outline-none"></div>
+                                <div><label class="block text-slate-600 mb-1 font-medium">Target Total Deal (Sekolah)</label><input type="number" id="cfgTargetDealCount" value="55" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-bold text-slate-800"></div>
+                                <div><label class="block text-slate-600 mb-1 font-medium">Target Total Omzet (Rp)</label><input type="number" id="cfgTargetOmzet" value="2000000000" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-extrabold text-emerald-700"></div>
                             </div>
                             <div class="pt-4 border-t border-slate-100 flex justify-end">
-                                <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 px-5 rounded-lg shadow transition flex items-center gap-2"><i class="fa-solid fa-cloud-arrow-up"></i> Simpan Sinkron ke Server PC</button>
+                                <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 px-5 rounded-lg shadow transition flex items-center gap-2"><i class="fa-solid fa-cloud-arrow-up"></i> Simpan ke Database</button>
                             </div>
                         </form>
                     </div>
@@ -389,11 +368,10 @@
         </main>
     </div>
 
-    <!-- MODAL 1: Master Sekolah -->
     <div id="modalAddSchool" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-3 sm:p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto relative">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-                <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2" id="modalSchoolTitle"><i class="fa-solid fa-school-flag text-emerald-600"></i> Tambah Data Sekolah Baru (Server)</h3>
+                <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2" id="modalSchoolTitle"><i class="fa-solid fa-school-flag text-emerald-600"></i> Tambah Data Sekolah (Cloud)</h3>
                 <button id="btnCloseSchoolModal" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <form id="schoolForm" class="mt-4 space-y-3.5">
@@ -408,17 +386,16 @@
                 <div><label class="block text-xs font-bold text-slate-700 mb-1">Nama Marketing PJ <span class="text-red-500">*</span></label><select id="inputSchoolMarketing" required class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-brand-500 focus:outline-none"><option value="Andi Susanto">Andi Susanto</option><option value="Rian Ardianto">Rian Ardianto</option></select></div>
                 <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
                     <button type="button" id="btnCancelSchoolModal" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg">Batal</button>
-                    <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-md transition flex items-center gap-1.5"><i class="fa-solid fa-cloud-arrow-up"></i> Simpan ke Server</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-md transition flex items-center gap-1.5"><i class="fa-solid fa-cloud-arrow-up"></i> Simpan ke Supabase</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL 2: Daily Activity -->
     <div id="modalDailyActivity" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-3 sm:p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-                <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2"><i class="fa-solid fa-calendar-plus text-brand-600"></i> Form Daily Activity (Sync Server)</h3>
+                <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2"><i class="fa-solid fa-calendar-plus text-brand-600"></i> Catat Aktivitas (Sinkron Kanban)</h3>
                 <button id="btnCloseDailyModal" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <form id="dailyActivityForm" class="mt-4 space-y-3.5">
@@ -449,7 +426,7 @@
                         <label class="block text-xs font-bold text-slate-700 mb-1">Validasi GPS <span class="text-red-500">*</span></label>
                         <div class="flex gap-2">
                             <input type="text" id="inputDailyGps" required readonly placeholder="-6.175392, 106.827153" class="bg-slate-100 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-700 font-mono flex-1 cursor-not-allowed">
-                            <button type="button" id="btnGetGpsLocation" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-2.5 rounded-lg shadow transition flex items-center gap-1.5 shrink-0"><i class="fa-solid fa-location-crosshairs"></i> GPS</button>
+                            <button type="button" id="btnGetGpsLocation" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-2.5 rounded-lg shadow transition flex items-center gap-1.5 shrink-0"><i class="fa-solid fa-location-crosshairs"></i> Ambil GPS</button>
                         </div>
                     </div>
                     <div>
@@ -461,18 +438,17 @@
                 <div><label class="block text-xs font-bold text-slate-700 mb-1">Nilai Kesepakatan Deal (Rp) <span class="text-red-500">*</span></label><input type="number" id="inputDailyDealValue" required value="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs font-extrabold text-emerald-700 focus:ring-2 focus:ring-brand-500 focus:outline-none"></div>
                 <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
                     <button type="button" id="btnCancelDailyModal" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg">Batal</button>
-                    <button type="submit" class="px-5 py-2.5 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-md transition flex items-center gap-1.5"><i class="fa-solid fa-cloud-arrow-up"></i> Simpan Activity ke Server</button>
+                    <button type="submit" class="px-5 py-2.5 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-md transition flex items-center gap-1.5"><i class="fa-solid fa-cloud-arrow-up"></i> Upload ke Supabase</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL 3: Delete Confirm -->
     <div id="modalDeleteConfirm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-center">
             <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-3 text-xl"><i class="fa-solid fa-trash-can"></i></div>
-            <h3 class="font-bold text-slate-900 text-base mb-1">Hapus Data dari Server?</h3>
-            <p class="text-xs text-slate-500 mb-5" id="deleteConfirmText">Penghapusan akan menghapus data dari seluruh perangkat yang terhubung.</p>
+            <h3 class="font-bold text-slate-900 text-base mb-1">Hapus Data?</h3>
+            <p class="text-xs text-slate-500 mb-5" id="deleteConfirmText">Penghapusan akan menghapus data dari Supabase DB seluruh tim.</p>
             <div class="flex justify-center gap-3">
                 <button id="btnCancelDelete" class="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg w-full">Batal</button>
                 <button id="btnConfirmDelete" class="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow w-full">Ya, Hapus</button>
@@ -482,12 +458,29 @@
 
     <div id="toastNotification" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-3 border border-slate-800 transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none">
         <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
-        <span id="toastMessage">Berhasil Sinkronisasi dengan Server Lokal</span>
+        <span id="toastMessage">Notifikasi</span>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
             
+            // ==========================================
+            // KREDENSIAL SUPABASE (DAPATKAN DARI SUPABASE DASHBOARD)
+            // ==========================================
+            // (Kosongkan string di bawah ini jika aplikasi sedang dipreview di browser lokal/editor tanpa backend)
+            // Namun, saat diletakkan di GitHub/Vercel, Anda BISA menggunakan ENV Vercel, 
+            // atau menuliskan key API Anon Public Anda langsung ke sini untuk Prototipe.
+            const SUPABASE_URL = 'https://xovljmaawbkelojfpobr.supabase.co/rest/v1/'; 
+            const SUPABASE_ANON_KEY = 'sb_publishable_FqikdEgA_MfHJaaVfUk42g_EatzPk5Z';
+
+            let sbClient = null;
+            let isCloudMode = false;
+            
+            if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+                sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                isCloudMode = true;
+            }
+
             // 1. DATA STATE
             let masterSchools = {};
             let dailyActivities = [];
@@ -499,79 +492,100 @@
             let deletingKey = null;
             let myChartInstance = null;
 
-            // 2. NETWORK SYNC FUNCTIONS (API CALLS)
-            async function loadFromServer() {
-                try {
-                    // Deteksi jika dijalankan tanpa server (file:// atau blob:// preview)
-                    if (window.location.protocol === 'file:' || window.location.protocol === 'blob:') {
-                        throw new Error('Environment lokal tanpa server terdeteksi.');
-                    }
-
-                    const response = await fetch('/api/data');
-                    if (response.ok) {
-                        const data = await response.json();
-                        masterSchools = data.schools || {};
-                        dailyActivities = data.activities || [];
-                        if (data.settings && Object.keys(data.settings).length > 0) {
-                            appSettings = data.settings;
+            // ==========================================
+            // 2. FUNGSI SINKRONISASI DATABASE 
+            // (Memilih antara Supabase Cloud vs Local Storage Fallback)
+            // ==========================================
+            async function loadDatabase() {
+                if (isCloudMode) {
+                    try {
+                        // Tarik Master School
+                        const { data: schoolsData, error: err1 } = await sbClient.from('master_schools').select('*');
+                        if (!err1 && schoolsData) {
+                            masterSchools = {};
+                            schoolsData.forEach(s => masterSchools[s.id] = s);
                         }
-                        
-                        // Set Online UI Status
-                        document.getElementById('cloudStatusText').innerText = "Online (LAN Sync)";
-                        document.getElementById('cloudStatusDot').className = "w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-live";
-                        document.getElementById('cloudConnectionBadge').className = "bg-emerald-950/80 border border-emerald-800/80 rounded-lg p-2.5 text-xs flex items-center justify-between";
-                        
-                        renderAllViews();
-                    } else {
-                        throw new Error('API Error');
+                        // Tarik Daily Activity
+                        const { data: actData, error: err2 } = await sbClient.from('daily_activities').select('*').order('created_at', { ascending: false });
+                        if (!err2 && actData) {
+                            dailyActivities = actData;
+                        }
+                        // Tarik Settings
+                        const { data: setData, error: err3 } = await sbClient.from('app_settings').select('*').limit(1);
+                        if (!err3 && setData && setData.length > 0) {
+                            appSettings = setData[0];
+                        }
+                        setCloudStatus(true);
+                    } catch (error) {
+                        console.error("Gagal terhubung ke Supabase:", error);
+                        fallbackToLocal();
                     }
-                } catch (error) {
-                    console.warn("Beralih ke mode Offline (Local Storage).", error);
-                    document.getElementById('cloudStatusText').innerText = "Offline (Local Storage)";
-                    document.getElementById('cloudStatusDot').className = "w-2.5 h-2.5 rounded-full bg-amber-500";
-                    document.getElementById('cloudConnectionBadge').className = "bg-amber-950/80 border border-amber-800/80 rounded-lg p-2.5 text-xs flex items-center justify-between";
-                    
-                    // Fallback membaca data dari Local Storage browser
-                    const localData = localStorage.getItem('yearbook_lan_data');
-                    if (localData) {
-                        const data = JSON.parse(localData);
-                        masterSchools = data.schools || {};
-                        dailyActivities = data.activities || [];
-                        if (data.settings && Object.keys(data.settings).length > 0) appSettings = data.settings;
-                    }
-                    renderAllViews();
+                } else {
+                    fallbackToLocal();
+                }
+                renderAllViews();
+            }
+
+            function fallbackToLocal() {
+                setCloudStatus(false);
+                const localData = localStorage.getItem('yearbook_supabase_mock');
+                if (localData) {
+                    const data = JSON.parse(localData);
+                    masterSchools = data.schools || {};
+                    dailyActivities = data.activities || [];
+                    if (data.settings && Object.keys(data.settings).length > 0) appSettings = data.settings;
+                }
+                // Auto seed mock data
+                if (Object.keys(masterSchools).length === 0) {
+                    masterSchools = {
+                        "SCH_001": { id: "SCH_001", nama: "SMA NEGERI 1 JAKARTA", jenjang: "SMA", wilayah: "Jakarta Pusat", alamat: "Jl. Budi Utomo", pic: "Drs. Hendra", wa: "081298765432", marketing: "Andi Susanto", stage: "Presentasi", kategori: "Hot", nilai: 85000000 }
+                    };
+                    saveToDatabase(true);
                 }
             }
 
-            async function saveToServer(silent = false) {
-                const payload = { schools: masterSchools, activities: dailyActivities, settings: appSettings };
-                
-                // Selalu simpan ke Local Storage sebagai cadangan
-                localStorage.setItem('yearbook_lan_data', JSON.stringify(payload));
+            async function saveToDatabase(silent = false) {
+                // Selalu Backup Lokal
+                localStorage.setItem('yearbook_supabase_mock', JSON.stringify({ schools: masterSchools, activities: dailyActivities, settings: appSettings }));
 
-                try {
-                    if (window.location.protocol === 'file:' || window.location.protocol === 'blob:') {
-                        throw new Error('Environment lokal tanpa server terdeteksi.');
-                    }
+                if (isCloudMode) {
+                    // Dalam aplikasi nyata, aksi simpan ke Supabase dilakukan per-row saat fungsi Submit berjalan 
+                    // (lihat bagian Submit form di bawah). 
+                    // Fungsi global ini hanya memicu sinkronisasi ulang.
+                }
 
-                    const response = await fetch('/api/data', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    if (response.ok) {
-                        if (!silent) showToast("Tersimpan di Server Lokal Jaringan");
-                        renderAllViews();
-                    }
-                } catch (error) {
-                    // Jika gagal fetch ke server, tetap update UI karena data sudah aman di Local Storage
-                    if (!silent) showToast("Data disimpan di Penyimpanan Browser Lokal");
-                    renderAllViews();
+                if (!silent) showToast(isCloudMode ? "Disinkronkan ke Supabase Cloud" : "Disimpan di Local Storage");
+                renderAllViews();
+            }
+
+            // Real-time Event Listener Supabase
+            function initSupabaseRealtime() {
+                if (!isCloudMode) return;
+                sbClient.channel('custom-all-channel')
+                    .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
+                        console.log('Perubahan terdeteksi dari perangkat lain!', payload);
+                        showToast("Pembaruan data dari perangkat lain...");
+                        loadDatabase(); // Refresh data otomatis
+                    })
+                    .subscribe();
+            }
+
+            function setCloudStatus(isOnline) {
+                const text = document.getElementById('cloudStatusText');
+                const dot = document.getElementById('cloudStatusDot');
+                const badge = document.getElementById('cloudConnectionBadge');
+                if (!text) return;
+                if (isOnline) {
+                    text.innerText = "Supabase DB Online";
+                    dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-live";
+                    badge.className = "bg-emerald-950/80 border border-emerald-800/80 rounded-lg p-2.5 text-xs flex items-center justify-between";
+                } else {
+                    text.innerText = "Offline Mode (Local)";
+                    dot.className = "w-2.5 h-2.5 rounded-full bg-amber-500";
+                    badge.className = "bg-amber-950/80 border border-amber-800/80 rounded-lg p-2.5 text-xs flex items-center justify-between";
                 }
             }
 
-            // Toast Helper
             function showToast(message, isError = false) {
                 const toast = document.getElementById('toastNotification');
                 const toastMsg = document.getElementById('toastMessage');
@@ -580,13 +594,12 @@
                 
                 toastMsg.innerText = message;
                 if (isError) {
-                    toast.classList.remove('bg-slate-900'); toast.classList.add('bg-red-900');
+                    toast.className = "fixed bottom-5 right-5 bg-red-900 text-white text-xs px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-3 border border-red-800 transition-all duration-300";
                     if (toastIcon) toastIcon.className = "fa-solid fa-circle-exclamation text-amber-300 text-base";
                 } else {
-                    toast.classList.remove('bg-red-900'); toast.classList.add('bg-slate-900');
+                    toast.className = "fixed bottom-5 right-5 bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-3 border border-slate-800 transition-all duration-300";
                     if (toastIcon) toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
                 }
-                toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
                 setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none'); }, 4000);
             }
 
@@ -595,10 +608,12 @@
                 return str.replace(/\w\S*/g, function(txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
             }
 
+            // ==========================================
             // 3. ROLE FILTERS & RENDERING
+            // ==========================================
             function getFilteredSchoolArray() {
                 const schoolKeys = Object.keys(masterSchools);
-                let list = schoolKeys.map(k => ({ key: k, ...masterSchools[k] }));
+                let list = schoolKeys.map(k => ({ ...masterSchools[k] }));
                 if (currentUser.role === 'Marketing' && appSettings.restrictMarketingView) {
                     list = list.filter(s => s.marketing === currentUser.name);
                 }
@@ -672,10 +687,9 @@
             function renderLeaderboard() {
                 const container = document.getElementById('leaderboardContainer');
                 if (!container) return; container.innerHTML = '';
-                const schoolList = Object.keys(masterSchools).map(k => masterSchools[k]);
                 const stats = { 'Andi Susanto': { name: 'Andi Susanto', deals: 0, omzet: 0 }, 'Rian Ardianto': { name: 'Rian Ardianto', deals: 0, omzet: 0 }};
 
-                schoolList.forEach(s => {
+                Object.values(masterSchools).forEach(s => {
                     if (s.marketing && stats[s.marketing] && s.stage === 'Deal') {
                         stats[s.marketing].deals += 1;
                         stats[s.marketing].omzet += (s.nilai || 0);
@@ -711,7 +725,7 @@
                 if (!tbody) return; tbody.innerHTML = '';
                 
                 if (schoolsToRender.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400"><i class="fa-solid fa-school-circle-xmark text-3xl mb-2"></i><p>Tidak ada data sekolah di server.</p></td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400"><i class="fa-solid fa-school-circle-xmark text-3xl mb-2"></i><p>Tidak ada data sekolah.</p></td></tr>`;
                     return;
                 }
 
@@ -727,8 +741,8 @@
                         <td class="px-4 py-3 text-slate-700 font-medium">${sch.marketing}</td>
                         <td class="px-4 py-3 text-center">
                             <div class="flex items-center justify-center gap-1.5">
-                                <button class="btn-edit-school text-slate-400 hover:text-brand-600 p-1.5 rounded transition" data-key="${sch.key}"><i class="fa-solid fa-pen-to-square"></i></button>
-                                <button class="btn-delete-school text-slate-400 hover:text-red-600 p-1.5 rounded transition" data-key="${sch.key}"><i class="fa-solid fa-trash-can"></i></button>
+                                <button class="btn-edit-school text-slate-400 hover:text-brand-600 p-1.5 rounded transition" data-key="${sch.id}"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button class="btn-delete-school text-slate-400 hover:text-red-600 p-1.5 rounded transition" data-key="${sch.id}"><i class="fa-solid fa-trash-can"></i></button>
                             </div>
                         </td>
                     `;
@@ -832,7 +846,9 @@
                 });
             }
 
-            // 4. CRUD FORMS & MODALS
+            // ==========================================
+            // 4. CRUD FORMS & MODALS (Ke Supabase)
+            // ==========================================
             const modalAddSchool = document.getElementById('modalAddSchool');
             const schoolForm = document.getElementById('schoolForm');
 
@@ -847,11 +863,11 @@
                     document.getElementById('inputSchoolPic').value = item.pic;
                     document.getElementById('inputSchoolWa').value = item.wa;
                     document.getElementById('inputSchoolMarketing').value = item.marketing;
-                    document.getElementById('modalSchoolTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-brand-600"></i> Edit Data Sekolah (Server)`;
+                    document.getElementById('modalSchoolTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-brand-600"></i> Edit Data Sekolah`;
                 } else {
                     editingKey = null; schoolForm.reset();
                     document.getElementById('inputSchoolMarketing').value = currentUser.name;
-                    document.getElementById('modalSchoolTitle').innerHTML = `<i class="fa-solid fa-school-flag text-emerald-600"></i> Tambah Data Sekolah Baru (Server)`;
+                    document.getElementById('modalSchoolTitle').innerHTML = `<i class="fa-solid fa-school-flag text-emerald-600"></i> Tambah Data Sekolah Baru`;
                 }
                 modalAddSchool?.classList.remove('hidden');
             }
@@ -867,15 +883,15 @@
                 e.preventDefault();
                 const inputName = document.getElementById('inputSchoolName').value.trim().toUpperCase();
                 
-                // Cek konflik data Marketing
                 const existingEntry = Object.keys(masterSchools).find(k => masterSchools[k].nama === inputName && k !== editingKey);
                 if (existingEntry && masterSchools[existingEntry].marketing !== currentUser.name) {
                     showToast("Data Sudah Dalam Penanganan Marketing Lain", true);
                     return;
                 }
 
+                const schoolId = editingKey ? editingKey : 'SCH_' + Date.now();
                 const schoolData = {
-                    nama: inputName, jenjang: document.getElementById('inputSchoolJenjang').value,
+                    id: schoolId, nama: inputName, jenjang: document.getElementById('inputSchoolJenjang').value,
                     wilayah: document.getElementById('inputSchoolWilayah').value.trim(), alamat: document.getElementById('inputSchoolAlamat').value.trim(),
                     pic: document.getElementById('inputSchoolPic').value.trim(), wa: document.getElementById('inputSchoolWa').value.trim(),
                     marketing: document.getElementById('inputSchoolMarketing').value,
@@ -884,11 +900,15 @@
                     nilai: editingKey ? (masterSchools[editingKey].nilai || 0) : 0
                 };
 
-                if (editingKey) masterSchools[editingKey] = schoolData;
-                else masterSchools['SCH_' + Date.now()] = schoolData;
+                // PUSH KE SUPABASE
+                if (isCloudMode) {
+                    const { error } = await sbClient.from('master_schools').upsert([schoolData]);
+                    if (error) { showToast("Gagal menyimpan ke Cloud!", true); console.error(error); return; }
+                }
 
+                masterSchools[schoolId] = schoolData;
                 modalAddSchool?.classList.add('hidden');
-                await saveToServer();
+                saveToDatabase();
             });
 
             document.getElementById('schoolTableBody')?.addEventListener('click', function(e) {
@@ -897,14 +917,21 @@
                 if (editBtn) openSchoolModal(true, editBtn.getAttribute('data-key'));
                 else if (deleteBtn) {
                     deletingKey = deleteBtn.getAttribute('data-key');
-                    document.getElementById('deleteConfirmText').innerText = `Penghapusan akan menghilangkan data dari Server Lokal.`;
                     document.getElementById('modalDeleteConfirm')?.classList.remove('hidden');
                 }
             });
 
             document.getElementById('btnCancelDelete')?.addEventListener('click', () => { document.getElementById('modalDeleteConfirm')?.classList.add('hidden'); deletingKey = null; });
             document.getElementById('btnConfirmDelete')?.addEventListener('click', async () => {
-                if (deletingKey) { delete masterSchools[deletingKey]; await saveToServer(); showToast("Data terhapus dari Server."); }
+                if (deletingKey) { 
+                    if (isCloudMode) {
+                        const { error } = await sbClient.from('master_schools').delete().eq('id', deletingKey);
+                        if (error) { showToast("Gagal hapus di Cloud!", true); return; }
+                    }
+                    delete masterSchools[deletingKey]; 
+                    saveToDatabase(); 
+                    showToast("Data terhapus."); 
+                }
                 document.getElementById('modalDeleteConfirm')?.classList.add('hidden'); deletingKey = null;
             });
 
@@ -935,10 +962,10 @@
 
             document.getElementById('btnGetGpsLocation')?.addEventListener('click', function() {
                 if (navigator.geolocation) {
-                    showToast("Mendeteksi lokasi GPS HP/PC...");
+                    showToast("Mendeteksi lokasi GPS...");
                     navigator.geolocation.getCurrentPosition(
                         (position) => { document.getElementById('inputDailyGps').value = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`; showToast("Lokasi Terkunci!"); },
-                        () => { document.getElementById('inputDailyGps').value = "-6.208851, 106.845599"; showToast("Menggunakan koordinat simulasi jaringan."); }
+                        () => { document.getElementById('inputDailyGps').value = "-6.208851, 106.845599"; showToast("Menggunakan koordinat simulasi."); }
                     );
                 }
             });
@@ -967,19 +994,31 @@
                     pihak: toTitleCase(document.getElementById('inputDailyPerson').value), kategori: categoryStatus,
                     gps: document.getElementById('inputDailyGps').value,
                     foto: photoPreviewImg?.src || 'https://placehold.co/100x100/4f46e5/white?text=Foto+Visit',
-                    nilai: dealValue, timestamp: Date.now()
+                    nilai: dealValue
                 };
 
+                // PUSH KE SUPABASE
+                if (isCloudMode) {
+                    const { error } = await sbClient.from('daily_activities').insert([newActivity]);
+                    if (error) { showToast("Gagal unggah aktivitas!", true); return; }
+                }
+
                 dailyActivities.unshift(newActivity);
+                
+                // UPDATE KANBAN MASTER SCHOOL
                 const matchedKey = Object.keys(masterSchools).find(k => masterSchools[k].nama === selectedSchoolName);
                 if (matchedKey) {
-                    masterSchools[matchedKey].stage = activityType;
-                    masterSchools[matchedKey].kategori = categoryStatus;
-                    if (dealValue > 0) masterSchools[matchedKey].nilai = dealValue;
+                    const updatedSch = { ...masterSchools[matchedKey], stage: activityType, kategori: categoryStatus };
+                    if (dealValue > 0) updatedSch.nilai = dealValue;
+                    masterSchools[matchedKey] = updatedSch;
+                    
+                    if (isCloudMode) {
+                        await sbClient.from('master_schools').update({ stage: activityType, kategori: categoryStatus, nilai: updatedSch.nilai }).eq('id', matchedKey);
+                    }
                 }
 
                 modalDailyActivity?.classList.add('hidden');
-                await saveToServer();
+                saveToDatabase();
             });
 
             document.getElementById('settingsTargetsForm')?.addEventListener('submit', async function(e) {
@@ -989,16 +1028,23 @@
                 appSettings.targetPresentasi = parseInt(document.getElementById('cfgTargetPresentasi').value) || 50;
                 appSettings.targetDeal = parseInt(document.getElementById('cfgTargetDealCount').value) || 55;
                 appSettings.targetOmzet = parseInt(document.getElementById('cfgTargetOmzet').value) || 2000000000;
-                await saveToServer();
+                
+                if (isCloudMode) {
+                    await sbClient.from('app_settings').upsert([{ id: 1, ...appSettings }]);
+                }
+                saveToDatabase();
             });
 
             document.getElementById('toggleRestrictMarketing')?.addEventListener('change', async function(e) {
                 appSettings.restrictMarketingView = e.target.checked;
-                await saveToServer(true); // silent save
+                if (isCloudMode) { await sbClient.from('app_settings').upsert([{ id: 1, ...appSettings }]); }
+                saveToDatabase(true); 
                 showToast(`Aturan Privasi Jaringan: ${e.target.checked ? 'Aktif' : 'Non-aktif'}`);
             });
 
+            // ==========================================
             // 5. CHARTS, ROLE SWITCHER & UI NAVIGATION
+            // ==========================================
             function initPerformanceChart() {
                 const ctx = document.getElementById('performanceChart')?.getContext('2d');
                 if (!ctx) return;
@@ -1054,24 +1100,15 @@
             }
 
             Object.keys(navBtns).forEach(k => document.getElementById(navBtns[k])?.addEventListener('click', () => switchView(k)));
-            document.getElementById('refreshDataBtn')?.addEventListener('click', async () => { showToast("Sync Manual Jaringan..."); await loadFromServer(); });
+            document.getElementById('refreshDataBtn')?.addEventListener('click', () => { showToast("Sinkronisasi Manual..."); loadDatabase(); });
 
-            // 6. INITIALIZATION & LIVE POLLING LOOP
+            // ==========================================
+            // 6. INITIALIZATION 
+            // ==========================================
             initPerformanceChart();
-            await loadFromServer();
-            
-            // Generate dummy initial data if server is completely empty
-            if (Object.keys(masterSchools).length === 0) {
-                masterSchools = {
-                    "SCH_001": { nama: "SMA NEGERI 1 JAKARTA", jenjang: "SMA", wilayah: "Jakarta Pusat", alamat: "Jl. Budi Utomo", pic: "Drs. Hendra", wa: "081298765432", marketing: "Andi Susanto", stage: "Presentasi", kategori: "Hot", nilai: 85000000 }
-                };
-                await saveToServer(true);
-            }
-
+            await loadDatabase();
+            initSupabaseRealtime();
             updateRoleState();
-            
-            // Auto-Refresh Poll every 5 Seconds (Memastikan semua device sinkron secara real-time)
-            setInterval(() => { loadFromServer(); }, 5000);
         });
     </script>
 </body>
