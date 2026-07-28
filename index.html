@@ -43,7 +43,7 @@
     <!-- Loading Screen while connecting to Cloud -->
     <div id="app-loader" class="flex items-center justify-center">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-        <p class="text-indigo-900 font-medium">Menghubungkan ke Database Cloud...</p>
+        <p class="text-indigo-900 font-medium" id="loader-text">Menghubungkan ke Database Cloud...</p>
     </div>
 
     <!-- Sidebar -->
@@ -223,8 +223,17 @@
             <section id="settings" class="tab-content">
                 <h2 class="text-2xl font-bold mb-6 text-gray-800">Pengaturan Aplikasi</h2>
                 
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-2xl">
-                    <p class="text-gray-600 mb-4">Aplikasi saat ini berjalan dalam mode Realtime Multi-perangkat. Semua perubahan data disinkronkan secara instan ke cloud.</p>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-2xl space-y-4">
+                    <div class="flex items-center justify-between pb-4 border-b">
+                        <div>
+                            <h3 class="font-bold text-gray-800">Status Koneksi</h3>
+                            <p class="text-sm text-gray-500" id="connection-status-desc">Memeriksa status database...</p>
+                        </div>
+                        <span id="connection-status-badge" class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">Checking</span>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Aplikasi mendukung mode <b>Realtime Cloud Sync</b> (saat dikonfigurasi) serta mode <b>Standalone / In-Memory</b> jika berjalan tanpa Firebase configuration.</p>
+                    </div>
                 </div>
             </section>
 
@@ -332,15 +341,37 @@
 
         // Environment Variables Handling
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'demo-bts-marketing';
-        let firebaseConfig;
+        let firebaseConfig = null;
         try {
-            firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                firebaseConfig = JSON.parse(__firebase_config);
+            }
         } catch(e) { console.error("Firebase config parsing error", e); }
 
         // State Data
         let globalSchools = [];
         let globalActivities = [];
+        let isFirebaseActive = false;
+        let db = null;
+        let auth = null;
+        let schoolsRef = null;
+        let activitiesRef = null;
+
         const pipelineStages = ['Prospek', 'Presentasi', 'Negosiasi', 'Deal', 'Batal'];
+
+        // Initial Sample Data for Fallback/Standalone Mode
+        const sampleSchools = [
+            { id: 'sch-1', name: 'SMAN 1 Jakarta', region: 'Jakarta Pusat', contact: 'Bpk. Budi (08123456789)', students: '350', status: 'Deal', createdAt: Date.now() - 86400000 * 3 },
+            { id: 'sch-2', name: 'SMKN 2 Bandung', region: 'Bandung', contact: 'Ibu Ani (08219876543)', students: '420', status: 'Presentasi', createdAt: Date.now() - 86400000 * 2 },
+            { id: 'sch-3', name: 'SMA Al-Azhar', region: 'Jakarta Selatan', contact: 'Bpk. Ahmad (08571234567)', students: '280', status: 'Prospek', createdAt: Date.now() - 86400000 },
+            { id: 'sch-4', name: 'SMAN 3 Surabaya', region: 'Surabaya', contact: 'Bpk. Heru (08135555123)', students: '500', status: 'Negosiasi', createdAt: Date.now() - 43200000 }
+        ];
+
+        const sampleActivities = [
+            { id: 'act-1', schoolId: 'sch-1', schoolName: 'SMAN 1 Jakarta', type: 'MOU', notes: 'Penandatanganan MOU Buku Tahunan Sekolah tahun ajaran 2026/2027.', createdAt: Date.now() - 86400000 * 2 },
+            { id: 'act-2', schoolId: 'sch-2', schoolName: 'SMKN 2 Bandung', type: 'Presentasi', notes: 'Presentasi paket album fisik & versi digital interaktif ke panitia OSIS.', createdAt: Date.now() - 86400000 },
+            { id: 'act-3', schoolId: 'sch-3', schoolName: 'SMA Al-Azhar', type: 'Follow Up', notes: 'Diskusi awal penawaran cetak foto & harga per siswa.', createdAt: Date.now() - 21600000 }
+        ];
 
         // Core Functions Map
         const UI = {
@@ -414,6 +445,7 @@
                 }
             },
             formatDate: (ms) => {
+                if(!ms) return '-';
                 const d = new Date(ms);
                 return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' });
             }
@@ -425,6 +457,23 @@
             renderDatabase();
             renderActivity();
             renderPipeline();
+            updateSettingsBadge();
+        }
+
+        function updateSettingsBadge() {
+            const desc = document.getElementById('connection-status-desc');
+            const badge = document.getElementById('connection-status-badge');
+            if(desc && badge) {
+                if(isFirebaseActive) {
+                    desc.innerText = 'Terhubung ke Realtime Cloud Database.';
+                    badge.innerText = 'Cloud Sync Active';
+                    badge.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700';
+                } else {
+                    desc.innerText = 'Berjalan dalam mode lokal / standalone (In-Memory Data).';
+                    badge.innerText = 'Local Demo Mode';
+                    badge.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700';
+                }
+            }
         }
 
         function renderDashboard() {
@@ -433,14 +482,14 @@
             document.getElementById('stat-active-prospects').innerText = globalSchools.filter(s => ['Prospek', 'Presentasi', 'Negosiasi'].includes(s.status)).length;
             document.getElementById('stat-activities').innerText = globalActivities.length;
 
-            const recentActivities = [...globalActivities].sort((a, b) => b.createdAt - a.createdAt).slice(0, 4);
+            const recentActivities = [...globalActivities].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 4);
             const activityHtml = recentActivities.length > 0 ? recentActivities.map(act => {
                 const style = UI.getActivityIcon(act.type);
                 return `
                 <div class="flex items-start">
                     <div class="w-2 h-2 mt-2 rounded-full ${style.color} mr-3 flex-shrink-0"></div>
                     <div>
-                        <p class="text-sm font-semibold text-gray-800">${act.schoolName} <span class="text-xs font-normal text-gray-500 ml-1">(${act.type})</span></p>
+                        <p class="text-sm font-semibold text-gray-800">${act.schoolName || '-'} <span class="text-xs font-normal text-gray-500 ml-1">(${act.type || 'Activity'})</span></p>
                         <p class="text-xs text-gray-500">${UI.formatDate(act.createdAt)}</p>
                     </div>
                 </div>`
@@ -468,12 +517,10 @@
 
         function renderDatabase() {
             const tbody = document.getElementById('database-table-body');
-            
-            // Urutkan berdasarkan waktu ditambahkan (terbaru diatas)
-            const sortedSchools = [...globalSchools].sort((a,b) => b.createdAt - a.createdAt);
+            const sortedSchools = [...globalSchools].sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
 
             if(sortedSchools.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-500">Belum ada data sekolah.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-500">Belum ada data sekolah. Silakan tekan tombol 'Tambah Sekolah'.</td></tr>`;
                 return;
             }
 
@@ -489,8 +536,8 @@
                         </span>
                     </td>
                     <td class="p-4 border-b text-right whitespace-nowrap">
-                        <button class="text-indigo-600 hover:text-indigo-900 mr-3" onclick="window.editSchool('${school.id}')"><i class="fas fa-edit"></i> Edit</button>
-                        <button class="text-red-500 hover:text-red-700" onclick="window.confirmDelete('${school.id}')"><i class="fas fa-trash"></i> Hapus</button>
+                        <button class="text-indigo-600 hover:text-indigo-900 mr-3 font-medium" onclick="window.editSchool('${school.id}')"><i class="fas fa-edit mr-1"></i> Edit</button>
+                        <button class="text-red-500 hover:text-red-700 font-medium" onclick="window.confirmDelete('${school.id}')"><i class="fas fa-trash mr-1"></i> Hapus</button>
                     </td>
                 </tr>
             `).join('');
@@ -498,7 +545,7 @@
 
         function renderActivity() {
             const timeline = document.getElementById('activity-timeline');
-            const sortedActs = [...globalActivities].sort((a,b) => b.createdAt - a.createdAt);
+            const sortedActs = [...globalActivities].sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
 
             if(sortedActs.length === 0) {
                 timeline.innerHTML = '<p class="text-sm text-gray-500">Belum ada aktivitas dicatat.</p>';
@@ -513,12 +560,12 @@
                         <i class="fas ${style.icon} text-xs"></i>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 shadow-sm relative group">
-                        <button onclick="window.deleteActivity('${act.id}')" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" title="Hapus"><i class="fas fa-times"></i></button>
+                        <button onclick="window.deleteActivity('${act.id}')" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1" title="Hapus Log"><i class="fas fa-times"></i></button>
                         <div class="flex justify-between items-start mb-1 pr-6">
                             <h4 class="font-semibold text-gray-800">${act.schoolName}</h4>
                             <span class="text-xs font-medium text-gray-500 bg-white px-2 py-1 rounded border">${UI.formatDate(act.createdAt)}</span>
                         </div>
-                        <span class="inline-block px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded mb-2">${act.type}</span>
+                        <span class="inline-block px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded mb-2 font-medium">${act.type}</span>
                         <p class="text-sm text-gray-600">${act.notes}</p>
                     </div>
                 </div>
@@ -542,8 +589,8 @@
                         <h4 class="font-bold text-gray-800 text-sm mb-1">${school.name}</h4>
                         <p class="text-xs text-gray-500 mb-2"><i class="fas fa-map-marker-alt mr-1"></i> ${school.region}</p>
                         <div class="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
-                            <span class="text-xs font-medium text-indigo-600"><i class="fas fa-users mr-1"></i> ${school.students || 0}</span>
-                            <span class="text-gray-400 text-xs"><i class="fas fa-edit"></i></span>
+                            <span class="text-xs font-medium text-indigo-600"><i class="fas fa-users mr-1"></i> ${school.students || 0} Siswa</span>
+                            <span class="text-gray-400 text-xs hover:text-indigo-600"><i class="fas fa-edit"></i></span>
                         </div>
                     </div>
                 `).join('');
@@ -557,192 +604,235 @@
                             </div>
                         </div>
                         <div class="flex-1 overflow-y-auto pr-1 kanban-col pb-10">
-                            ${cardsHtml}
+                            ${cardsHtml.length > 0 ? cardsHtml : '<p class="text-xs text-gray-400 text-center py-4">Kosong</p>'}
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        if (!firebaseConfig) {
-            document.getElementById('app-loader').innerHTML = '<p class="text-red-500 font-bold">Error: Firebase Configuration Missing</p>';
-        } else {
-            const app = initializeApp(firebaseConfig);
-            const db = getFirestore(app);
-            const auth = getAuth(app);
+        // Global CRUD Window Handlers
+        window.switchTab = UI.switchTab;
+        window.toggleMobileMenu = UI.toggleMobileMenu;
+        window.closeModal = UI.closeModal;
 
-            // Paths (RULE 1)
-            const schoolsRef = collection(db, 'artifacts', appId, 'public', 'data', 'schools');
-            const activitiesRef = collection(db, 'artifacts', appId, 'public', 'data', 'activities');
+        window.openSchoolModal = () => {
+            document.getElementById('school-modal-title').innerText = 'Tambah Database Sekolah';
+            document.getElementById('school-id').value = '';
+            document.getElementById('school-name').value = '';
+            document.getElementById('school-region').value = '';
+            document.getElementById('school-contact').value = '';
+            document.getElementById('school-students').value = '';
+            document.getElementById('school-status').value = 'Prospek';
+            UI.openModal('modal-sekolah');
+        };
 
-            // CRUD & Window Bindings
-            window.switchTab = UI.switchTab;
-            window.toggleMobileMenu = UI.toggleMobileMenu;
-            window.closeModal = UI.closeModal;
+        window.editSchool = (id) => {
+            const school = globalSchools.find(s => s.id === id);
+            if(!school) return;
+            
+            document.getElementById('school-modal-title').innerText = 'Edit Database Sekolah';
+            document.getElementById('school-id').value = school.id;
+            document.getElementById('school-name').value = school.name;
+            document.getElementById('school-region').value = school.region;
+            document.getElementById('school-contact').value = school.contact;
+            document.getElementById('school-students').value = school.students;
+            document.getElementById('school-status').value = school.status;
+            UI.openModal('modal-sekolah');
+        };
 
-            window.openSchoolModal = () => {
-                document.getElementById('school-modal-title').innerText = 'Tambah Database Sekolah';
-                document.getElementById('school-id').value = '';
-                document.getElementById('school-name').value = '';
-                document.getElementById('school-region').value = '';
-                document.getElementById('school-contact').value = '';
-                document.getElementById('school-students').value = '';
-                document.getElementById('school-status').value = 'Prospek';
-                UI.openModal('modal-sekolah');
+        window.saveSchool = async () => {
+            const id = document.getElementById('school-id').value;
+            const data = {
+                name: document.getElementById('school-name').value.trim() || 'Tanpa Nama',
+                region: document.getElementById('school-region').value.trim() || '-',
+                contact: document.getElementById('school-contact').value.trim() || '-',
+                students: document.getElementById('school-students').value || '0',
+                status: document.getElementById('school-status').value,
             };
 
-            window.editSchool = (id) => {
-                const school = globalSchools.find(s => s.id === id);
-                if(!school) return;
-                
-                document.getElementById('school-modal-title').innerText = 'Edit Database Sekolah';
-                document.getElementById('school-id').value = school.id;
-                document.getElementById('school-name').value = school.name;
-                document.getElementById('school-region').value = school.region;
-                document.getElementById('school-contact').value = school.contact;
-                document.getElementById('school-students').value = school.students;
-                document.getElementById('school-status').value = school.status;
-                UI.openModal('modal-sekolah');
-            };
-
-            window.saveSchool = async () => {
-                if(!auth.currentUser) return;
-                const id = document.getElementById('school-id').value;
-                const data = {
-                    name: document.getElementById('school-name').value || 'Tanpa Nama',
-                    region: document.getElementById('school-region').value || '-',
-                    contact: document.getElementById('school-contact').value || '-',
-                    students: document.getElementById('school-students').value || '0',
-                    status: document.getElementById('school-status').value,
-                };
-
-                try {
+            try {
+                if (isFirebaseActive && auth?.currentUser) {
                     if(id) {
-                        // Update
                         await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'schools', id), data);
-                        UI.showNotification('Data sekolah berhasil diupdate!');
                     } else {
-                        // Create
                         data.createdAt = Date.now();
                         await addDoc(schoolsRef, data);
-                        UI.showNotification('Data sekolah berhasil ditambahkan!');
                     }
-                    UI.closeModal('modal-sekolah');
-                } catch (error) {
-                    console.error("Error saving:", error);
-                    UI.showNotification('Gagal menyimpan data.');
-                }
-            };
-
-            window.confirmDelete = (id) => {
-                document.getElementById('delete-id').value = id;
-                UI.openModal('modal-delete');
-            };
-
-            window.executeDelete = async () => {
-                if(!auth.currentUser) return;
-                const id = document.getElementById('delete-id').value;
-                if(!id) return;
-
-                try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'schools', id));
-                    UI.showNotification('Data berhasil dihapus');
-                    UI.closeModal('modal-delete');
-                } catch (error) {
-                    console.error("Error deleting:", error);
-                    UI.showNotification('Gagal menghapus data.');
-                }
-            };
-
-            window.openActivityModal = () => {
-                const select = document.getElementById('activity-school-id');
-                select.innerHTML = globalSchools.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-                
-                if(globalSchools.length === 0) {
-                    select.innerHTML = '<option disabled selected>-- Tambah data sekolah dulu --</option>';
-                }
-                
-                document.getElementById('activity-notes').value = '';
-                UI.openModal('modal-aktivitas');
-            };
-
-            window.saveActivity = async () => {
-                if(!auth.currentUser) return;
-                
-                const schoolSelect = document.getElementById('activity-school-id');
-                if(!schoolSelect.value || schoolSelect.value.startsWith('--')) {
-                    UI.showNotification('Pilih sekolah terlebih dahulu!');
-                    return;
-                }
-
-                const schoolId = schoolSelect.value;
-                const schoolName = schoolSelect.options[schoolSelect.selectedIndex].text;
-                const type = document.getElementById('activity-type').value;
-                const notes = document.getElementById('activity-notes').value || '-';
-
-                try {
-                    await addDoc(activitiesRef, {
-                        schoolId,
-                        schoolName,
-                        type,
-                        notes,
-                        createdAt: Date.now()
-                    });
-                    UI.showNotification('Log aktivitas tersimpan!');
-                    UI.closeModal('modal-aktivitas');
-                } catch (error) {
-                    console.error("Error saving activity:", error);
-                    UI.showNotification('Gagal menyimpan aktivitas.');
-                }
-            };
-            
-            window.deleteActivity = async (id) => {
-                if(!auth.currentUser) return;
-                try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activities', id));
-                    UI.showNotification('Aktivitas dihapus.');
-                } catch (error) {
-                    console.error(error);
-                }
-            };
-
-            // Setup Realtime Listeners (RULE 3 - Must wait for Auth)
-            const setupRealtime = () => {
-                // Listen to Schools
-                onSnapshot(schoolsRef, (snapshot) => {
-                    globalSchools = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                    renderAll();
-                    document.getElementById('app-loader').style.display = 'none'; // Hide loader
-                }, (error) => {
-                    console.error("Snapshot error:", error);
-                });
-
-                // Listen to Activities
-                onSnapshot(activitiesRef, (snapshot) => {
-                    globalActivities = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                    renderAll();
-                }, (error) => {
-                    console.error("Snapshot error:", error);
-                });
-            };
-
-            // Auth Flow
-            const startAuth = async () => {
-                try {
-                    if (typeof __initial_auth_token !== 'undefined') {
-                        await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    // Fallback Local Memory
+                    if(id) {
+                        const idx = globalSchools.findIndex(s => s.id === id);
+                        if(idx !== -1) {
+                            globalSchools[idx] = { ...globalSchools[idx], ...data };
+                        }
                     } else {
-                        await signInAnonymously(auth);
+                        data.id = 'sch-' + Date.now();
+                        data.createdAt = Date.now();
+                        globalSchools.push(data);
                     }
-                    setupRealtime();
-                } catch (error) {
-                    console.error("Auth error:", error);
-                    document.getElementById('app-loader').innerHTML = '<p class="text-red-500 font-bold">Gagal terhubung ke server autentikasi.</p>';
+                    renderAll();
                 }
-            };
+                UI.showNotification(id ? 'Data sekolah berhasil diperbarui!' : 'Sekolah baru berhasil ditambahkan!');
+                UI.closeModal('modal-sekolah');
+            } catch (error) {
+                console.error("Error saving school:", error);
+                UI.showNotification('Gagal menyimpan data.');
+            }
+        };
 
-            startAuth();
+        window.confirmDelete = (id) => {
+            document.getElementById('delete-id').value = id;
+            UI.openModal('modal-delete');
+        };
+
+        window.executeDelete = async () => {
+            const id = document.getElementById('delete-id').value;
+            if(!id) return;
+
+            try {
+                if (isFirebaseActive && auth?.currentUser) {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'schools', id));
+                } else {
+                    globalSchools = globalSchools.filter(s => s.id !== id);
+                    renderAll();
+                }
+                UI.showNotification('Data sekolah berhasil dihapus.');
+                UI.closeModal('modal-delete');
+            } catch (error) {
+                console.error("Error deleting school:", error);
+                UI.showNotification('Gagal menghapus data.');
+            }
+        };
+
+        window.openActivityModal = () => {
+            const select = document.getElementById('activity-school-id');
+            select.innerHTML = globalSchools.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            
+            if(globalSchools.length === 0) {
+                select.innerHTML = '<option disabled selected>-- Tambah data sekolah dulu --</option>';
+            }
+            
+            document.getElementById('activity-notes').value = '';
+            UI.openModal('modal-aktivitas');
+        };
+
+        window.saveActivity = async () => {
+            const schoolSelect = document.getElementById('activity-school-id');
+            if(!schoolSelect.value || schoolSelect.value.startsWith('--')) {
+                UI.showNotification('Pilih sekolah terlebih dahulu!');
+                return;
+            }
+
+            const schoolId = schoolSelect.value;
+            const schoolName = schoolSelect.options[schoolSelect.selectedIndex].text;
+            const type = document.getElementById('activity-type').value;
+            const notes = document.getElementById('activity-notes').value.trim() || '-';
+
+            try {
+                const actData = {
+                    schoolId,
+                    schoolName,
+                    type,
+                    notes,
+                    createdAt: Date.now()
+                };
+
+                if (isFirebaseActive && auth?.currentUser) {
+                    await addDoc(activitiesRef, actData);
+                } else {
+                    actData.id = 'act-' + Date.now();
+                    globalActivities.push(actData);
+                    renderAll();
+                }
+                UI.showNotification('Log aktivitas tersimpan!');
+                UI.closeModal('modal-aktivitas');
+            } catch (error) {
+                console.error("Error saving activity:", error);
+                UI.showNotification('Gagal menyimpan aktivitas.');
+            }
+        };
+        
+        window.deleteActivity = async (id) => {
+            try {
+                if (isFirebaseActive && auth?.currentUser) {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activities', id));
+                } else {
+                    globalActivities = globalActivities.filter(a => a.id !== id);
+                    renderAll();
+                }
+                UI.showNotification('Aktivitas dihapus.');
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        function initApp() {
+            const loader = document.getElementById('app-loader');
+
+            if (firebaseConfig) {
+                try {
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+
+                    schoolsRef = collection(db, 'artifacts', appId, 'public', 'data', 'schools');
+                    activitiesRef = collection(db, 'artifacts', appId, 'public', 'data', 'activities');
+
+                    const startAuth = async () => {
+                        try {
+                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                                await signInWithCustomToken(auth, __initial_auth_token);
+                            } else {
+                                await signInAnonymously(auth);
+                            }
+                            isFirebaseActive = true;
+
+                            // Setup Realtime Listeners
+                            onSnapshot(schoolsRef, (snapshot) => {
+                                globalSchools = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                                renderAll();
+                                if(loader) loader.style.display = 'none';
+                            }, (err) => {
+                                console.error("Schools snapshot error:", err);
+                                fallbackToLocal();
+                            });
+
+                            onSnapshot(activitiesRef, (snapshot) => {
+                                globalActivities = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                                renderAll();
+                            }, (err) => {
+                                console.error("Activities snapshot error:", err);
+                            });
+
+                        } catch (err) {
+                            console.error("Auth error:", err);
+                            fallbackToLocal();
+                        }
+                    };
+
+                    startAuth();
+                    return;
+                } catch(e) {
+                    console.error("Firebase init failed:", e);
+                }
+            }
+
+            // Fallback if no firebaseConfig or error
+            fallbackToLocal();
         }
+
+        function fallbackToLocal() {
+            isFirebaseActive = false;
+            globalSchools = sampleSchools;
+            globalActivities = sampleActivities;
+            renderAll();
+            const loader = document.getElementById('app-loader');
+            if(loader) loader.style.display = 'none';
+        }
+
+        // Run Application
+        initApp();
     </script>
 </body>
 </html>
