@@ -3,888 +3,1487 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketing Report - Buku Tahunan</title>
+    <title>Aplikasi Marketing Report Buku Tahunan Sekolah</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'], },
-                    colors: { primary: '#4f46e5', secondary: '#10b981', }
-                }
-            }
-        }
-    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .kanban-col { min-height: 300px; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         
-        /* Loading Overlay */
-        #app-loader {
-            position: fixed; inset: 0; background: rgba(255, 255, 255, 0.9);
-            z-index: 100; display: flex; flex-direction: column; justify-content: center; items-center;
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1rem;
+        }
+
+        .kanban-col {
+            min-height: 520px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 0.75rem;
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+
+        .kanban-card {
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+
+        .kanban-card:active {
+            cursor: grabbing;
+            transform: scale(0.98);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(100, 116, 139, 0.5);
+            border-radius: 3px;
+        }
+
+        .leaflet-container {
+            border-radius: 0.75rem;
+            z-index: 10;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: white;
+                color: black;
+            }
+            .glass-panel {
+                background: white;
+                border: 1px solid #ccc;
+                color: black;
+            }
         }
     </style>
 </head>
-<body class="text-gray-800 antialiased h-screen flex overflow-hidden">
+<body class="min-h-screen flex flex-col custom-scrollbar overflow-x-hidden">
 
-    <!-- Loading Screen while connecting to Cloud -->
-    <div id="app-loader" class="flex items-center justify-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-        <p class="text-indigo-900 font-medium" id="loader-text">Menghubungkan ke Database Cloud...</p>
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
+
+    <!-- Modal Config GAS URL jika belum tersambung -->
+    <div id="config-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md hidden">
+        <div class="glass-panel p-8 w-full max-w-md border border-slate-700/50">
+            <h3 class="text-lg font-bold text-white mb-2"><i class="fa-solid fa-link text-indigo-400 mr-2"></i>Koneksi Google Apps Script</h3>
+            <p class="text-xs text-slate-400 mb-4">Masukkan Web App URL dari Google Apps Script untuk menghubungkan Vercel dengan Google Sheets secara real-time.</p>
+            <input type="text" id="input-gas-url" placeholder="https://script.google.com/macros/s/.../exec"
+                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white mb-4 focus:outline-none focus:border-indigo-500">
+            <button onclick="saveGasUrlConfig()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg transition">
+                Simpan & Hubungkan Database
+            </button>
+        </div>
     </div>
 
-    <!-- Sidebar -->
-    <aside class="w-64 bg-indigo-900 text-white flex flex-col hidden md:flex h-full shadow-xl z-20 transition-all duration-300" id="sidebar">
-        <div class="p-6 flex items-center justify-center border-b border-indigo-800">
-            <i class="fas fa-book-open text-2xl mr-3 text-indigo-400"></i>
-            <h1 class="text-xl font-bold tracking-wider text-center">BTS<br><span class="text-sm font-normal text-indigo-300">Marketing Hub</span></h1>
+    <!-- Login Screen -->
+    <div id="login-modal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/90 backdrop-blur-md">
+        <div class="glass-panel p-8 w-full max-w-md shadow-2xl relative border border-slate-700/50">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-book-open text-2xl text-white"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white tracking-tight">Portal BTS Marketing</h2>
+                <p class="text-xs text-slate-400 mt-1">Sistem Laporan & Tracking Buku Tahunan Sekolah</p>
+            </div>
+
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Username / Nama Marketing</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3 top-3 text-slate-400 text-sm"></i>
+                        <input type="text" id="login-username" placeholder="Masukkan nama anda" required
+                            class="w-full bg-slate-900/80 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3 top-3 text-slate-400 text-sm"></i>
+                        <input type="password" id="login-password" placeholder="Masukkan password" required
+                            class="w-full bg-slate-900/80 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Role Akses</label>
+                    <select id="login-role" class="w-full bg-slate-900/80 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                        <option value="Marketing">Marketing Staff</option>
+                        <option value="Admin">Administrator Manager</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-lg shadow-lg shadow-indigo-600/30 transition transform active:scale-95 text-sm mt-2">
+                    Masuk ke Sistem <i class="fa-solid fa-right-to-bracket ml-2"></i>
+                </button>
+            </form>
+
+            <div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center text-xs text-slate-500">
+                <span>Demo: Admin (admin123)</span>
+                <button onclick="openConfigModal()" class="text-indigo-400 hover:underline"><i class="fa-solid fa-gear mr-1"></i>Set Web App URL</button>
+            </div>
         </div>
-        
-        <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-            <button onclick="window.switchTab('dashboard')" id="btn-dashboard" class="w-full flex items-center px-4 py-3 bg-indigo-800 rounded-lg text-left transition-colors text-white">
-                <i class="fas fa-chart-pie w-6"></i> Dashboard
-            </button>
-            <button onclick="window.switchTab('database')" id="btn-database" class="w-full flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg text-left transition-colors text-indigo-200">
-                <i class="fas fa-database w-6"></i> Database Sekolah
-            </button>
-            <button onclick="window.switchTab('activity')" id="btn-activity" class="w-full flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg text-left transition-colors text-indigo-200">
-                <i class="fas fa-calendar-check w-6"></i> Daily Activity
-            </button>
-            <button onclick="window.switchTab('pipeline')" id="btn-pipeline" class="w-full flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg text-left transition-colors text-indigo-200">
-                <i class="fas fa-stream w-6"></i> Pipeline
-            </button>
-            <button onclick="window.switchTab('settings')" id="btn-settings" class="w-full flex items-center px-4 py-3 hover:bg-indigo-800 rounded-lg text-left transition-colors text-indigo-200">
-                <i class="fas fa-cog w-6"></i> Pengaturan
-            </button>
-        </nav>
-        
-        <div class="p-4 border-t border-indigo-800">
-            <div class="flex items-center">
-                <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center font-bold">A</div>
-                <div class="ml-3 text-sm">
-                    <p class="font-semibold">Tim Marketing</p>
-                    <p class="text-indigo-400 text-xs">Cloud Connected</p>
+    </div>
+
+    <div id="app-container" class="hidden min-h-screen flex flex-col">
+        <!-- Top Navbar -->
+        <header class="glass-panel sticky top-0 z-40 rounded-none border-x-0 border-t-0 px-4 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+                    <i class="fa-solid fa-book-bookmark text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold text-white tracking-wide leading-none" id="app-company-name">PT Annual Book Creative</h1>
+                    <span class="text-[11px] text-indigo-400 font-medium">Buku Tahunan Sekolah Marketing Hub</span>
                 </div>
             </div>
-        </div>
-    </aside>
 
-    <!-- Main Content -->
-    <main class="flex-1 flex flex-col h-full relative overflow-hidden">
-        <!-- Mobile Header -->
-        <header class="bg-white shadow-sm h-16 flex items-center justify-between px-4 md:hidden z-10">
-            <div class="flex items-center text-indigo-900 font-bold">
-                <i class="fas fa-book-open mr-2 text-primary"></i> BTS Marketing
+            <!-- Filter Period -->
+            <div class="flex items-center gap-2 bg-slate-900/90 p-1.5 rounded-xl border border-slate-800">
+                <span class="text-xs text-slate-400 px-2 font-semibold hidden sm:inline"><i class="fa-solid fa-filter mr-1 text-indigo-400"></i>Periode:</span>
+                
+                <div class="flex bg-slate-800/80 p-0.5 rounded-lg border border-slate-700/50">
+                    <button id="btn-year-2026" onclick="setFilterYear('2026')" class="px-3 py-1 rounded-md text-xs font-bold transition bg-indigo-600 text-white shadow">2026</button>
+                    <button id="btn-year-2027" onclick="setFilterYear('2027')" class="px-3 py-1 rounded-md text-xs font-bold transition text-slate-400 hover:text-white">2027</button>
+                </div>
+
+                <select id="filter-month" onchange="handleMonthChange(this.value)" class="bg-slate-800 border border-slate-700 text-white text-xs font-medium rounded-lg px-2.5 py-1 focus:outline-none focus:border-indigo-500">
+                    <option value="0">Semua Bulan</option>
+                    <option value="1">Januari</option>
+                    <option value="2">Februari</option>
+                    <option value="3">Maret</option>
+                    <option value="4">April</option>
+                    <option value="5">Mei</option>
+                    <option value="6">Juni</option>
+                    <option value="7">Juli</option>
+                    <option value="8">Agustus</option>
+                    <option value="9">September</option>
+                    <option value="10">Oktober</option>
+                    <option value="11">November</option>
+                    <option value="12">Desember</option>
+                </select>
+
+                <button onclick="fetchSyncFromGAS()" title="Sinkronkan Data Google Sheets" class="p-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs transition ml-1">
+                    <i class="fa-solid fa-rotate" id="sync-spinner"></i>
+                </button>
             </div>
-            <button onclick="window.toggleMobileMenu()" class="text-gray-600 focus:outline-none">
-                <i class="fas fa-bars text-xl"></i>
-            </button>
+
+            <div class="flex items-center gap-3">
+                <div class="text-right hidden md:block">
+                    <div class="text-xs font-bold text-white flex items-center gap-1.5 justify-end">
+                        <span id="user-display-name">Budi Santoso</span>
+                        <span id="user-role-badge" class="px-1.5 py-0.5 text-[10px] bg-indigo-500/20 text-indigo-300 rounded border border-indigo-500/30 font-semibold">Marketing</span>
+                    </div>
+                    <span class="text-[10px] text-emerald-400 font-semibold"><i class="fa-solid fa-circle text-[7px] mr-1"></i>Connected</span>
+                </div>
+                <button onclick="handleLogout()" title="Keluar" class="p-2 bg-slate-800 hover:bg-rose-900/40 text-slate-300 hover:text-rose-400 border border-slate-700 rounded-lg transition">
+                    <i class="fa-solid fa-power-off text-sm"></i>
+                </button>
+            </div>
         </header>
 
-        <!-- Content Area -->
-        <div class="flex-1 overflow-y-auto p-4 md:p-8 w-full" id="main-content">
-            
-            <!-- DASHBOARD VIEW -->
-            <section id="dashboard" class="tab-content active">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800">Dashboard Overview</h2>
-                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold flex items-center">
-                        <span class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span> Realtime Active
-                    </span>
+        <!-- Navigation Tabs -->
+        <nav class="bg-slate-900/80 border-b border-slate-800 px-4 lg:px-8 py-2 overflow-x-auto custom-scrollbar no-print">
+            <div class="flex items-center space-x-2 min-w-max">
+                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn active px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20">
+                    <i class="fa-solid fa-chart-pie"></i> Dashboard KPI
+                </button>
+                <button onclick="switchTab('sekolah')" id="tab-sekolah" class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-school"></i> Data Sekolah
+                </button>
+                <button onclick="switchTab('daily')" id="tab-daily" class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-calendar-check"></i> Daily Activity
+                </button>
+                <button onclick="switchTab('pipeline')" id="tab-pipeline" class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-bars-staggered"></i> Kanban Pipeline
+                </button>
+                <button onclick="switchTab('notifications')" id="tab-notifications" class="tab-btn relative px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-bell"></i> Notifikasi
+                    <span id="notif-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full text-[9px] flex items-center justify-center font-bold">0</span>
+                </button>
+                <button onclick="switchTab('gps')" id="tab-gps" class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-location-dot text-rose-400"></i> Pantau GPS
+                </button>
+                <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn admin-only hidden px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-gears text-amber-400"></i> Pengaturan Admin
+                </button>
+            </div>
+        </nav>
+
+        <main class="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+
+            <section id="view-dashboard" class="space-y-6">
+                <!-- KPI Header Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div class="glass-panel p-4 border-l-4 border-blue-500">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[11px] font-semibold uppercase text-slate-400">Total Database</p>
+                                <h3 class="text-2xl font-extrabold text-white mt-1" id="kpi-db-count">0</h3>
+                            </div>
+                            <div class="p-2 bg-blue-500/10 text-blue-400 rounded-lg"><i class="fa-solid fa-database text-lg"></i></div>
+                        </div>
+                        <div class="mt-3 flex items-center text-xs text-slate-400"><span class="text-blue-400 font-semibold mr-1" id="kpi-db-pct">0%</span> dari target</div>
+                    </div>
+
+                    <div class="glass-panel p-4 border-l-4 border-indigo-500">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[11px] font-semibold uppercase text-slate-400">Total Canvassing</p>
+                                <h3 class="text-2xl font-extrabold text-white mt-1" id="kpi-canvass-count">0</h3>
+                            </div>
+                            <div class="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg"><i class="fa-solid fa-shoe-prints text-lg"></i></div>
+                        </div>
+                        <div class="mt-3 flex items-center text-xs text-slate-400"><span class="text-indigo-400 font-semibold mr-1" id="kpi-canvass-pct">0%</span> dari target</div>
+                    </div>
+
+                    <div class="glass-panel p-4 border-l-4 border-purple-500">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[11px] font-semibold uppercase text-slate-400">Total Presentasi</p>
+                                <h3 class="text-2xl font-extrabold text-white mt-1" id="kpi-pres-count">0</h3>
+                            </div>
+                            <div class="p-2 bg-purple-500/10 text-purple-400 rounded-lg"><i class="fa-solid fa-chalkboard-user text-lg"></i></div>
+                        </div>
+                        <div class="mt-3 flex items-center text-xs text-slate-400"><span class="text-purple-400 font-semibold mr-1" id="kpi-pres-pct">0%</span> dari target</div>
+                    </div>
+
+                    <div class="glass-panel p-4 border-l-4 border-emerald-500">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[11px] font-semibold uppercase text-slate-400">Total Deal</p>
+                                <h3 class="text-2xl font-extrabold text-emerald-400 mt-1" id="kpi-deal-count">0</h3>
+                            </div>
+                            <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg"><i class="fa-solid fa-circle-check text-lg"></i></div>
+                        </div>
+                        <div class="mt-3 flex items-center text-xs text-slate-400"><span class="text-emerald-400 font-semibold mr-1" id="kpi-deal-pct">0%</span> dari target</div>
+                    </div>
+
+                    <div class="glass-panel p-4 border-l-4 border-rose-500">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[11px] font-semibold uppercase text-slate-400">Belum Deal</p>
+                                <h3 class="text-2xl font-extrabold text-rose-400 mt-1" id="kpi-nodeal-count">0</h3>
+                            </div>
+                            <div class="p-2 bg-rose-500/10 text-rose-400 rounded-lg"><i class="fa-solid fa-circle-xmark text-lg"></i></div>
+                        </div>
+                        <div class="mt-3 flex items-center text-xs text-slate-400"><span class="text-rose-400 font-semibold mr-1" id="kpi-nodeal-pct">0%</span> rasio</div>
+                    </div>
                 </div>
-                
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center">
-                        <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl mr-4">
-                            <i class="fas fa-school"></i>
-                        </div>
+
+                <!-- Metrics & Progress -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="glass-panel p-4 flex items-center gap-4">
+                        <div class="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 text-xl"><i class="fa-solid fa-percent"></i></div>
                         <div>
-                            <p class="text-sm text-gray-500 font-medium">Total Sekolah</p>
-                            <p class="text-2xl font-bold text-gray-800" id="stat-total-schools">0</p>
+                            <p class="text-xs text-slate-400 font-medium">Conversion Rate</p>
+                            <h4 class="text-xl font-bold text-white" id="kpi-conversion-rate">0%</h4>
                         </div>
                     </div>
-                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center">
-                        <div class="w-12 h-12 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center text-xl mr-4">
-                            <i class="fas fa-handshake"></i>
-                        </div>
+
+                    <div class="glass-panel p-4 flex items-center gap-4">
+                        <div class="w-12 h-12 bg-cyan-500/10 rounded-xl flex items-center justify-center text-cyan-400 text-xl"><i class="fa-solid fa-bullseye"></i></div>
                         <div>
-                            <p class="text-sm text-gray-500 font-medium">Prospek Aktif</p>
-                            <p class="text-2xl font-bold text-gray-800" id="stat-active-prospects">0</p>
+                            <p class="text-xs text-slate-400 font-medium">Target Harian</p>
+                            <h4 class="text-xl font-bold text-white" id="kpi-target-harian">5 Canvass</h4>
                         </div>
                     </div>
-                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center">
-                        <div class="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xl mr-4">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
+
+                    <div class="glass-panel p-4 flex items-center gap-4">
+                        <div class="w-12 h-12 bg-teal-500/10 rounded-xl flex items-center justify-center text-teal-400 text-xl"><i class="fa-solid fa-sack-dollar"></i></div>
                         <div>
-                            <p class="text-sm text-gray-500 font-medium">Total Deal</p>
-                            <p class="text-2xl font-bold text-gray-800" id="stat-deals">0</p>
+                            <p class="text-xs text-slate-400 font-medium">Target Bulanan</p>
+                            <h4 class="text-sm font-bold text-white" id="kpi-target-bulanan">Rp. 100.000.000</h4>
                         </div>
                     </div>
-                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center">
-                        <div class="w-12 h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xl mr-4">
-                            <i class="fas fa-walking"></i>
+
+                    <div class="glass-panel p-4 flex flex-col justify-center">
+                        <div class="flex justify-between items-center text-xs mb-1">
+                            <span class="text-slate-400 font-medium">Progress Target Total</span>
+                            <span class="text-emerald-400 font-bold" id="kpi-progress-pct">0%</span>
                         </div>
-                        <div>
-                            <p class="text-sm text-gray-500 font-medium">Total Aktivitas</p>
-                            <p class="text-2xl font-bold text-gray-800" id="stat-activities">0</p>
+                        <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700">
+                            <div id="kpi-progress-bar" class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Charts -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Recent Activities -->
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">Aktivitas Terbaru</h3>
-                        <div class="space-y-4" id="dashboard-recent-activity">
-                            <!-- Injected via JS -->
+                    <div class="glass-panel p-5">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-chart-line text-indigo-400"></i> Grafik Closing Bulanan (Rp)</h3>
+                            <span class="text-[11px] text-slate-400" id="chart-year-label">Tahun 2026</span>
                         </div>
+                        <div class="h-64 relative"><canvas id="chartClosing"></canvas></div>
                     </div>
-                    <!-- Pipeline Summary -->
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">Status Pipeline</h3>
-                        <div class="space-y-4" id="dashboard-pipeline-summary">
-                             <!-- Injected via JS -->
+
+                    <div class="glass-panel p-5">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-chart-column text-purple-400"></i> Grafik Aktivitas Marketing</h3>
+                            <span class="text-[11px] text-slate-400">Per Stage</span>
                         </div>
+                        <div class="h-64 relative"><canvas id="chartActivity"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Widgets -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="glass-panel p-5">
+                        <h3 class="text-sm font-bold text-amber-300 flex items-center gap-2 mb-3"><i class="fa-solid fa-clock text-amber-400"></i> Reminder Follow Up</h3>
+                        <div id="widget-reminder-list" class="space-y-2 max-h-56 overflow-y-auto custom-scrollbar pr-1"></div>
+                    </div>
+
+                    <div class="glass-panel p-5">
+                        <h3 class="text-sm font-bold text-indigo-300 flex items-center gap-2 mb-3"><i class="fa-solid fa-calendar-day text-indigo-400"></i> Jadwal Hari Ini</h3>
+                        <div id="widget-today-schedule" class="space-y-2 max-h-56 overflow-y-auto custom-scrollbar pr-1"></div>
+                    </div>
+
+                    <div class="glass-panel p-5">
+                        <h3 class="text-sm font-bold text-emerald-300 flex items-center gap-2 mb-3"><i class="fa-solid fa-bell text-emerald-400"></i> Notifikasi Pipeline Baru</h3>
+                        <div id="widget-new-pipeline" class="space-y-2 max-h-56 overflow-y-auto custom-scrollbar pr-1"></div>
                     </div>
                 </div>
             </section>
 
-            <!-- DATABASE SEKOLAH VIEW -->
-            <section id="database" class="tab-content">
-                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                    <h2 class="text-2xl font-bold text-gray-800">Database Sekolah</h2>
-                    <button class="bg-primary hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" onclick="window.openSchoolModal()">
-                        <i class="fas fa-plus mr-2"></i> Tambah Sekolah
-                    </button>
-                </div>
+            <section id="view-sekolah" class="hidden space-y-4">
+                <div class="glass-panel p-5">
+                    <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-white">Database Sekolah</h2>
+                            <p class="text-xs text-slate-400">Master data sekolah prospek & klien</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="openModalSekolah()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> Tambah Sekolah</button>
+                            <button onclick="exportSekolahExcel()" class="px-3 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+                            <button onclick="window.print()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5"><i class="fa-solid fa-print"></i> Cetak PDF</button>
+                        </div>
+                    </div>
 
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                                    <th class="p-4 border-b">Nama Sekolah</th>
-                                    <th class="p-4 border-b">Wilayah</th>
-                                    <th class="p-4 border-b">Kontak (PIC)</th>
-                                    <th class="p-4 border-b">Estimasi Siswa</th>
-                                    <th class="p-4 border-b">Status</th>
-                                    <th class="p-4 border-b text-right">Aksi</th>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                        <input type="text" id="search-sekolah" onkeyup="renderTableSekolah()" placeholder="Cari nama sekolah / PIC..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                        <select id="filter-jenjang" onchange="renderTableSekolah()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                            <option value="">Semua Jenjang</option>
+                            <option value="SMP">SMP / MTs</option>
+                            <option value="SMA">SMA / MA</option>
+                            <option value="SMK">SMK</option>
+                            <option value="SD">SD / MI</option>
+                        </select>
+                        <select id="filter-wilayah" onchange="renderTableSekolah()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                            <option value="">Semua Wilayah</option>
+                        </select>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-lg border border-slate-800">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900/90 uppercase text-[10px] text-slate-400 font-bold border-b border-slate-800">
+                                <tr>
+                                    <th class="p-3">ID</th>
+                                    <th class="p-3">Nama Sekolah</th>
+                                    <th class="p-3">Jenjang</th>
+                                    <th class="p-3">Alamat</th>
+                                    <th class="p-3">Wilayah</th>
+                                    <th class="p-3">PIC & WA</th>
+                                    <th class="p-3">Marketing</th>
+                                    <th class="p-3 text-center no-print">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="database-table-body" class="text-sm divide-y divide-gray-100">
-                                <!-- Injected via JS -->
-                            </tbody>
+                            <tbody id="tbody-sekolah" class="divide-y divide-slate-800"></tbody>
                         </table>
                     </div>
                 </div>
             </section>
 
-            <!-- DAILY ACTIVITY VIEW -->
-            <section id="activity" class="tab-content">
-                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                    <h2 class="text-2xl font-bold text-gray-800">Catatan Aktivitas Harian</h2>
-                    <button class="bg-primary hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" onclick="window.openActivityModal()">
-                        <i class="fas fa-pen mr-2"></i> Log Aktivitas
-                    </button>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <div class="relative border-l-2 border-indigo-200 ml-3 space-y-8" id="activity-timeline">
-                        <!-- Injected via JS -->
-                    </div>
-                </div>
-            </section>
-
-            <!-- PIPELINE VIEW -->
-            <section id="pipeline" class="tab-content">
-                <h2 class="text-2xl font-bold mb-6 text-gray-800">Sales Pipeline</h2>
-                
-                <div class="flex space-x-4 overflow-x-auto pb-4" id="kanban-board">
-                    <!-- Columns injected via JS -->
-                </div>
-            </section>
-
-            <!-- SETTINGS VIEW -->
-            <section id="settings" class="tab-content">
-                <h2 class="text-2xl font-bold mb-6 text-gray-800">Pengaturan Aplikasi</h2>
-                
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-2xl space-y-4">
-                    <div class="flex items-center justify-between pb-4 border-b">
+            <section id="view-daily" class="hidden space-y-4">
+                <div class="glass-panel p-5">
+                    <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
                         <div>
-                            <h3 class="font-bold text-gray-800">Status Koneksi</h3>
-                            <p class="text-sm text-gray-500" id="connection-status-desc">Memeriksa status database...</p>
+                            <h2 class="text-lg font-bold text-white">Daily Activity Kunjungan</h2>
+                            <p class="text-xs text-slate-400">Log aktivitas harian canvassing</p>
                         </div>
-                        <span id="connection-status-badge" class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">Checking</span>
+                        <button onclick="openModalActivity()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> Input Aktivitas Baru</button>
                     </div>
-                    <div>
-                        <p class="text-sm text-gray-600 mb-4">Aplikasi mendukung mode <b>Realtime Cloud Sync</b> (saat dikonfigurasi) serta mode <b>Standalone / In-Memory</b> jika berjalan tanpa Firebase configuration.</p>
-                        
-                        <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
-                            <h4 class="font-bold text-indigo-900 mb-2"><i class="fas fa-cloud-upload-alt mr-2"></i>Konfigurasi Cloud (Untuk Vercel / Hosting Eksternal)</h4>
-                            <p class="text-xs text-indigo-700 mb-3">Jika Anda meng-host aplikasi ini di Vercel atau server lain, masukkan <b>Firebase Config JSON</b> Anda di bawah ini agar aplikasi ini tersinkronisasi secara real-time di semua perangkat (HP & PC).</p>
-                            <textarea id="custom-firebase-config" rows="5" class="w-full p-3 text-xs font-mono border border-indigo-200 rounded-lg focus:ring-primary focus:border-primary mb-3 bg-white" placeholder='{"apiKey": "AIzaSy...", "authDomain": "app-name.firebaseapp.com", "projectId": "app-name", ...}'></textarea>
-                            <div class="flex justify-between items-center">
-                                <button onclick="window.clearFirebaseConfig()" class="text-xs text-red-600 hover:text-red-800 font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors">Hapus Konfigurasi</button>
-                                <button onclick="window.saveFirebaseConfig()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"><i class="fas fa-save mr-2"></i>Simpan & Hubungkan</button>
+
+                    <div class="flex items-center gap-3 mb-4 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                        <label class="text-xs font-semibold text-slate-300">Filter Tanggal:</label>
+                        <input type="date" id="filter-act-date" onchange="renderDailyActivityTable()" class="bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-2.5 py-1.5">
+                        <button onclick="document.getElementById('filter-act-date').value=''; renderDailyActivityTable();" class="text-xs text-indigo-400 hover:underline">Reset Filter</button>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-lg border border-slate-800">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900/90 uppercase text-[10px] text-slate-400 font-bold border-b border-slate-800">
+                                <tr>
+                                    <th class="p-3">Tanggal</th>
+                                    <th class="p-3">Marketing</th>
+                                    <th class="p-3">Sekolah</th>
+                                    <th class="p-3">Aktivitas</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3">Hasil Kunjungan</th>
+                                    <th class="p-3">GPS</th>
+                                    <th class="p-3">Nominal Deal</th>
+                                    <th class="p-3 text-center no-print">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-daily" class="divide-y divide-slate-800"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-pipeline" class="hidden space-y-4">
+                <div class="glass-panel p-5">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-white">Kanban Pipeline Marketing</h2>
+                            <p class="text-xs text-slate-400">Drag & Drop kartu untuk update status prospek</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 overflow-x-auto pb-4 custom-scrollbar">
+                        <div class="kanban-col p-3 flex flex-col gap-3" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'Prospect')">
+                            <div class="flex items-center justify-between pb-2 border-b border-slate-700">
+                                <span class="text-xs font-bold text-blue-400"><i class="fa-solid fa-magnifying-glass"></i> Prospect</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300" id="count-prospect">0</span>
+                            </div>
+                            <div id="col-prospect" class="space-y-3 flex-1"></div>
+                        </div>
+
+                        <div class="kanban-col p-3 flex flex-col gap-3" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'Follow Up')">
+                            <div class="flex items-center justify-between pb-2 border-b border-slate-700">
+                                <span class="text-xs font-bold text-amber-400"><i class="fa-solid fa-phone"></i> Follow Up</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300" id="count-followup">0</span>
+                            </div>
+                            <div id="col-followup" class="space-y-3 flex-1"></div>
+                        </div>
+
+                        <div class="kanban-col p-3 flex flex-col gap-3" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'Presentasi')">
+                            <div class="flex items-center justify-between pb-2 border-b border-slate-700">
+                                <span class="text-xs font-bold text-purple-400"><i class="fa-solid fa-display"></i> Presentasi</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300" id="count-presentasi">0</span>
+                            </div>
+                            <div id="col-presentasi" class="space-y-3 flex-1"></div>
+                        </div>
+
+                        <div class="kanban-col p-3 flex flex-col gap-3" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'Negosiasi')">
+                            <div class="flex items-center justify-between pb-2 border-b border-slate-700">
+                                <span class="text-xs font-bold text-cyan-400"><i class="fa-solid fa-comments-dollar"></i> Negosiasi</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300" id="count-negosiasi">0</span>
+                            </div>
+                            <div id="col-negosiasi" class="space-y-3 flex-1"></div>
+                        </div>
+
+                        <div class="kanban-col p-3 flex flex-col gap-3 bg-emerald-950/20 border-emerald-500/20" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'Deal')">
+                            <div class="flex items-center justify-between pb-2 border-b border-emerald-800">
+                                <span class="text-xs font-bold text-emerald-400"><i class="fa-solid fa-trophy"></i> Deal</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300" id="count-deal">0</span>
+                            </div>
+                            <div id="col-deal" class="space-y-3 flex-1"></div>
+                        </div>
+
+                        <div class="kanban-col p-3 flex flex-col gap-3 bg-rose-950/20 border-rose-500/20" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'Belum Deal')">
+                            <div class="flex items-center justify-between pb-2 border-b border-rose-800">
+                                <span class="text-xs font-bold text-rose-400"><i class="fa-solid fa-circle-xmark"></i> Belum Deal</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300" id="count-nodeal">0</span>
+                            </div>
+                            <div id="col-nodeal" class="space-y-3 flex-1"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-notifications" class="hidden space-y-4">
+                <div class="glass-panel p-5">
+                    <h2 class="text-lg font-bold text-white mb-2">Pusat Notifikasi & Reminder Otomatis</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="notifications-container"></div>
+                </div>
+            </section>
+
+            <section id="view-gps" class="hidden space-y-4">
+                <div class="glass-panel p-5">
+                    <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                        <h2 class="text-lg font-bold text-white">Peta Tracking GPS Kunjungan</h2>
+                        <select id="gps-filter-mkt" onchange="renderGpsMap()" class="bg-slate-800 border border-slate-700 text-xs text-white rounded-lg px-3 py-1.5">
+                            <option value="ALL">Semua Marketing</option>
+                        </select>
+                    </div>
+                    <div id="map" class="w-full h-96 bg-slate-900 rounded-xl border border-slate-800 relative z-10"></div>
+                    <div class="mt-6">
+                        <h3 class="text-sm font-bold text-white mb-3"><i class="fa-solid fa-route text-rose-400 mr-2"></i>Histori Kunjungan Lapangan</h3>
+                        <div id="gps-history-timeline" class="space-y-3 max-h-64 overflow-y-auto custom-scrollbar"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-settings" class="hidden space-y-6">
+                <div class="glass-panel p-5">
+                    <h2 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-sliders text-amber-400 mr-2"></i>Pengaturan Sistem (Khusus Manager Admin)</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-bold text-indigo-400 border-b border-slate-800 pb-2">Profil Perusahaan & Target</h3>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Perusahaan</label>
+                                <input type="text" id="setting-company-name" value="PT Annual Book Creative" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Target Canvassing Harian</label>
+                                <input type="number" id="setting-target-harian" value="5" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                            </div>
+                            <button onclick="saveGeneralSettings()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg shadow">Simpan Pengaturan</button>
+                        </div>
+
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-bold text-emerald-400 border-b border-slate-800 pb-2">Backup & Restore Database</h3>
+                            <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-800 space-y-3">
+                                <div class="flex gap-3">
+                                    <button onclick="handleBackupDatabase()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg flex items-center gap-2"><i class="fa-solid fa-download"></i> Backup JSON</button>
+                                    <label class="px-3 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-lg cursor-pointer flex items-center gap-2">
+                                        <i class="fa-solid fa-upload"></i> Restore JSON
+                                        <input type="file" id="restore-file-input" onchange="handleRestoreDatabase(event)" class="hidden" accept=".json">
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    <div class="mt-8 pt-6 border-t border-slate-800">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-sm font-bold text-white">Data Marketing Staff & Hak Akses</h3>
+                            <button onclick="openModalMarketing()" class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold"><i class="fa-solid fa-user-plus mr-1"></i> Tambah Marketing</button>
+                        </div>
+                        <div class="overflow-x-auto rounded-lg border border-slate-800">
+                            <table class="w-full text-left text-xs text-slate-300">
+                                <thead class="bg-slate-900/90 uppercase text-[10px] text-slate-400 font-bold border-b border-slate-800">
+                                    <tr>
+                                        <th class="p-3">ID</th>
+                                        <th class="p-3">Nama Staff</th>
+                                        <th class="p-3">Nomor WhatsApp</th>
+                                        <th class="p-3">Area</th>
+                                        <th class="p-3">Role</th>
+                                        <th class="p-3">Target Deal Bulanan</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-marketing" class="divide-y divide-slate-800"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </section>
-
-        </div>
-    </main>
-
-    <!-- Notification Toast -->
-    <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center">
-        <i class="fas fa-info-circle mr-3 text-indigo-400"></i>
-        <span id="toast-message">Pesan notifikasi</span>
+        </main>
     </div>
 
-    <!-- Modal Form Sekolah (Tambah/Edit) -->
-    <div id="modal-sekolah" class="fixed inset-0 bg-black bg-opacity-50 z-[60] hidden items-center justify-center">
-        <div class="bg-white rounded-xl shadow-lg w-11/12 md:w-1/2 lg:w-1/3 p-6 max-h-screen overflow-y-auto">
-            <h3 class="text-lg font-bold mb-4 text-gray-800" id="school-modal-title">Tambah Database Sekolah</h3>
-            <input type="hidden" id="school-id">
-            <div class="space-y-4">
+    <!-- Modals -->
+    <div id="modal-sekolah" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-lg p-6 space-y-4 border border-slate-700">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                <h3 class="text-base font-bold text-white" id="modal-sekolah-title">Tambah Data Sekolah</h3>
+                <button onclick="closeModalSekolah()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="form-sekolah" onsubmit="handleSaveSekolah(event)" class="space-y-3">
+                <input type="hidden" id="sekolah-id">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Sekolah</label>
-                    <input type="text" id="school-name" placeholder="Contoh: SMAN 1 Jakarta" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Sekolah</label>
+                    <input type="text" id="sekolah-nama" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Jenjang</label>
+                        <select id="sekolah-jenjang" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                            <option value="SMA">SMA / MA</option>
+                            <option value="SMK">SMK</option>
+                            <option value="SMP">SMP / MTs</option>
+                            <option value="SD">SD / MI</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Wilayah / Kota</label>
+                        <input type="text" id="sekolah-wilayah" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Wilayah</label>
-                    <input type="text" id="school-region" placeholder="Contoh: Jakarta Pusat" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Alamat Lengkap</label>
+                    <textarea id="sekolah-alamat" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nama PIC Sekolah</label>
+                        <input type="text" id="sekolah-pic" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nomor WhatsApp PIC</label>
+                        <input type="text" id="sekolah-wa" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Kontak (PIC)</label>
-                    <input type="text" id="school-contact" placeholder="Contoh: Bpk. Budi (0812...)" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Marketing</label>
+                    <input type="text" id="sekolah-mkt" readonly class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-400 font-semibold">
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="closeModalSekolah()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-bold">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-activity" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-lg p-6 space-y-4 border border-slate-700 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                <h3 class="text-base font-bold text-white">Input Daily Activity Kunjungan</h3>
+                <button onclick="closeModalActivity()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="form-activity" onsubmit="handleSaveActivity(event)" class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Tanggal Kunjungan</label>
+                        <input type="date" id="act-date" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Marketing</label>
+                        <input type="text" id="act-mkt" readonly class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-400 font-semibold">
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Estimasi Siswa</label>
-                    <input type="number" id="school-students" placeholder="Contoh: 350" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Pilih Sekolah</label>
+                    <select id="act-sekolah" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white"><option value="">-- Pilih Sekolah --</option></select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Aktivitas</label>
+                        <select id="act-jenis" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                            <option value="Prospect">Prospect</option>
+                            <option value="Follow Up">Follow Up</option>
+                            <option value="Presentasi">Presentasi</option>
+                            <option value="Negosiasi">Negosiasi</option>
+                            <option value="Deal">Deal</option>
+                            <option value="Belum Deal">Belum Deal</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Status Prospect</label>
+                        <select id="act-status" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                            <option value="Hot">Hot</option>
+                            <option value="Warm">Warm</option>
+                            <option value="Cold">Cold</option>
+                        </select>
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Status Pipeline</label>
-                    <select id="school-status" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
-                        <option value="Prospek">Prospek</option>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Hasil Kunjungan</label>
+                    <select id="act-hasil" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" onchange="toggleNominalDealInput(this.value)">
+                        <option value="Prospect">Prospect</option>
+                        <option value="Follow Up">Follow Up</option>
                         <option value="Presentasi">Presentasi</option>
                         <option value="Negosiasi">Negosiasi</option>
                         <option value="Deal">Deal</option>
-                        <option value="Batal">Batal</option>
+                        <option value="Belum Deal">Belum Deal</option>
                     </select>
                 </div>
-            </div>
-            <div class="mt-6 flex justify-end space-x-3">
-                <button onclick="window.closeModal('modal-sekolah')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">Batal</button>
-                <button onclick="window.saveSchool()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700 font-medium">Simpan Data</button>
-            </div>
+                <div id="wrapper-nominal-deal" class="p-3 bg-emerald-950/30 rounded-xl border border-emerald-500/30">
+                    <label class="block text-xs font-semibold text-emerald-300 mb-1">Nominal Harga Deal (Rp)</label>
+                    <input type="text" id="act-nominal" placeholder="Rp. 60.000.000" onkeyup="formatCurrencyInput(this)" class="w-full bg-slate-900 border border-emerald-600 rounded-lg px-3 py-2 text-xs text-emerald-300 font-bold">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Lokasi GPS</label>
+                        <div class="flex gap-1">
+                            <input type="text" id="act-gps" placeholder="-6.175392, 106.827153" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white">
+                            <button type="button" onclick="getCurrentGpsLocation()" class="px-2 py-1.5 bg-slate-800 text-indigo-400 rounded-lg border border-slate-700 text-xs"><i class="fa-solid fa-crosshairs"></i></button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Foto Lokasi</label>
+                        <input type="file" id="act-foto" accept="image/*" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-400">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="closeModalActivity()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-bold">Simpan Aktivitas</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Modal Form Log Aktivitas -->
-    <div id="modal-aktivitas" class="fixed inset-0 bg-black bg-opacity-50 z-[60] hidden items-center justify-center">
-        <div class="bg-white rounded-xl shadow-lg w-11/12 md:w-1/2 lg:w-1/3 p-6 max-h-screen overflow-y-auto">
-            <h3 class="text-lg font-bold mb-4 text-gray-800">Log Aktivitas Baru</h3>
-            <div class="space-y-4">
+    <div id="modal-marketing" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md p-6 space-y-4 border border-slate-700">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                <h3 class="text-base font-bold text-white">Tambah Staff Marketing</h3>
+                <button onclick="closeModalMarketing()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="form-marketing" onsubmit="handleSaveMarketing(event)" class="space-y-3">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Sekolah</label>
-                    <select id="activity-school-id" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
-                        <!-- Injected via JS -->
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Marketing</label>
+                    <input type="text" id="mkt-nama" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Nomor WhatsApp</label>
+                    <input type="text" id="mkt-wa" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Area Wilayah Kerja</label>
+                    <select id="mkt-area" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                        <option value="Jakarta">Jakarta</option>
+                        <option value="Bandung">Bandung</option>
+                        <option value="Surabaya">Surabaya</option>
+                        <option value="Semarang">Semarang</option>
+                        <option value="Yogyakarta">Yogyakarta</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Aktivitas</label>
-                    <select id="activity-type" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
-                        <option value="Follow Up">Follow Up via WA/Telepon</option>
-                        <option value="Kunjungan">Kunjungan Sekolah</option>
-                        <option value="Presentasi">Presentasi</option>
-                        <option value="MOU">Tanda Tangan MOU</option>
-                    </select>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Target Revenue Bulanan (Rp)</label>
+                    <input type="number" id="mkt-target" value="100000000" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Catatan Tambahan</label>
-                    <textarea id="activity-notes" placeholder="Tulis hasil pertemuan atau kontak..." rows="3" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"></textarea>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="closeModalMarketing()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-bold">Simpan</button>
                 </div>
-            </div>
-            <div class="mt-6 flex justify-end space-x-3">
-                <button onclick="window.closeModal('modal-aktivitas')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">Batal</button>
-                <button onclick="window.saveActivity()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700 font-medium">Simpan Log</button>
-            </div>
+            </form>
         </div>
     </div>
 
-    <!-- Modal Konfirmasi Hapus -->
-    <div id="modal-delete" class="fixed inset-0 bg-black bg-opacity-50 z-[70] hidden items-center justify-center">
-        <div class="bg-white rounded-xl shadow-lg w-11/12 max-w-md p-6">
-            <div class="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mx-auto mb-4">
-                <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
-            </div>
-            <h3 class="text-lg font-bold mb-2 text-center text-gray-800">Konfirmasi Hapus</h3>
-            <p class="text-sm text-gray-600 text-center mb-6">Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.</p>
-            <input type="hidden" id="delete-id">
-            <div class="flex justify-center space-x-3">
-                <button onclick="window.closeModal('modal-delete')" class="px-4 py-2 text-gray-600 border border-gray-300 hover:bg-gray-100 rounded-lg font-medium">Batal</button>
-                <button onclick="window.executeDelete()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">Ya, Hapus</button>
-            </div>
-        </div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Environment Variables Handling
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'vercel-bts-marketing';
-        let firebaseConfig = null;
-        try {
-            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                firebaseConfig = JSON.parse(__firebase_config);
-            } else {
-                // Fallback for Vercel / External Hosting using localStorage
-                const savedConfig = localStorage.getItem('custom_firebase_config');
-                if(savedConfig) {
-                    firebaseConfig = JSON.parse(savedConfig);
-                }
-            }
-        } catch(e) { console.error("Firebase config parsing error", e); }
-
-        // State Data
-        let globalSchools = [];
-        let globalActivities = [];
-        let isFirebaseActive = false;
-        let db = null;
-        let auth = null;
-        let schoolsRef = null;
-        let activitiesRef = null;
-
-        const pipelineStages = ['Prospek', 'Presentasi', 'Negosiasi', 'Deal', 'Batal'];
-
-        // Initial Sample Data for Fallback/Standalone Mode
-        const sampleSchools = [
-            { id: 'sch-1', name: 'SMAN 1 Jakarta', region: 'Jakarta Pusat', contact: 'Bpk. Budi (08123456789)', students: '350', status: 'Deal', createdAt: Date.now() - 86400000 * 3 },
-            { id: 'sch-2', name: 'SMKN 2 Bandung', region: 'Bandung', contact: 'Ibu Ani (08219876543)', students: '420', status: 'Presentasi', createdAt: Date.now() - 86400000 * 2 },
-            { id: 'sch-3', name: 'SMA Al-Azhar', region: 'Jakarta Selatan', contact: 'Bpk. Ahmad (08571234567)', students: '280', status: 'Prospek', createdAt: Date.now() - 86400000 },
-            { id: 'sch-4', name: 'SMAN 3 Surabaya', region: 'Surabaya', contact: 'Bpk. Heru (08135555123)', students: '500', status: 'Negosiasi', createdAt: Date.now() - 43200000 }
-        ];
-
-        const sampleActivities = [
-            { id: 'act-1', schoolId: 'sch-1', schoolName: 'SMAN 1 Jakarta', type: 'MOU', notes: 'Penandatanganan MOU Buku Tahunan Sekolah tahun ajaran 2026/2027.', createdAt: Date.now() - 86400000 * 2 },
-            { id: 'act-2', schoolId: 'sch-2', schoolName: 'SMKN 2 Bandung', type: 'Presentasi', notes: 'Presentasi paket album fisik & versi digital interaktif ke panitia OSIS.', createdAt: Date.now() - 86400000 },
-            { id: 'act-3', schoolId: 'sch-3', schoolName: 'SMA Al-Azhar', type: 'Follow Up', notes: 'Diskusi awal penawaran cetak foto & harga per siswa.', createdAt: Date.now() - 21600000 }
-        ];
-
-        // Core Functions Map
-        const UI = {
-            switchTab: (tabId) => {
-                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-                document.getElementById(tabId).classList.add('active');
-
-                document.querySelectorAll('nav button').forEach(btn => {
-                    btn.classList.remove('bg-indigo-800', 'text-white');
-                    btn.classList.add('text-indigo-200');
-                });
-                const activeBtn = document.getElementById(`btn-${tabId}`);
-                if(activeBtn) {
-                    activeBtn.classList.remove('text-indigo-200');
-                    activeBtn.classList.add('bg-indigo-800', 'text-white');
-                }
-
-                const sidebar = document.getElementById('sidebar');
-                if(window.innerWidth < 768 && !sidebar.classList.contains('hidden')) {
-                    sidebar.classList.add('hidden');
-                    sidebar.classList.remove('absolute', 'z-50', 'w-64', 'h-full', 'top-0', 'left-0');
-                }
-            },
-            toggleMobileMenu: () => {
-                const sidebar = document.getElementById('sidebar');
-                if (sidebar.classList.contains('hidden')) {
-                    sidebar.classList.remove('hidden');
-                    sidebar.classList.add('absolute', 'z-50', 'w-64', 'h-full', 'top-0', 'left-0');
-                } else {
-                    sidebar.classList.add('hidden');
-                    sidebar.classList.remove('absolute', 'z-50', 'w-64', 'h-full', 'top-0', 'left-0');
-                }
-            },
-            showNotification: (message) => {
-                const toast = document.getElementById('toast');
-                document.getElementById('toast-message').innerText = message;
-                toast.classList.remove('translate-y-20', 'opacity-0');
-                setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
-            },
-            openModal: (modalId) => {
-                const modal = document.getElementById(modalId);
-                if (modal) {
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex');
-                }
-            },
-            closeModal: (modalId) => {
-                const modal = document.getElementById(modalId);
-                if (modal) {
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
-                }
-            },
-            getStatusColor: (status) => {
-                switch(status) {
-                    case 'Deal': return 'bg-green-100 text-green-800';
-                    case 'Negosiasi': return 'bg-yellow-100 text-yellow-800';
-                    case 'Presentasi': return 'bg-blue-100 text-blue-800';
-                    case 'Prospek': return 'bg-purple-100 text-purple-800';
-                    case 'Batal': return 'bg-red-100 text-red-800';
-                    default: return 'bg-gray-100 text-gray-800';
-                }
-            },
-            getActivityIcon: (type) => {
-                switch(type) {
-                    case 'Presentasi': return { icon: 'fa-chalkboard-teacher', color: 'bg-blue-500' };
-                    case 'Follow Up': return { icon: 'fa-phone', color: 'bg-yellow-500' };
-                    case 'Kunjungan': return { icon: 'fa-building', color: 'bg-purple-500' };
-                    case 'MOU': return { icon: 'fa-file-signature', color: 'bg-green-500' };
-                    default: return { icon: 'fa-check', color: 'bg-gray-500' };
-                }
-            },
-            formatDate: (ms) => {
-                if(!ms) return '-';
-                const d = new Date(ms);
-                return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' });
+    <script>
+        let appState = {
+            gasUrl: localStorage.getItem('bts_gas_url') || '',
+            currentUser: null,
+            filterYear: '2026',
+            filterMonth: '0',
+            sekolah: [],
+            activity: [],
+            pipeline: [],
+            marketing: [],
+            settings: {
+                companyName: 'PT Annual Book Creative',
+                targetHarian: 5,
+                targetBulanan: 100000000
             }
         };
 
-        // Render Functions
-        function renderAll() {
-            renderDashboard();
-            renderDatabase();
-            renderActivity();
-            renderPipeline();
-            updateSettingsBadge();
+        let mapInstance = null;
+        let mapMarkers = [];
+        let chartClosingInstance = null;
+        let chartActivityInstance = null;
+
+        window.onload = function() {
+            const savedState = localStorage.getItem('bts_marketing_state');
+            if (savedState) {
+                appState = Object.assign(appState, JSON.parse(savedState));
+            }
+            if (appState.gasUrl) {
+                document.getElementById('input-gas-url').value = appState.gasUrl;
+                fetchSyncFromGAS();
+            }
+        };
+
+        function openConfigModal() {
+            document.getElementById('config-modal').classList.remove('hidden');
         }
 
-        function updateSettingsBadge() {
-            const desc = document.getElementById('connection-status-desc');
-            const badge = document.getElementById('connection-status-badge');
-            
-            const configInput = document.getElementById('custom-firebase-config');
-            if(configInput) {
-                const savedConfig = localStorage.getItem('custom_firebase_config');
-                if(savedConfig) {
-                    configInput.value = savedConfig;
-                } else if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                    configInput.value = "/* Menggunakan konfigurasi env bawaan (Mode Preview) */\n" + __firebase_config;
-                    configInput.disabled = true;
-                }
-            }
-
-            if(desc && badge) {
-                if(isFirebaseActive) {
-                    desc.innerText = 'Terhubung ke Realtime Cloud Database.';
-                    badge.innerText = 'Cloud Sync Active';
-                    badge.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700';
-                } else {
-                    desc.innerText = 'Berjalan dalam mode lokal / standalone (In-Memory Data).';
-                    badge.innerText = 'Local Demo Mode';
-                    badge.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700';
-                }
+        function saveGasUrlConfig() {
+            const url = document.getElementById('input-gas-url').value.trim();
+            if (url) {
+                appState.gasUrl = url;
+                localStorage.setItem('bts_gas_url', url);
+                document.getElementById('config-modal').classList.add('hidden');
+                showToast('URL Google Apps Script berhasil disimpan!', 'success');
+                fetchSyncFromGAS();
             }
         }
 
-        function renderDashboard() {
-            document.getElementById('stat-total-schools').innerText = globalSchools.length;
-            document.getElementById('stat-deals').innerText = globalSchools.filter(s => s.status === 'Deal').length;
-            document.getElementById('stat-active-prospects').innerText = globalSchools.filter(s => ['Prospek', 'Presentasi', 'Negosiasi'].includes(s.status)).length;
-            document.getElementById('stat-activities').innerText = globalActivities.length;
+        async function apiCall(action, payload = {}) {
+            if (!appState.gasUrl) return null;
+            try {
+                // Menggunakan text/plain untuk menghindari pemicu Preflight CORS OPTIONS di browser untuk Apps Script
+                const response = await fetch(appState.gasUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action, payload })
+                });
+                const res = await response.json();
+                return res;
+            } catch (e) {
+                console.error('GAS API Error:', e);
+                return { success: false, message: e.toString() };
+            }
+        }
 
-            const recentActivities = [...globalActivities].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 4);
-            const activityHtml = recentActivities.length > 0 ? recentActivities.map(act => {
-                const style = UI.getActivityIcon(act.type);
-                return `
-                <div class="flex items-start">
-                    <div class="w-2 h-2 mt-2 rounded-full ${style.color} mr-3 flex-shrink-0"></div>
-                    <div>
-                        <p class="text-sm font-semibold text-gray-800">${act.schoolName || '-'} <span class="text-xs font-normal text-gray-500 ml-1">(${act.type || 'Activity'})</span></p>
-                        <p class="text-xs text-gray-500">${UI.formatDate(act.createdAt)}</p>
-                    </div>
-                </div>`
-            }).join('') : '<p class="text-sm text-gray-500">Belum ada aktivitas.</p>';
-            
-            document.getElementById('dashboard-recent-activity').innerHTML = activityHtml;
+        async function fetchSyncFromGAS() {
+            if (!appState.gasUrl) return;
+            const spinner = document.getElementById('sync-spinner');
+            if (spinner) spinner.classList.add('fa-spin');
 
-            const stagesCount = {};
-            pipelineStages.forEach(stage => stagesCount[stage] = 0);
-            globalSchools.forEach(s => { if(stagesCount[s.status] !== undefined) stagesCount[s.status]++; });
-            
-            const pipelineHtml = pipelineStages.map(stage => `
-                <div>
-                    <div class="flex justify-between text-xs mb-1">
-                        <span class="font-medium text-gray-700">${stage}</span>
-                        <span class="text-gray-500">${stagesCount[stage]}</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-indigo-500 h-2 rounded-full" style="width: ${globalSchools.length ? (stagesCount[stage] / globalSchools.length) * 100 : 0}%"></div>
-                    </div>
+            const res = await apiCall('getInitialData');
+            if (res && res.success && res.data) {
+                appState.sekolah = res.data.sekolah || appState.sekolah;
+                appState.activity = res.data.activity || appState.activity;
+                appState.pipeline = res.data.pipeline || appState.pipeline;
+                appState.marketing = res.data.marketing || appState.marketing;
+                if (res.data.settings) appState.settings = Object.assign(appState.settings, res.data.settings);
+                
+                saveStateToLocal();
+                refreshAllViews();
+                showToast('Data berhasil disinkronkan dari Google Sheets!', 'success');
+            }
+            if (spinner) spinner.classList.remove('fa-spin');
+        }
+
+        function saveStateToLocal() {
+            localStorage.setItem('bts_marketing_state', JSON.stringify({
+                sekolah: appState.sekolah,
+                activity: appState.activity,
+                pipeline: appState.pipeline,
+                marketing: appState.marketing,
+                settings: appState.settings
+            }));
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const usernameInput = document.getElementById('login-username').value.trim();
+            const roleInput = document.getElementById('login-role').value;
+
+            appState.currentUser = {
+                nama: usernameInput || 'Budi Santoso',
+                role: roleInput
+            };
+
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+
+            document.getElementById('user-display-name').innerText = appState.currentUser.nama;
+            document.getElementById('user-role-badge').innerText = appState.currentUser.role;
+
+            if (appState.currentUser.role === 'Admin') {
+                document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+            } else {
+                document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+            }
+
+            showToast('Selamat datang, ' + appState.currentUser.nama, 'success');
+            refreshAllViews();
+        }
+
+        function handleLogout() {
+            appState.currentUser = null;
+            document.getElementById('app-container').classList.add('hidden');
+            document.getElementById('login-modal').classList.remove('hidden');
+            showToast('Anda telah keluar dari sistem.', 'info');
+        }
+
+        function setFilterYear(year) {
+            appState.filterYear = year;
+            document.getElementById('btn-year-2026').className = year === '2026' ? 'px-3 py-1 rounded-md text-xs font-bold transition bg-indigo-600 text-white shadow' : 'px-3 py-1 rounded-md text-xs font-bold transition text-slate-400 hover:text-white';
+            document.getElementById('btn-year-2027').className = year === '2027' ? 'px-3 py-1 rounded-md text-xs font-bold transition bg-indigo-600 text-white shadow' : 'px-3 py-1 rounded-md text-xs font-bold transition text-slate-400 hover:text-white';
+            document.getElementById('chart-year-label').innerText = 'Tahun ' + year;
+            refreshAllViews();
+        }
+
+        function handleMonthChange(monthVal) {
+            appState.filterMonth = monthVal;
+            refreshAllViews();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-lg');
+                btn.classList.add('text-slate-400');
+            });
+
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('tab-' + tabId);
+            activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-lg');
+            activeBtn.classList.remove('text-slate-400');
+
+            if (tabId === 'gps') setTimeout(renderGpsMap, 200);
+        }
+
+        function refreshAllViews() {
+            renderDashboardKPIs();
+            renderCharts();
+            renderWidgets();
+            renderTableSekolah();
+            renderDailyActivityTable();
+            renderKanbanBoard();
+            renderNotifications();
+            renderMarketingTable();
+            populateDropdowns();
+        }
+
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number);
+        }
+
+        function formatCurrencyInput(input) {
+            let value = input.value.replace(/[^0-9]/g, '');
+            input.value = value ? 'Rp. ' + new Intl.NumberFormat('id-ID').format(value) : '';
+        }
+
+        function renderDashboardKPIs() {
+            const yr = appState.filterYear;
+            const mo = appState.filterMonth;
+
+            const filteredActivities = appState.activity.filter(a => {
+                if (!a['Tanggal Kunjungan']) return false;
+                const d = new Date(a['Tanggal Kunjungan']);
+                return d.getFullYear().toString() === yr && (mo === '0' || (d.getMonth() + 1).toString() === mo);
+            });
+
+            const filteredPipeline = appState.pipeline.filter(p => {
+                if (!p['Tanggal Follow Up']) return false;
+                const d = new Date(p['Tanggal Follow Up']);
+                return d.getFullYear().toString() === yr && (mo === '0' || (d.getMonth() + 1).toString() === mo);
+            });
+
+            const totalDb = appState.sekolah.length;
+            const totalCanvassing = filteredActivities.length;
+            const totalPresentasi = filteredActivities.filter(a => a.Aktivitas === 'Presentasi' || a['Hasil Kunjungan'] === 'Presentasi').length;
+            const totalDeal = filteredPipeline.filter(p => p.Aktivitas === 'Deal').length;
+            const totalNoDeal = filteredPipeline.filter(p => p.Aktivitas === 'Belum Deal').length;
+
+            const totalRevenueDeal = filteredPipeline.filter(p => p.Aktivitas === 'Deal').reduce((sum, p) => sum + (Number(p['Nominal Deal']) || 0), 0);
+            const conversionRate = totalCanvassing > 0 ? ((totalDeal / totalCanvassing) * 100).toFixed(1) : '0';
+            const progressPct = Math.min(100, Math.round((totalRevenueDeal / appState.settings.targetBulanan) * 100));
+
+            document.getElementById('kpi-db-count').innerText = totalDb;
+            document.getElementById('kpi-db-pct').innerText = Math.round((totalDb / 20) * 100) + '%';
+
+            document.getElementById('kpi-canvass-count').innerText = totalCanvassing;
+            document.getElementById('kpi-canvass-pct').innerText = Math.round((totalCanvassing / 30) * 100) + '%';
+
+            document.getElementById('kpi-pres-count').innerText = totalPresentasi;
+            document.getElementById('kpi-pres-pct').innerText = Math.round((totalPresentasi / 10) * 100) + '%';
+
+            document.getElementById('kpi-deal-count').innerText = totalDeal;
+            document.getElementById('kpi-deal-pct').innerText = Math.round((totalDeal / 5) * 100) + '%';
+
+            document.getElementById('kpi-nodeal-count').innerText = totalNoDeal;
+            document.getElementById('kpi-nodeal-pct').innerText = (totalCanvassing > 0 ? Math.round((totalNoDeal / totalCanvassing) * 100) : 0) + '%';
+
+            document.getElementById('kpi-conversion-rate').innerText = conversionRate + '%';
+            document.getElementById('kpi-target-harian').innerText = appState.settings.targetHarian + ' Canvass';
+            document.getElementById('kpi-target-bulanan').innerText = formatRupiah(appState.settings.targetBulanan);
+
+            document.getElementById('kpi-progress-pct').innerText = progressPct + '% (' + formatRupiah(totalRevenueDeal) + ')';
+            document.getElementById('kpi-progress-bar').style.width = progressPct + '%';
+        }
+
+        function renderCharts() {
+            const ctx1 = document.getElementById('chartClosing').getContext('2d');
+            const monthlyRevenue = [0,0,0,0,0,0,0,0,0,0,0,0];
+
+            appState.pipeline.forEach(p => {
+                if (p.Aktivitas === 'Deal' && p['Tanggal Follow Up']) {
+                    const d = new Date(p['Tanggal Follow Up']);
+                    if (d.getFullYear().toString() === appState.filterYear) {
+                        monthlyRevenue[d.getMonth()] += (Number(p['Nominal Deal']) || 0);
+                    }
+                }
+            });
+
+            if (chartClosingInstance) chartClosingInstance.destroy();
+            chartClosingInstance = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'],
+                    datasets: [{ label: 'Revenue Deal (Rp)', data: monthlyRevenue, borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.15)', fill: true, tension: 0.4, borderWidth: 3 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#94a3b8' }, grid: { display: false } } } }
+            });
+
+            const ctx2 = document.getElementById('chartActivity').getContext('2d');
+            const stages = ['Prospect', 'Follow Up', 'Presentasi', 'Negosiasi', 'Deal', 'Belum Deal'];
+            const stageCounts = stages.map(stg => appState.pipeline.filter(p => p.Aktivitas === stg).length);
+
+            if (chartActivityInstance) chartActivityInstance.destroy();
+            chartActivityInstance = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: stages,
+                    datasets: [{ label: 'Prospek', data: stageCounts, backgroundColor: ['#3b82f6', '#f59e0b', '#a855f7', '#06b6d4', '#10b981', '#f43f5e'], borderRadius: 6 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#94a3b8' }, grid: { display: false } } } }
+            });
+        }
+
+        function renderWidgets() {
+            const remEl = document.getElementById('widget-reminder-list');
+            const followUps = appState.pipeline.filter(p => p.Aktivitas === 'Follow Up' || p.Aktivitas === 'Negosiasi');
+            remEl.innerHTML = followUps.length === 0 ? '<p class="text-xs text-slate-500 italic">Tidak ada agenda follow up.</p>' : followUps.map(p => `
+                <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800 flex justify-between items-center">
+                    <div><h4 class="text-xs font-bold text-white">${p['Nama Sekolah']}</h4><p class="text-[10px] text-slate-400">Mkt: ${p['Nama Marketing']}</p></div>
+                    <span class="text-[10px] px-2 py-0.5 bg-amber-500/20 text-amber-300 font-bold rounded">${p['Tanggal Follow Up'] || 'Hari Ini'}</span>
                 </div>
             `).join('');
-            document.getElementById('dashboard-pipeline-summary').innerHTML = pipelineHtml;
+
+            const todayStr = new Date().toISOString().split('T')[0];
+            const schedEl = document.getElementById('widget-today-schedule');
+            const todayActs = appState.activity.filter(a => a['Tanggal Kunjungan'] === todayStr);
+            schedEl.innerHTML = todayActs.length === 0 ? '<p class="text-xs text-slate-500 italic">Belum ada kunjungan hari ini.</p>' : todayActs.map(a => `
+                <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800 flex justify-between items-center">
+                    <div><h4 class="text-xs font-bold text-white">${a['Nama Sekolah']}</h4><p class="text-[10px] text-indigo-400">${a.Aktivitas}</p></div>
+                    <span class="text-[10px] text-slate-400 font-medium">${a['Nama Marketing']}</span>
+                </div>
+            `).join('');
+
+            const pipeEl = document.getElementById('widget-new-pipeline');
+            pipeEl.innerHTML = [...appState.pipeline].reverse().slice(0, 4).map(p => `
+                <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800 flex justify-between items-center">
+                    <div><h4 class="text-xs font-bold text-white">${p['Nama Sekolah']}</h4><span class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-bold">${p.Aktivitas}</span></div>
+                    <span class="text-xs font-extrabold text-emerald-400">${p['Nominal Deal'] > 0 ? formatRupiah(p['Nominal Deal']) : '-'}</span>
+                </div>
+            `).join('');
         }
 
-        function renderDatabase() {
-            const tbody = document.getElementById('database-table-body');
-            const sortedSchools = [...globalSchools].sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+        function renderTableSekolah() {
+            const tbody = document.getElementById('tbody-sekolah');
+            const search = document.getElementById('search-sekolah').value.toLowerCase();
+            const jenjang = document.getElementById('filter-jenjang').value;
+            const wilayah = document.getElementById('filter-wilayah').value;
 
-            if(sortedSchools.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-500">Belum ada data sekolah. Silakan tekan tombol 'Tambah Sekolah'.</td></tr>`;
-                return;
-            }
+            const filtered = appState.sekolah.filter(s => {
+                return (s['Nama Sekolah'].toLowerCase().includes(search) || s['Nama PIC'].toLowerCase().includes(search)) &&
+                       (!jenjang || s.Jenjang === jenjang) &&
+                       (!wilayah || s.Wilayah === wilayah);
+            });
 
-            tbody.innerHTML = sortedSchools.map(school => `
-                <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="p-4 border-b font-medium text-gray-800">${school.name}</td>
-                    <td class="p-4 border-b text-gray-600">${school.region}</td>
-                    <td class="p-4 border-b text-gray-600">${school.contact}</td>
-                    <td class="p-4 border-b text-gray-600">${school.students || '-'} Siswa</td>
-                    <td class="p-4 border-b">
-                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${UI.getStatusColor(school.status)}">
-                            ${school.status}
-                        </span>
-                    </td>
-                    <td class="p-4 border-b text-right whitespace-nowrap">
-                        <button class="text-indigo-600 hover:text-indigo-900 mr-3 font-medium" onclick="window.editSchool('${school.id}')"><i class="fas fa-edit mr-1"></i> Edit</button>
-                        <button class="text-red-500 hover:text-red-700 font-medium" onclick="window.confirmDelete('${school.id}')"><i class="fas fa-trash mr-1"></i> Hapus</button>
+            tbody.innerHTML = filtered.length === 0 ? '<tr><td colspan="8" class="p-4 text-center text-slate-500 text-xs">Kosong</td></tr>' : filtered.map(s => `
+                <tr class="hover:bg-slate-800/50 transition">
+                    <td class="p-3 font-mono text-[11px] text-slate-400">${s.ID}</td>
+                    <td class="p-3 font-bold text-white">${s['Nama Sekolah']}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px] font-bold">${s.Jenjang}</span></td>
+                    <td class="p-3 text-slate-400 truncate max-w-xs">${s.Alamat || '-'}</td>
+                    <td class="p-3 text-slate-300">${s.Wilayah}</td>
+                    <td class="p-3"><div class="font-semibold text-white">${s['Nama PIC']}</div><a href="https://wa.me/${s['Nomor WhatsApp']}" target="_blank" class="text-[11px] text-emerald-400 hover:underline"><i class="fa-brands fa-whatsapp mr-1"></i>${s['Nomor WhatsApp']}</a></td>
+                    <td class="p-3 text-indigo-300 font-medium">${s['Nama Marketing']}</td>
+                    <td class="p-3 text-center no-print space-x-1">
+                        <button onclick="editSekolah('${s.ID}')" class="p-1.5 bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white rounded transition"><i class="fa-solid fa-pen"></i></button>
+                        ${appState.currentUser?.role === 'Admin' ? `<button onclick="confirmDeleteSekolah('${s.ID}')" class="p-1.5 bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white rounded transition"><i class="fa-solid fa-trash"></i></button>` : ''}
                     </td>
                 </tr>
             `).join('');
         }
 
-        function renderActivity() {
-            const timeline = document.getElementById('activity-timeline');
-            const sortedActs = [...globalActivities].sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
-
-            if(sortedActs.length === 0) {
-                timeline.innerHTML = '<p class="text-sm text-gray-500">Belum ada aktivitas dicatat.</p>';
-                return;
-            }
-
-            timeline.innerHTML = sortedActs.map(act => {
-                const style = UI.getActivityIcon(act.type);
-                return `
-                <div class="relative pl-6">
-                    <div class="absolute -left-3.5 mt-1.5 w-7 h-7 rounded-full ${style.color} flex items-center justify-center text-white border-4 border-white shadow-sm">
-                        <i class="fas ${style.icon} text-xs"></i>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 shadow-sm relative group">
-                        <button onclick="window.deleteActivity('${act.id}')" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1" title="Hapus Log"><i class="fas fa-times"></i></button>
-                        <div class="flex justify-between items-start mb-1 pr-6">
-                            <h4 class="font-semibold text-gray-800">${act.schoolName}</h4>
-                            <span class="text-xs font-medium text-gray-500 bg-white px-2 py-1 rounded border">${UI.formatDate(act.createdAt)}</span>
-                        </div>
-                        <span class="inline-block px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded mb-2 font-medium">${act.type}</span>
-                        <p class="text-sm text-gray-600">${act.notes}</p>
-                    </div>
-                </div>
-            `}).join('');
+        function openModalSekolah() {
+            document.getElementById('form-sekolah').reset();
+            document.getElementById('sekolah-id').value = '';
+            document.getElementById('sekolah-mkt').value = appState.currentUser?.nama || 'Budi Santoso';
+            document.getElementById('modal-sekolah-title').innerText = 'Tambah Data Sekolah';
+            document.getElementById('modal-sekolah').classList.remove('hidden');
         }
 
-        function renderPipeline() {
-            const board = document.getElementById('kanban-board');
-            const stageColors = {
-                'Prospek': 'border-t-4 border-purple-500',
-                'Presentasi': 'border-t-4 border-blue-500',
-                'Negosiasi': 'border-t-4 border-yellow-500',
-                'Deal': 'border-t-4 border-green-500',
-                'Batal': 'border-t-4 border-red-500'
+        function closeModalSekolah() { document.getElementById('modal-sekolah').classList.add('hidden'); }
+
+        async function handleSaveSekolah(e) {
+            e.preventDefault();
+            const id = document.getElementById('sekolah-id').value;
+            const obj = {
+                ID: id || 'SCH-' + Math.floor(1000 + Math.random() * 9000),
+                'Nama Sekolah': document.getElementById('sekolah-nama').value,
+                Jenjang: document.getElementById('sekolah-jenjang').value,
+                Wilayah: document.getElementById('sekolah-wilayah').value,
+                Alamat: document.getElementById('sekolah-alamat').value,
+                'Nama PIC': document.getElementById('sekolah-pic').value,
+                'Nomor WhatsApp': document.getElementById('sekolah-wa').value,
+                'Nama Marketing': document.getElementById('sekolah-mkt').value
             };
 
-            board.innerHTML = pipelineStages.map(stage => {
-                const stageSchools = globalSchools.filter(s => s.status === stage);
-                const cardsHtml = stageSchools.map(school => `
-                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-3 cursor-pointer hover:shadow-md transition-shadow" onclick="window.editSchool('${school.id}')">
-                        <h4 class="font-bold text-gray-800 text-sm mb-1">${school.name}</h4>
-                        <p class="text-xs text-gray-500 mb-2"><i class="fas fa-map-marker-alt mr-1"></i> ${school.region}</p>
-                        <div class="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
-                            <span class="text-xs font-medium text-indigo-600"><i class="fas fa-users mr-1"></i> ${school.students || 0} Siswa</span>
-                            <span class="text-gray-400 text-xs hover:text-indigo-600"><i class="fas fa-edit"></i></span>
+            if (id) {
+                const idx = appState.sekolah.findIndex(s => s.ID === id);
+                if (idx > -1) appState.sekolah[idx] = obj;
+            } else {
+                appState.sekolah.push(obj);
+            }
+
+            saveStateToLocal();
+            closeModalSekolah();
+            refreshAllViews();
+            showToast('Data Sekolah berhasil disimpan!', 'success');
+
+            await apiCall('saveSekolah', obj);
+        }
+
+        function editSekolah(id) {
+            const s = appState.sekolah.find(item => item.ID === id);
+            if (!s) return;
+            document.getElementById('sekolah-id').value = s.ID;
+            document.getElementById('sekolah-nama').value = s['Nama Sekolah'];
+            document.getElementById('sekolah-jenjang').value = s.Jenjang;
+            document.getElementById('sekolah-wilayah').value = s.Wilayah;
+            document.getElementById('sekolah-alamat').value = s.Alamat;
+            document.getElementById('sekolah-pic').value = s['Nama PIC'];
+            document.getElementById('sekolah-wa').value = s['Nomor WhatsApp'];
+            document.getElementById('sekolah-mkt').value = s['Nama Marketing'];
+            document.getElementById('modal-sekolah-title').innerText = 'Edit Data Sekolah';
+            document.getElementById('modal-sekolah').classList.remove('hidden');
+        }
+
+        async function confirmDeleteSekolah(id) {
+            appState.sekolah = appState.sekolah.filter(s => s.ID !== id);
+            saveStateToLocal();
+            refreshAllViews();
+            showToast('Sekolah berhasil dihapus.', 'info');
+            await apiCall('deleteSekolah', { id });
+        }
+
+        function exportSekolahExcel() {
+            const ws = XLSX.utils.json_to_sheet(appState.sekolah);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Database_Sekolah");
+            XLSX.writeFile(wb, "Data_Sekolah_BTS.xlsx");
+        }
+
+        function renderDailyActivityTable() {
+            const tbody = document.getElementById('tbody-daily');
+            const dateFilter = document.getElementById('filter-act-date').value;
+            const filtered = appState.activity.filter(a => !dateFilter || a['Tanggal Kunjungan'] === dateFilter);
+
+            tbody.innerHTML = filtered.length === 0 ? '<tr><td colspan="9" class="p-4 text-center text-slate-500 text-xs">Kosong</td></tr>' : filtered.map(a => `
+                <tr class="hover:bg-slate-800/50 transition">
+                    <td class="p-3 text-slate-300 font-mono">${a['Tanggal Kunjungan']}</td>
+                    <td class="p-3 text-indigo-300 font-semibold">${a['Nama Marketing']}</td>
+                    <td class="p-3 font-bold text-white">${a['Nama Sekolah']}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded font-bold text-[10px]">${a.Aktivitas}</span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 ${a.Status === 'Hot' ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300'} rounded font-bold text-[10px]">${a.Status}</span></td>
+                    <td class="p-3 text-slate-200">${a['Hasil Kunjungan']}</td>
+                    <td class="p-3 text-slate-400 font-mono text-[11px]"><i class="fa-solid fa-location-dot text-rose-400 mr-1"></i>${a['Lokasi GPS'] || '-'}</td>
+                    <td class="p-3 font-extrabold text-emerald-400">${a['Nominal Deal'] > 0 ? formatRupiah(a['Nominal Deal']) : '-'}</td>
+                    <td class="p-3 text-center no-print">
+                        <button onclick="deleteActivity('${a['ID Activity']}')" class="p-1.5 bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white rounded transition"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openModalActivity() {
+            document.getElementById('form-activity').reset();
+            document.getElementById('act-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('act-mkt').value = appState.currentUser?.nama || 'Budi Santoso';
+            toggleNominalDealInput('Prospect');
+            document.getElementById('modal-activity').classList.remove('hidden');
+        }
+
+        function closeModalActivity() { document.getElementById('modal-activity').classList.add('hidden'); }
+
+        function toggleNominalDealInput(val) {
+            const wrapper = document.getElementById('wrapper-nominal-deal');
+            if (val === 'Deal') wrapper.classList.remove('hidden'); else wrapper.classList.add('hidden');
+        }
+
+        function getCurrentGpsLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    document.getElementById('act-gps').value = pos.coords.latitude.toFixed(6) + ', ' + pos.coords.longitude.toFixed(6);
+                    showToast('Lokasi GPS terdeteksi!', 'success');
+                }, () => {
+                    document.getElementById('act-gps').value = '-6.175392, 106.827153';
+                });
+            } else {
+                document.getElementById('act-gps').value = '-6.175392, 106.827153';
+            }
+        }
+
+        async function handleSaveActivity(e) {
+            e.preventDefault();
+            const rawNominal = document.getElementById('act-nominal').value;
+            const numericNominal = Number(rawNominal.replace(/[^0-9]/g, '')) || 0;
+            const sekolahSelected = document.getElementById('act-sekolah').value;
+            const mktName = document.getElementById('act-mkt').value;
+            const hasil = document.getElementById('act-hasil').value;
+
+            const actObj = {
+                'ID Activity': 'ACT-' + Math.floor(10000 + Math.random() * 90000),
+                'Tanggal Kunjungan': document.getElementById('act-date').value,
+                'Nama Marketing': mktName,
+                'Nama Sekolah': sekolahSelected,
+                Aktivitas: document.getElementById('act-jenis').value,
+                Status: document.getElementById('act-status').value,
+                'Hasil Kunjungan': hasil,
+                'Lokasi GPS': document.getElementById('act-gps').value || '-6.175392, 106.827153',
+                'Nominal Deal': numericNominal
+            };
+
+            appState.activity.push(actObj);
+
+            let existingPipe = appState.pipeline.find(p => p['Nama Sekolah'] === sekolahSelected && p['Nama Marketing'] === mktName);
+            let peluang = hasil === 'Deal' ? 100 : (hasil === 'Negosiasi' ? 80 : (hasil === 'Presentasi' ? 60 : (hasil === 'Follow Up' ? 40 : 20)));
+
+            if (existingPipe) {
+                existingPipe.Aktivitas = hasil;
+                existingPipe.Status = actObj.Status;
+                existingPipe['Peluang (%)'] = peluang;
+                existingPipe['Tanggal Follow Up'] = actObj['Tanggal Kunjungan'];
+                if (hasil === 'Deal') existingPipe['Nominal Deal'] = numericNominal;
+            } else {
+                appState.pipeline.push({
+                    'ID Pipeline': 'PL-' + Math.floor(1000 + Math.random() * 9000),
+                    'Nama Sekolah': sekolahSelected,
+                    'Nama Marketing': mktName,
+                    Aktivitas: hasil,
+                    Status: actObj.Status,
+                    'Peluang (%)': peluang,
+                    'Tanggal Follow Up': actObj['Tanggal Kunjungan'],
+                    'Nominal Deal': numericNominal,
+                    'Last Updated': actObj['Tanggal Kunjungan']
+                });
+            }
+
+            saveStateToLocal();
+            closeModalActivity();
+            refreshAllViews();
+            showToast('Activity disinkronkan!', 'success');
+
+            await apiCall('saveDailyActivity', actObj);
+        }
+
+        async function deleteActivity(actId) {
+            appState.activity = appState.activity.filter(a => a['ID Activity'] !== actId);
+            saveStateToLocal();
+            refreshAllViews();
+            showToast('Aktivitas dihapus.', 'info');
+            await apiCall('deleteActivity', { id: actId });
+        }
+
+        function renderKanbanBoard() {
+            const stages = [
+                { id: 'Prospect', target: 'col-prospect', count: 'count-prospect' },
+                { id: 'Follow Up', target: 'col-followup', count: 'count-followup' },
+                { id: 'Presentasi', target: 'col-presentasi', count: 'count-presentasi' },
+                { id: 'Negosiasi', target: 'col-negosiasi', count: 'count-negosiasi' },
+                { id: 'Deal', target: 'col-deal', count: 'count-deal' },
+                { id: 'Belum Deal', target: 'col-nodeal', count: 'count-nodeal' }
+            ];
+
+            stages.forEach(stg => {
+                const container = document.getElementById(stg.target);
+                const items = appState.pipeline.filter(p => p.Aktivitas === stg.id);
+                document.getElementById(stg.count).innerText = items.length;
+
+                if (items.length === 0) {
+                    container.innerHTML = '<div class="text-[11px] text-slate-600 italic text-center py-8">Kosong</div>';
+                    return;
+                }
+
+                container.innerHTML = items.map(p => `
+                    <div class="kanban-card p-3 glass-panel border border-slate-700/80 rounded-xl space-y-2 shadow-md hover:border-indigo-500/50" draggable="true" ondragstart="handleDragStart(event, '${p['ID Pipeline']}')">
+                        <div class="flex justify-between items-start">
+                            <h4 class="text-xs font-bold text-white leading-snug">${p['Nama Sekolah']}</h4>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded font-bold ${p.Status === 'Hot' ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300'}">${p.Status}</span>
                         </div>
+                        <div class="flex justify-between items-center text-[10px] text-slate-400">
+                            <span><i class="fa-solid fa-user text-indigo-400 mr-1"></i>${p['Nama Marketing']}</span>
+                            <span class="font-bold text-indigo-300">${p['Peluang (%)']}%</span>
+                        </div>
+                        ${p['Nominal Deal'] > 0 ? `<div class="text-xs font-extrabold text-emerald-400 pt-1 border-t border-slate-800">${formatRupiah(p['Nominal Deal'])}</div>` : ''}
                     </div>
                 `).join('');
-
-                return `
-                    <div class="min-w-[280px] max-w-[280px] bg-gray-100 rounded-xl p-3 flex flex-col h-[calc(100vh-200px)]">
-                        <div class="bg-white p-3 rounded-lg shadow-sm mb-3 ${stageColors[stage] || 'border-t-4 border-gray-500'}">
-                            <div class="flex justify-between items-center">
-                                <h3 class="font-bold text-gray-700">${stage}</h3>
-                                <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full font-bold">${stageSchools.length}</span>
-                            </div>
-                        </div>
-                        <div class="flex-1 overflow-y-auto pr-1 kanban-col pb-10">
-                            ${cardsHtml.length > 0 ? cardsHtml : '<p class="text-xs text-gray-400 text-center py-4">Kosong</p>'}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            });
         }
 
-        // Global CRUD Window Handlers
-        window.switchTab = UI.switchTab;
-        window.toggleMobileMenu = UI.toggleMobileMenu;
-        window.closeModal = UI.closeModal;
+        let draggedPipeId = null;
+        function handleDragStart(e, pipeId) { draggedPipeId = pipeId; e.dataTransfer.setData('text/plain', pipeId); }
+        function allowDrop(e) { e.preventDefault(); }
 
-        window.saveFirebaseConfig = () => {
-            const configStr = document.getElementById('custom-firebase-config').value.trim();
-            if(!configStr) {
-                UI.showNotification('Konfigurasi tidak boleh kosong');
-                return;
+        async function handleDrop(e, newStage) {
+            e.preventDefault();
+            if (!draggedPipeId) return;
+
+            const pipeItem = appState.pipeline.find(p => p['ID Pipeline'] === draggedPipeId);
+            if (pipeItem && pipeItem.Aktivitas !== newStage) {
+                pipeItem.Aktivitas = newStage;
+                pipeItem['Peluang (%)'] = newStage === 'Deal' ? 100 : (newStage === 'Negosiasi' ? 80 : (newStage === 'Presentasi' ? 60 : (newStage === 'Follow Up' ? 40 : 20)));
+                pipeItem['Last Updated'] = new Date().toISOString().split('T')[0];
+
+                saveStateToLocal();
+                refreshAllViews();
+                showToast(`Pipeline ${pipeItem['Nama Sekolah']} dipindahkan ke ${newStage}`, 'info');
+
+                await apiCall('updatePipelineStage', { id: draggedPipeId, newStage });
             }
-            try {
-                JSON.parse(configStr); // Validate JSON format
-                localStorage.setItem('custom_firebase_config', configStr);
-                UI.showNotification('Konfigurasi tersimpan! Memuat ulang...');
-                setTimeout(() => window.location.reload(), 1500);
-            } catch(e) {
-                UI.showNotification('Gagal: Format JSON tidak valid!');
+            draggedPipeId = null;
+        }
+
+        function renderNotifications() {
+            const container = document.getElementById('notifications-container');
+            let notifs = [];
+
+            appState.pipeline.filter(p => p.Aktivitas === 'Follow Up').forEach(p => {
+                notifs.push({ title: 'Jadwal Follow Up', desc: `Sekolah ${p['Nama Sekolah']} perlu difollow up oleh ${p['Nama Marketing']}`, type: 'warning', icon: 'fa-phone' });
+            });
+
+            const badge = document.getElementById('notif-badge');
+            if (notifs.length > 0) { badge.innerText = notifs.length; badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
+
+            container.innerHTML = notifs.map(n => `
+                <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-800 flex items-start gap-3">
+                    <div class="p-2.5 rounded-lg ${n.type === 'warning' ? 'bg-amber-500/20 text-amber-400' : 'bg-indigo-500/20 text-indigo-400'}"><i class="fa-solid ${n.icon} text-lg"></i></div>
+                    <div><h4 class="text-xs font-bold text-white">${n.title}</h4><p class="text-xs text-slate-400 mt-0.5">${n.desc}</p></div>
+                </div>
+            `).join('');
+        }
+
+        function renderGpsMap() {
+            if (!mapInstance) {
+                mapInstance = L.map('map').setView([-6.175392, 106.827153], 10);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(mapInstance);
             }
-        };
 
-        window.clearFirebaseConfig = () => {
-            localStorage.removeItem('custom_firebase_config');
-            const configInput = document.getElementById('custom-firebase-config');
-            if(configInput) configInput.value = '';
-            UI.showNotification('Konfigurasi dihapus! Memuat ulang...');
-            setTimeout(() => window.location.reload(), 1500);
-        };
+            mapMarkers.forEach(m => mapInstance.removeLayer(m));
+            mapMarkers = [];
 
-        window.openSchoolModal = () => {
-            document.getElementById('school-modal-title').innerText = 'Tambah Database Sekolah';
-            document.getElementById('school-id').value = '';
-            document.getElementById('school-name').value = '';
-            document.getElementById('school-region').value = '';
-            document.getElementById('school-contact').value = '';
-            document.getElementById('school-students').value = '';
-            document.getElementById('school-status').value = 'Prospek';
-            UI.openModal('modal-sekolah');
-        };
+            const mktFilter = document.getElementById('gps-filter-mkt').value;
+            const historyTimeline = document.getElementById('gps-history-timeline');
+            let historyHtml = '';
 
-        window.editSchool = (id) => {
-            const school = globalSchools.find(s => s.id === id);
-            if(!school) return;
-            
-            document.getElementById('school-modal-title').innerText = 'Edit Database Sekolah';
-            document.getElementById('school-id').value = school.id;
-            document.getElementById('school-name').value = school.name;
-            document.getElementById('school-region').value = school.region;
-            document.getElementById('school-contact').value = school.contact;
-            document.getElementById('school-students').value = school.students;
-            document.getElementById('school-status').value = school.status;
-            UI.openModal('modal-sekolah');
-        };
+            appState.activity.forEach(a => {
+                if (mktFilter !== 'ALL' && a['Nama Marketing'] !== mktFilter) return;
+                if (a['Lokasi GPS'] && a['Lokasi GPS'].includes(',')) {
+                    const coords = a['Lokasi GPS'].split(',').map(c => parseFloat(c.trim()));
+                    if (coords.length === 2 && !isNaN(coords[0])) {
+                        const marker = L.marker([coords[0], coords[1]]).addTo(mapInstance);
+                        marker.bindPopup(`<div class="text-xs text-slate-900"><b>${a['Nama Sekolah']}</b><br>Mkt: ${a['Nama Marketing']}<br>Aktivitas: ${a.Aktivitas}</div>`);
+                        mapMarkers.push(marker);
 
-        window.saveSchool = async () => {
-            const id = document.getElementById('school-id').value;
-            const data = {
-                name: document.getElementById('school-name').value.trim() || 'Tanpa Nama',
-                region: document.getElementById('school-region').value.trim() || '-',
-                contact: document.getElementById('school-contact').value.trim() || '-',
-                students: document.getElementById('school-students').value || '0',
-                status: document.getElementById('school-status').value,
+                        historyHtml += `
+                            <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 flex justify-between items-center">
+                                <div><h4 class="text-xs font-bold text-white">${a['Nama Sekolah']}</h4><p class="text-[11px] text-slate-400">Marketing: ${a['Nama Marketing']} | ${a.Aktivitas}</p></div>
+                                <span class="text-[10px] text-indigo-400 font-mono">${a['Tanggal Kunjungan']}</span>
+                            </div>
+                        `;
+                    }
+                }
+            });
+
+            historyTimeline.innerHTML = historyHtml || '<p class="text-xs text-slate-500 italic">Belum ada riwayat GPS.</p>';
+        }
+
+        function renderMarketingTable() {
+            const tbody = document.getElementById('tbody-marketing');
+            tbody.innerHTML = appState.marketing.map(m => `
+                <tr class="hover:bg-slate-800/50 transition">
+                    <td class="p-3 font-mono text-slate-400">${m['ID Marketing']}</td>
+                    <td class="p-3 font-bold text-white">${m.Nama}</td>
+                    <td class="p-3 text-emerald-400"><i class="fa-brands fa-whatsapp mr-1"></i>${m['Nomor WhatsApp']}</td>
+                    <td class="p-3 text-slate-300">${m.Area}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded text-[10px] font-bold">${m.Role}</span></td>
+                    <td class="p-3 font-bold text-emerald-400">${formatRupiah(m['Target Deal Bulanan'] || 100000000)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function openModalMarketing() { document.getElementById('form-marketing').reset(); document.getElementById('modal-marketing').classList.remove('hidden'); }
+        function closeModalMarketing() { document.getElementById('modal-marketing').classList.add('hidden'); }
+
+        async function handleSaveMarketing(e) {
+            e.preventDefault();
+            const newMkt = {
+                'ID Marketing': 'MKT-' + Math.floor(100 + Math.random() * 900),
+                Nama: document.getElementById('mkt-nama').value,
+                'Nomor WhatsApp': document.getElementById('mkt-wa').value,
+                Area: document.getElementById('mkt-area').value,
+                Role: 'Marketing',
+                'Target Deal Bulanan': Number(document.getElementById('mkt-target').value) || 100000000
             };
 
-            try {
-                if (isFirebaseActive && auth?.currentUser) {
-                    if(id) {
-                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'schools', id), data);
-                    } else {
-                        data.createdAt = Date.now();
-                        await addDoc(schoolsRef, data);
-                    }
-                } else {
-                    // Fallback Local Memory
-                    if(id) {
-                        const idx = globalSchools.findIndex(s => s.id === id);
-                        if(idx !== -1) {
-                            globalSchools[idx] = { ...globalSchools[idx], ...data };
-                        }
-                    } else {
-                        data.id = 'sch-' + Date.now();
-                        data.createdAt = Date.now();
-                        globalSchools.push(data);
-                    }
-                    renderAll();
-                }
-                UI.showNotification(id ? 'Data sekolah berhasil diperbarui!' : 'Sekolah baru berhasil ditambahkan!');
-                UI.closeModal('modal-sekolah');
-            } catch (error) {
-                console.error("Error saving school:", error);
-                UI.showNotification('Gagal menyimpan data.');
-            }
-        };
+            appState.marketing.push(newMkt);
+            saveStateToLocal();
+            closeModalMarketing();
+            refreshAllViews();
+            showToast('Marketing ditambahkan.', 'success');
+            await apiCall('saveMarketing', newMkt);
+        }
 
-        window.confirmDelete = (id) => {
-            document.getElementById('delete-id').value = id;
-            UI.openModal('modal-delete');
-        };
+        async function saveGeneralSettings() {
+            appState.settings.companyName = document.getElementById('setting-company-name').value;
+            appState.settings.targetHarian = Number(document.getElementById('setting-target-harian').value) || 5;
+            document.getElementById('app-company-name').innerText = appState.settings.companyName;
+            saveStateToLocal();
+            showToast('Pengaturan disimpan!', 'success');
+            await apiCall('saveGeneralSettings', appState.settings);
+        }
 
-        window.executeDelete = async () => {
-            const id = document.getElementById('delete-id').value;
-            if(!id) return;
+        function handleBackupDatabase() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", "Backup_BTS_Marketing_" + new Date().getTime() + ".json");
+            dlAnchorElem.click();
+        }
 
-            try {
-                if (isFirebaseActive && auth?.currentUser) {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'schools', id));
-                } else {
-                    globalSchools = globalSchools.filter(s => s.id !== id);
-                    renderAll();
-                }
-                UI.showNotification('Data sekolah berhasil dihapus.');
-                UI.closeModal('modal-delete');
-            } catch (error) {
-                console.error("Error deleting school:", error);
-                UI.showNotification('Gagal menghapus data.');
-            }
-        };
+        function handleRestoreDatabase(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-        window.openActivityModal = () => {
-            const select = document.getElementById('activity-school-id');
-            select.innerHTML = globalSchools.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-            
-            if(globalSchools.length === 0) {
-                select.innerHTML = '<option disabled selected>-- Tambah data sekolah dulu --</option>';
-            }
-            
-            document.getElementById('activity-notes').value = '';
-            UI.openModal('modal-aktivitas');
-        };
-
-        window.saveActivity = async () => {
-            const schoolSelect = document.getElementById('activity-school-id');
-            if(!schoolSelect.value || schoolSelect.value.startsWith('--')) {
-                UI.showNotification('Pilih sekolah terlebih dahulu!');
-                return;
-            }
-
-            const schoolId = schoolSelect.value;
-            const schoolName = schoolSelect.options[schoolSelect.selectedIndex].text;
-            const type = document.getElementById('activity-type').value;
-            const notes = document.getElementById('activity-notes').value.trim() || '-';
-
-            try {
-                const actData = {
-                    schoolId,
-                    schoolName,
-                    type,
-                    notes,
-                    createdAt: Date.now()
-                };
-
-                if (isFirebaseActive && auth?.currentUser) {
-                    await addDoc(activitiesRef, actData);
-                } else {
-                    actData.id = 'act-' + Date.now();
-                    globalActivities.push(actData);
-                    renderAll();
-                }
-                UI.showNotification('Log aktivitas tersimpan!');
-                UI.closeModal('modal-aktivitas');
-            } catch (error) {
-                console.error("Error saving activity:", error);
-                UI.showNotification('Gagal menyimpan aktivitas.');
-            }
-        };
-        
-        window.deleteActivity = async (id) => {
-            try {
-                if (isFirebaseActive && auth?.currentUser) {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activities', id));
-                } else {
-                    globalActivities = globalActivities.filter(a => a.id !== id);
-                    renderAll();
-                }
-                UI.showNotification('Aktivitas dihapus.');
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
-        function initApp() {
-            const loader = document.getElementById('app-loader');
-
-            if (firebaseConfig) {
+            const reader = new FileReader();
+            reader.onload = async function(e) {
                 try {
-                    const app = initializeApp(firebaseConfig);
-                    db = getFirestore(app);
-                    auth = getAuth(app);
-
-                    schoolsRef = collection(db, 'artifacts', appId, 'public', 'data', 'schools');
-                    activitiesRef = collection(db, 'artifacts', appId, 'public', 'data', 'activities');
-
-                    const startAuth = async () => {
-                        try {
-                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                                await signInWithCustomToken(auth, __initial_auth_token);
-                            } else {
-                                await signInAnonymously(auth);
-                            }
-                            isFirebaseActive = true;
-
-                            // Setup Realtime Listeners
-                            onSnapshot(schoolsRef, (snapshot) => {
-                                globalSchools = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                                renderAll();
-                                if(loader) loader.style.display = 'none';
-                            }, (err) => {
-                                console.error("Schools snapshot error:", err);
-                                fallbackToLocal();
-                            });
-
-                            onSnapshot(activitiesRef, (snapshot) => {
-                                globalActivities = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                                renderAll();
-                            }, (err) => {
-                                console.error("Activities snapshot error:", err);
-                            });
-
-                        } catch (err) {
-                            console.error("Auth error:", err);
-                            fallbackToLocal();
-                        }
-                    };
-
-                    startAuth();
-                    return;
-                } catch(e) {
-                    console.error("Firebase init failed:", e);
+                    const restoredData = JSON.parse(e.target.result);
+                    if (restoredData.sekolah) {
+                        appState.sekolah = restoredData.sekolah;
+                        appState.activity = restoredData.activity || [];
+                        appState.pipeline = restoredData.pipeline || [];
+                        appState.marketing = restoredData.marketing || [];
+                        saveStateToLocal();
+                        refreshAllViews();
+                        showToast('Database berhasil dipulihkan!', 'success');
+                        await apiCall('restoreDatabase', { jsonString: JSON.stringify(restoredData) });
+                    }
+                } catch (err) {
+                    showToast('Gagal membaca file JSON.', 'error');
                 }
-            }
-
-            // Fallback if no firebaseConfig or error
-            fallbackToLocal();
+            };
+            reader.readAsText(file);
         }
 
-        function fallbackToLocal() {
-            isFirebaseActive = false;
-            globalSchools = sampleSchools;
-            globalActivities = sampleActivities;
-            renderAll();
-            const loader = document.getElementById('app-loader');
-            if(loader) loader.style.display = 'none';
+        function populateDropdowns() {
+            const actSekolahSelect = document.getElementById('act-sekolah');
+            actSekolahSelect.innerHTML = '<option value="">-- Pilih Sekolah --</option>' + appState.sekolah.map(s => `<option value="${s['Nama Sekolah']}">${s['Nama Sekolah']} (${s.Wilayah})</option>`).join('');
+
+            const wilayahSelect = document.getElementById('filter-wilayah');
+            const uniqueWilayah = [...new Set(appState.sekolah.map(s => s.Wilayah))];
+            wilayahSelect.innerHTML = '<option value="">Semua Wilayah</option>' + uniqueWilayah.map(w => `<option value="${w}">${w}</option>`).join('');
+
+            const gpsMktSelect = document.getElementById('gps-filter-mkt');
+            gpsMktSelect.innerHTML = '<option value="ALL">Semua Marketing</option>' + appState.marketing.map(m => `<option value="${m.Nama}">${m.Nama}</option>`).join('');
         }
 
-        // Run Application
-        initApp();
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = 'bg-slate-800 border-slate-700 text-white';
+            if (type === 'success') bgClass = 'bg-emerald-950 border-emerald-600 text-emerald-200';
+            else if (type === 'error') bgClass = 'bg-rose-950 border-rose-600 text-rose-200';
+            else if (type === 'warning') bgClass = 'bg-amber-950 border-amber-600 text-amber-200';
+
+            toast.className = `p-3 rounded-xl border shadow-xl text-xs font-semibold flex items-center gap-2 transform transition-all duration-300 ${bgClass}`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${message}`;
+
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-x-4');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
     </script>
 </body>
 </html>
