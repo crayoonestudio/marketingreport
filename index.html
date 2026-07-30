@@ -146,7 +146,6 @@
     </div>
 
     <div id="app-container" class="hidden min-h-screen flex flex-col">
-        <!-- Top Navbar -->
         <header class="glass-panel sticky top-0 z-40 rounded-none border-x-0 border-t-0 px-4 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
@@ -158,7 +157,6 @@
                 </div>
             </div>
 
-            <!-- Filter Period -->
             <div class="flex items-center gap-2 bg-slate-900/90 p-1.5 rounded-xl border border-slate-800">
                 <span class="text-xs text-slate-400 px-2 font-semibold hidden sm:inline"><i class="fa-solid fa-filter mr-1 text-indigo-400"></i>Periode:</span>
                 
@@ -183,18 +181,23 @@
                     <option value="12">Desember</option>
                 </select>
 
-                <button onclick="fetchSyncFromGAS()" title="Sinkronkan Data Google Sheets" class="p-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs transition ml-1">
+                <button onclick="fetchSyncFromGAS(true)" title="Sinkronkan Data Google Sheets" class="p-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs transition ml-1 flex items-center gap-1">
                     <i class="fa-solid fa-rotate" id="sync-spinner"></i>
+                    <span class="text-[10px] hidden md:inline">Sync</span>
                 </button>
             </div>
 
             <div class="flex items-center gap-3">
+                <button onclick="copyShareableUrl()" title="Salin Link Auto-Sync Multi Perangkat" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5">
+                    <i class="fa-solid fa-share-nodes text-indigo-400"></i>
+                    <span class="hidden lg:inline">Bagikan Link Sync HP/PC</span>
+                </button>
                 <div class="text-right hidden md:block">
                     <div class="text-xs font-bold text-white flex items-center gap-1.5 justify-end">
                         <span id="user-display-name">Budi Santoso</span>
                         <span id="user-role-badge" class="px-1.5 py-0.5 text-[10px] bg-indigo-500/20 text-indigo-300 rounded border border-indigo-500/30 font-semibold">Marketing</span>
                     </div>
-                    <span class="text-[10px] text-emerald-400 font-semibold"><i class="fa-solid fa-circle text-[7px] mr-1"></i>Connected</span>
+                    <span class="text-[10px] text-emerald-400 font-semibold flex items-center justify-end gap-1"><i class="fa-solid fa-circle text-[7px]"></i>Auto-Sync Active (10s)</span>
                 </div>
                 <button onclick="handleLogout()" title="Keluar" class="p-2 bg-slate-800 hover:bg-rose-900/40 text-slate-300 hover:text-rose-400 border border-slate-700 rounded-lg transition">
                     <i class="fa-solid fa-power-off text-sm"></i>
@@ -202,7 +205,6 @@
             </div>
         </header>
 
-        <!-- Navigation Tabs -->
         <nav class="bg-slate-900/80 border-b border-slate-800 px-4 lg:px-8 py-2 overflow-x-auto custom-scrollbar no-print">
             <div class="flex items-center space-x-2 min-w-max">
                 <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn active px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20">
@@ -233,7 +235,6 @@
         <main class="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
 
             <section id="view-dashboard" class="space-y-6">
-                <!-- KPI Header Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     <div class="glass-panel p-4 border-l-4 border-blue-500">
                         <div class="flex justify-between items-start">
@@ -291,7 +292,6 @@
                     </div>
                 </div>
 
-                <!-- Metrics & Progress -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="glass-panel p-4 flex items-center gap-4">
                         <div class="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 text-xl"><i class="fa-solid fa-percent"></i></div>
@@ -328,7 +328,6 @@
                     </div>
                 </div>
 
-                <!-- Charts -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="glass-panel p-5">
                         <div class="flex justify-between items-center mb-4">
@@ -347,7 +346,6 @@
                     </div>
                 </div>
 
-                <!-- Widgets -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="glass-panel p-5">
                         <h3 class="text-sm font-bold text-amber-300 flex items-center gap-2 mb-3"><i class="fa-solid fa-clock text-amber-400"></i> Reminder Follow Up</h3>
@@ -782,16 +780,39 @@
         let mapMarkers = [];
         let chartClosingInstance = null;
         let chartActivityInstance = null;
+        let isSyncing = false;
 
         window.onload = function() {
+            // 1. Auto detect gasUrl dari Query Parameter ?gasUrl=... jika dibagikan lewat URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryGasUrl = urlParams.get('gasUrl');
+            if (queryGasUrl) {
+                appState.gasUrl = queryGasUrl;
+                localStorage.setItem('bts_gas_url', queryGasUrl);
+                // Bersihkan query string di URL agar rapi
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
             const savedState = localStorage.getItem('bts_marketing_state');
             if (savedState) {
-                appState = Object.assign(appState, JSON.parse(savedState));
+                try {
+                    appState = Object.assign(appState, JSON.parse(savedState));
+                } catch (e) {}
             }
+
             if (appState.gasUrl) {
                 document.getElementById('input-gas-url').value = appState.gasUrl;
                 fetchSyncFromGAS();
+            } else {
+                openConfigModal();
             }
+
+            // Realtime background sync setiap 10 detik antar HP & PC
+            setInterval(() => {
+                if (appState.gasUrl && appState.currentUser) {
+                    fetchSyncFromGAS(false); // background sync tanpa pemicu toast
+                }
+            }, 10000);
         };
 
         function openConfigModal() {
@@ -804,21 +825,53 @@
                 appState.gasUrl = url;
                 localStorage.setItem('bts_gas_url', url);
                 document.getElementById('config-modal').classList.add('hidden');
-                showToast('URL Google Apps Script berhasil disimpan!', 'success');
-                fetchSyncFromGAS();
+                showToast('URL Google Apps Script disimpan!', 'success');
+                fetchSyncFromGAS(true);
             }
+        }
+
+        function copyShareableUrl() {
+            if (!appState.gasUrl) {
+                showToast('Set URL Google Apps Script terlebih dahulu!', 'warning');
+                openConfigModal();
+                return;
+            }
+            const baseUrl = window.location.origin + window.location.pathname;
+            const shareUrl = `${baseUrl}?gasUrl=${encodeURIComponent(appState.gasUrl)}`;
+            
+            const tempInput = document.createElement('input');
+            tempInput.value = shareUrl;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            showToast('Link Auto-Sync disalin! Buka link ini di HP/PC untuk sinkron otomatis.', 'success');
         }
 
         async function apiCall(action, payload = {}) {
             if (!appState.gasUrl) return null;
+            
             try {
-                // Menggunakan text/plain untuk menghindari pemicu Preflight CORS OPTIONS di browser untuk Apps Script
-                const response = await fetch(appState.gasUrl, {
+                // Cobalah metode GET terenkapsulasi terlebih dahulu untuk menghindari redirect preflight CORS
+                const getUrl = `${appState.gasUrl}?action=${encodeURIComponent(action)}&payload=${encodeURIComponent(JSON.stringify(payload))}`;
+                const getResponse = await fetch(getUrl, { method: 'GET' });
+                if (getResponse.ok) {
+                    const text = await getResponse.text();
+                    try {
+                        return JSON.parse(text);
+                    } catch(e) {}
+                }
+            } catch (err) {}
+
+            try {
+                // Fallback dengan POST text/plain
+                const postResponse = await fetch(appState.gasUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action, payload })
                 });
-                const res = await response.json();
+                const res = await postResponse.json();
                 return res;
             } catch (e) {
                 console.error('GAS API Error:', e);
@@ -826,8 +879,10 @@
             }
         }
 
-        async function fetchSyncFromGAS() {
-            if (!appState.gasUrl) return;
+        async function fetchSyncFromGAS(showNotification = true) {
+            if (!appState.gasUrl || isSyncing) return;
+            isSyncing = true;
+
             const spinner = document.getElementById('sync-spinner');
             if (spinner) spinner.classList.add('fa-spin');
 
@@ -841,9 +896,12 @@
                 
                 saveStateToLocal();
                 refreshAllViews();
-                showToast('Data berhasil disinkronkan dari Google Sheets!', 'success');
+                if (showNotification) {
+                    showToast('Data tersinkron dari Google Sheets!', 'success');
+                }
             }
             if (spinner) spinner.classList.remove('fa-spin');
+            isSyncing = false;
         }
 
         function saveStateToLocal() {
@@ -880,6 +938,7 @@
 
             showToast('Selamat datang, ' + appState.currentUser.nama, 'success');
             refreshAllViews();
+            fetchSyncFromGAS(false);
         }
 
         function handleLogout() {
@@ -1120,6 +1179,7 @@
             showToast('Data Sekolah berhasil disimpan!', 'success');
 
             await apiCall('saveSekolah', obj);
+            fetchSyncFromGAS(false);
         }
 
         function editSekolah(id) {
@@ -1143,6 +1203,7 @@
             refreshAllViews();
             showToast('Sekolah berhasil dihapus.', 'info');
             await apiCall('deleteSekolah', { id });
+            fetchSyncFromGAS(false);
         }
 
         function exportSekolahExcel() {
@@ -1253,6 +1314,7 @@
             showToast('Activity disinkronkan!', 'success');
 
             await apiCall('saveDailyActivity', actObj);
+            fetchSyncFromGAS(false);
         }
 
         async function deleteActivity(actId) {
@@ -1261,6 +1323,7 @@
             refreshAllViews();
             showToast('Aktivitas dihapus.', 'info');
             await apiCall('deleteActivity', { id: actId });
+            fetchSyncFromGAS(false);
         }
 
         function renderKanbanBoard() {
@@ -1318,6 +1381,7 @@
                 showToast(`Pipeline ${pipeItem['Nama Sekolah']} dipindahkan ke ${newStage}`, 'info');
 
                 await apiCall('updatePipelineStage', { id: draggedPipeId, newStage });
+                fetchSyncFromGAS(false);
             }
             draggedPipeId = null;
         }
@@ -1410,6 +1474,7 @@
             refreshAllViews();
             showToast('Marketing ditambahkan.', 'success');
             await apiCall('saveMarketing', newMkt);
+            fetchSyncFromGAS(false);
         }
 
         async function saveGeneralSettings() {
@@ -1419,6 +1484,7 @@
             saveStateToLocal();
             showToast('Pengaturan disimpan!', 'success');
             await apiCall('saveGeneralSettings', appState.settings);
+            fetchSyncFromGAS(false);
         }
 
         function handleBackupDatabase() {
@@ -1446,6 +1512,7 @@
                         refreshAllViews();
                         showToast('Database berhasil dipulihkan!', 'success');
                         await apiCall('restoreDatabase', { jsonString: JSON.stringify(restoredData) });
+                        fetchSyncFromGAS(false);
                     }
                 } catch (err) {
                     showToast('Gagal membaca file JSON.', 'error');
