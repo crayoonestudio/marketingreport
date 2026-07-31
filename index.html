@@ -185,7 +185,7 @@
 
             <form id="login-form" onsubmit="window.handleLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Username</label>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Username / Nama Staff</label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-3 top-3 text-slate-400 text-sm"></i>
                         <input type="text" id="login-username" placeholder="Masukkan username" required
@@ -207,7 +207,8 @@
                 </button>
             </form>
 
-            <div class="mt-6 pt-4 border-t border-slate-800 flex justify-end items-center text-[11px] text-slate-500">
+            <div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center text-[11px] text-slate-500">
+                <button onclick="window.resetSeedAccounts()" class="text-rose-400 hover:underline"><i class="fa-solid fa-rotate-left mr-1"></i>Reset Data Login</button>
                 <button onclick="window.openConfigModal()" class="text-indigo-400 hover:underline"><i class="fa-solid fa-gear mr-1"></i>Set Web App URL</button>
             </div>
         </div>
@@ -252,6 +253,11 @@
                     <option value="11">November</option>
                     <option value="12">Desember</option>
                 </select>
+
+                <!-- Button Hari Ini -->
+                <button onclick="window.resetFilterToCurrentDate()" title="Reset Filter ke Bulan & Tahun Saat Ini" class="px-2.5 py-1 bg-indigo-600/80 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1 shadow">
+                    <i class="fa-solid fa-calendar-day"></i> Hari Ini
+                </button>
 
                 <!-- Scope Periode Dropdown -->
                 <select id="filter-period-scope" onchange="window.handlePeriodScopeChange(this.value)" class="bg-slate-800 border border-slate-700 text-indigo-300 font-bold text-xs rounded-lg px-2 py-1 focus:outline-none focus:border-indigo-500">
@@ -338,9 +344,7 @@
                     </button>
                 </div>
 
-                <div id="kpi-cards-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <!-- Populated dynamically from Global KPI Settings -->
-                </div>
+                <div id="kpi-cards-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="glass-panel p-5">
@@ -693,9 +697,7 @@
                         <div class="space-y-3">
                             <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Kelola Kartu KPI Dashboard (Visual & Urutan)</h4>
                             <p class="text-[11px] text-slate-400">Seluruh target kartu dikendalikan secara terpusat oleh Pengaturan Target KPI di atas.</p>
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="kpi-cards-config-container">
-                                <!-- Cards dynamically rendered without target inputs -->
-                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="kpi-cards-config-container"></div>
                         </div>
                     </div>
 
@@ -1074,11 +1076,12 @@
             return ['dashboard', 'sekolah', 'daily', 'pipeline', 'notifications', 'gps'];
         };
 
+        const now = new Date();
         let appState = {
             currentUser: null,
             gasUrl: localStorage.getItem('bts_gas_url') || '',
-            filterYear: new Date().getFullYear().toString(),
-            filterMonth: (new Date().getMonth() + 1).toString(),
+            filterYear: now.getFullYear().toString(),
+            filterMonth: (now.getMonth() + 1).toString(),
             filterScope: 'Satu Periode',
             filterMarketing: 'ALL',
             sekolah: [],
@@ -1089,9 +1092,9 @@
             settings: {
                 companyName: 'PT Annual Book Creative',
                 logoUrl: '',
-                targetDatabase: 100,      // Editable Global Target
-                targetHarian: 3,          // Editable Canvassing Harian (Mon-Fri)
-                targetDeal: 16,           // Editable Global Target
+                targetDatabase: 100,
+                targetHarian: 3,
+                targetDeal: 16,
                 averageDealValue: 25000000,
                 marketingPermissions: ['dashboard', 'sekolah', 'daily', 'pipeline', 'notifications', 'gps'],
                 kpiCards: [
@@ -1107,21 +1110,81 @@
             }
         };
 
-        /* Single Source of Truth Target Calculator */
+        const initialSeedData = {
+            sekolah: [
+                { ID: 'SCH-101', 'Nama Sekolah': 'SMA NEGERI 1 JAKARTA', Jenjang: 'SMA', Alamat: 'Jl. Budi Utomo No. 7', Wilayah: 'Jakarta Pusat', 'Nama PIC': 'Pak Ahmad', 'Nomor WhatsApp': '081234567890', 'Nama Marketing': 'Budi Santoso' },
+                { ID: 'SCH-102', 'Nama Sekolah': 'SMK NEGERI 2 BANDUNG', Jenjang: 'SMK', Alamat: 'Jl. Cihampelas No. 45', Wilayah: 'Bandung', 'Nama PIC': 'Ibu Ratna', 'Nomor WhatsApp': '082198765432', 'Nama Marketing': 'Siti Rahma' },
+                { ID: 'SCH-103', 'Nama Sekolah': 'SMP AL AZHAR 1', Jenjang: 'SMP', Alamat: 'Jl. Sisingamangaraja', Wilayah: 'Jakarta Selatan', 'Nama PIC': 'Bpk. Ridwan', 'Nomor WhatsApp': '081311223344', 'Nama Marketing': 'Budi Santoso' },
+                { ID: 'SCH-104', 'Nama Sekolah': 'SMA TARUNA NUSANTARA', Jenjang: 'SMA', Alamat: 'Jl. Magelang Purworejo', Wilayah: 'Magelang', 'Nama PIC': 'Ibu Dewi', 'Nomor WhatsApp': '085677889900', 'Nama Marketing': 'Budi Santoso' }
+            ],
+            activity: [
+                { 'ID Activity': 'ACT-1001', 'Tanggal Kunjungan': '2026-07-10', 'Nama Marketing': 'Budi Santoso', 'Nama Sekolah': 'SMA NEGERI 1 JAKARTA', 'Media Marketing': 'Canvassing', Aktivitas: 'Prospect', Status: 'Hot', 'Hasil Kunjungan': 'Membahas konsep awal BTS dengan pengurus OSIS', 'Lokasi GPS': 'Jl. Budi Utomo No.7, Pasar Baru, Jakarta Pusat', Coords: '-6.175392, 106.827153', Foto: '', 'Nominal Deal': 0 },
+                { 'ID Activity': 'ACT-1002', 'Tanggal Kunjungan': '2026-07-15', 'Nama Marketing': 'Budi Santoso', 'Nama Sekolah': 'SMA NEGERI 1 JAKARTA', 'Media Marketing': 'Telepon', Aktivitas: 'Presentasi', Status: 'Hot', 'Hasil Kunjungan': 'Presentasi proposal harga dan opsi cetak hardcover', 'Lokasi GPS': 'Jl. Budi Utomo No.7, Pasar Baru, Jakarta Pusat', Coords: '-6.175392, 106.827153', Foto: '', 'Nominal Deal': 0 },
+                { 'ID Activity': 'ACT-1003', 'Tanggal Kunjungan': '2026-07-20', 'Nama Marketing': 'Budi Santoso', 'Nama Sekolah': 'SMA NEGERI 1 JAKARTA', 'Media Marketing': 'Canvassing', Aktivitas: 'Deal', Status: 'Hot', 'Hasil Kunjungan': 'Penandatanganan MOU & DP Awal BTS', 'Lokasi GPS': 'Jl. Budi Utomo No.7, Pasar Baru, Jakarta Pusat', Coords: '-6.175392, 106.827153', Foto: '', 'Nominal Deal': 60000000 },
+                { 'ID Activity': 'ACT-1004', 'Tanggal Kunjungan': '2026-07-25', 'Nama Marketing': 'Siti Rahma', 'Nama Sekolah': 'SMK NEGERI 2 BANDUNG', 'Media Marketing': 'Canvassing', Aktivitas: 'Negosiasi', Status: 'Warm', 'Hasil Kunjungan': 'Diskusi budget akhir dengan Wakasek Kesiswaan', 'Lokasi GPS': 'Jl. Cihampelas No.45, Tamansari, Bandung', Coords: '-6.917464, 107.619123', Foto: '', 'Nominal Deal': 45000000 }
+            ],
+            pipeline: [
+                { 'ID Pipeline': 'PL-101', 'Nama Sekolah': 'SMA NEGERI 1 JAKARTA', 'Nama Marketing': 'Budi Santoso', Aktivitas: 'Deal', Status: 'Hot', 'Peluang (%)': 100, 'Tanggal Follow Up': '2026-07-20', 'Nominal Deal': 60000000, 'Last Updated': '2026-07-20' },
+                { 'ID Pipeline': 'PL-102', 'Nama Sekolah': 'SMK NEGERI 2 BANDUNG', 'Nama Marketing': 'Siti Rahma', Aktivitas: 'Negosiasi', Status: 'Warm', 'Peluang (%)': 80, 'Tanggal Follow Up': '2026-07-25', 'Nominal Deal': 45000000, 'Last Updated': '2026-07-25' },
+                { 'ID Pipeline': 'PL-103', 'Nama Sekolah': 'SMP AL AZHAR 1', 'Nama Marketing': 'Budi Santoso', Aktivitas: 'Follow Up', Status: 'Warm', 'Peluang (%)': 40, 'Tanggal Follow Up': '2026-07-28', 'Nominal Deal': 30000000, 'Last Updated': '2026-07-28' },
+                { 'ID Pipeline': 'PL-104', 'Nama Sekolah': 'SMA TARUNA NUSANTARA', 'Nama Marketing': 'Budi Santoso', Aktivitas: 'Prospect', Status: 'Cold', 'Peluang (%)': 20, 'Tanggal Follow Up': '2026-08-01', 'Nominal Deal': 0, 'Last Updated': '2026-07-10' }
+            ],
+            marketing: [
+                { 'ID Marketing': 'MKT-100', Username: 'owner', Password: 'own123', Nama: 'Owner Utama', 'Nomor WhatsApp': '08100000000', Area: 'Pusat', Role: 'Owner', 'Target Deal Bulanan': 400000000 },
+                { 'ID Marketing': 'MKT-101', Username: 'hr', Password: 'hr123', Nama: 'HR Manager', 'Nomor WhatsApp': '08111111111', Area: 'Jakarta', Role: 'HR', 'Target Deal Bulanan': 400000000 },
+                { 'ID Marketing': 'MKT-102', Username: 'mkt1', Password: 'mkt123', Nama: 'Budi Santoso', 'Nomor WhatsApp': '08123456789', Area: 'Jakarta Pusat', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
+                { 'ID Marketing': 'MKT-103', Username: 'mkt2', Password: 'mkt123', Nama: 'Siti Rahma', 'Nomor WhatsApp': '08219876543', Area: 'Bandung', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
+                { 'ID Marketing': 'MKT-104', Username: 'mkt3', Password: 'mkt123', Nama: 'Dimas Prasetyo', 'Nomor WhatsApp': '08123456701', Area: 'Surabaya', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
+                { 'ID Marketing': 'MKT-105', Username: 'mkt4', Password: 'mkt123', Nama: 'Rina Melati', 'Nomor WhatsApp': '08123456702', Area: 'Semarang', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
+                { 'ID Marketing': 'MKT-106', Username: 'mkt5', Password: 'mkt123', Nama: 'Andi Wijaya', 'Nomor WhatsApp': '08123456703', Area: 'Yogyakarta', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
+                { 'ID Marketing': 'MKT-107', Username: 'mkt6', Password: 'mkt123', Nama: 'Dewi Lestari', 'Nomor WhatsApp': '08123456704', Area: 'Malang', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
+                { 'ID Marketing': 'MKT-108', Username: 'mkt7', Password: 'mkt123', Nama: 'Fajar Hidayat', 'Nomor WhatsApp': '08123456705', Area: 'Solo', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
+                { 'ID Marketing': 'MKT-109', Username: 'mkt8', Password: 'mkt123', Nama: 'Gita Gutawa', 'Nomor WhatsApp': '08123456706', Area: 'Denpasar', Role: 'Marketing', 'Target Deal Bulanan': 400000000 }
+            ]
+        };
+
+        /* Function to ensure core seed accounts exist in state */
+        window.ensureSeedAccounts = function() {
+            if (!appState.marketing || !Array.isArray(appState.marketing) || appState.marketing.length === 0) {
+                appState.marketing = [...initialSeedData.marketing];
+                return;
+            }
+            
+            // Map existing or merge seed accounts
+            initialSeedData.marketing.forEach(seed => {
+                let existing = appState.marketing.find(m => 
+                    (m.Username && m.Username.toLowerCase() === seed.Username.toLowerCase()) || 
+                    (m.Nama && m.Nama.toLowerCase() === seed.Nama.toLowerCase())
+                );
+                if (existing) {
+                    if (!existing.Username) existing.Username = seed.Username;
+                    if (!existing.Password) existing.Password = seed.Password;
+                    if (!existing.Role) existing.Role = seed.Role;
+                } else {
+                    appState.marketing.push(seed);
+                }
+            });
+        };
+
+        window.resetSeedAccounts = function() {
+            appState.marketing = [...initialSeedData.marketing];
+            window.saveStateToLocal();
+            window.showToast('Data akun demo telah direset ke nilai default.', 'info');
+        };
+
         window.getGlobalKpiTargets = function() {
             const targetDb = Number(appState.settings.targetDatabase) || 100;
             const targetHarian = Number(appState.settings.targetHarian) || 3;
             const targetDeal = Number(appState.settings.targetDeal) || 16;
             const avgDealVal = Number(appState.settings.averageDealValue) || 25000000;
 
-            // July - December = 6 Months (~130 Working Days Mon-Fri)
             const workingDaysPeriod = 130;
             const monthsPeriod = 6;
 
-            const targetCanvass = workingDaysPeriod * targetHarian; // 130 * 3 = 390
-            const targetPresentasi = monthsPeriod * 5;              // 6 * 5 = 30
-            const belumDealBenchmark = Math.max(0, targetPresentasi - targetDeal); // 30 - 16 = 14
-            const targetRevenue = targetDeal * avgDealVal;         // 16 * 25.000.000 = 400.000.000
+            const targetCanvass = workingDaysPeriod * targetHarian;
+            const targetPresentasi = monthsPeriod * 5;
+            const belumDealBenchmark = Math.max(0, targetPresentasi - targetDeal);
+            const targetRevenue = targetDeal * avgDealVal;
 
             return {
                 targetDb,
@@ -1172,7 +1235,7 @@
         };
 
         window.updateFilterUI = function() {
-            const yr = appState.filterYear || '2026';
+            const yr = appState.filterYear || new Date().getFullYear().toString();
             const btn2026 = document.getElementById('btn-year-2026');
             const btn2027 = document.getElementById('btn-year-2027');
             if (btn2026 && btn2027) {
@@ -1185,6 +1248,16 @@
             if (scopeSelect) scopeSelect.value = appState.filterScope || 'Satu Periode';
             const yearLabel = document.getElementById('chart-year-label');
             if (yearLabel) yearLabel.innerText = 'Tahun ' + yr;
+        };
+
+        window.resetFilterToCurrentDate = function() {
+            const currentDate = new Date();
+            appState.filterYear = currentDate.getFullYear().toString();
+            appState.filterMonth = (currentDate.getMonth() + 1).toString();
+            appState.filterScope = 'Satu Periode';
+            window.updateFilterUI();
+            window.refreshAllViews();
+            window.showToast('Filter dikembalikan ke bulan & tahun saat ini.', 'info');
         };
 
         window.setFilterYear = function(year) {
@@ -1212,39 +1285,6 @@
 
         let mapInstance = null, mapMarkers = [], chartClosingInstance = null, chartActivityInstance = null, syncPollingTimer = null;
 
-        const initialSeedData = {
-            sekolah: [
-                { ID: 'SCH-101', 'Nama Sekolah': 'SMA NEGERI 1 JAKARTA', Jenjang: 'SMA', Alamat: 'Jl. Budi Utomo No. 7', Wilayah: 'Jakarta Pusat', 'Nama PIC': 'Pak Ahmad', 'Nomor WhatsApp': '081234567890', 'Nama Marketing': 'Budi Santoso' },
-                { ID: 'SCH-102', 'Nama Sekolah': 'SMK NEGERI 2 BANDUNG', Jenjang: 'SMK', Alamat: 'Jl. Cihampelas No. 45', Wilayah: 'Bandung', 'Nama PIC': 'Ibu Ratna', 'Nomor WhatsApp': '082198765432', 'Nama Marketing': 'Siti Rahma' },
-                { ID: 'SCH-103', 'Nama Sekolah': 'SMP AL AZHAR 1', Jenjang: 'SMP', Alamat: 'Jl. Sisingamangaraja', Wilayah: 'Jakarta Selatan', 'Nama PIC': 'Bpk. Ridwan', 'Nomor WhatsApp': '081311223344', 'Nama Marketing': 'Budi Santoso' },
-                { ID: 'SCH-104', 'Nama Sekolah': 'SMA TARUNA NUSANTARA', Jenjang: 'SMA', Alamat: 'Jl. Magelang Purworejo', Wilayah: 'Magelang', 'Nama PIC': 'Ibu Dewi', 'Nomor WhatsApp': '085677889900', 'Nama Marketing': 'Budi Santoso' }
-            ],
-            activity: [
-                { 'ID Activity': 'ACT-1001', 'Tanggal Kunjungan': '2026-07-10', 'Nama Marketing': 'Budi Santoso', 'Nama Sekolah': 'SMA NEGERI 1 JAKARTA', 'Media Marketing': 'Canvassing', Aktivitas: 'Prospect', Status: 'Hot', 'Hasil Kunjungan': 'Membahas konsep awal BTS dengan pengurus OSIS', 'Lokasi GPS': 'Jl. Budi Utomo No.7, Pasar Baru, Jakarta Pusat', Coords: '-6.175392, 106.827153', Foto: '', 'Nominal Deal': 0 },
-                { 'ID Activity': 'ACT-1002', 'Tanggal Kunjungan': '2026-07-15', 'Nama Marketing': 'Budi Santoso', 'Nama Sekolah': 'SMA NEGERI 1 JAKARTA', 'Media Marketing': 'Telepon', Aktivitas: 'Presentasi', Status: 'Hot', 'Hasil Kunjungan': 'Presentasi proposal harga dan opsi cetak hardcover', 'Lokasi GPS': 'Jl. Budi Utomo No.7, Pasar Baru, Jakarta Pusat', Coords: '-6.175392, 106.827153', Foto: '', 'Nominal Deal': 0 },
-                { 'ID Activity': 'ACT-1003', 'Tanggal Kunjungan': '2026-07-20', 'Nama Marketing': 'Budi Santoso', 'Nama Sekolah': 'SMA NEGERI 1 JAKARTA', 'Media Marketing': 'Canvassing', Aktivitas: 'Deal', Status: 'Hot', 'Hasil Kunjungan': 'Penandatanganan MOU & DP Awal BTS', 'Lokasi GPS': 'Jl. Budi Utomo No.7, Pasar Baru, Jakarta Pusat', Coords: '-6.175392, 106.827153', Foto: '', 'Nominal Deal': 60000000 },
-                { 'ID Activity': 'ACT-1004', 'Tanggal Kunjungan': '2026-07-25', 'Nama Marketing': 'Siti Rahma', 'Nama Sekolah': 'SMK NEGERI 2 BANDUNG', 'Media Marketing': 'Canvassing', Aktivitas: 'Negosiasi', Status: 'Warm', 'Hasil Kunjungan': 'Diskusi budget akhir dengan Wakasek Kesiswaan', 'Lokasi GPS': 'Jl. Cihampelas No.45, Tamansari, Bandung', Coords: '-6.917464, 107.619123', Foto: '', 'Nominal Deal': 45000000 }
-            ],
-            pipeline: [
-                { 'ID Pipeline': 'PL-101', 'Nama Sekolah': 'SMA NEGERI 1 JAKARTA', 'Nama Marketing': 'Budi Santoso', Aktivitas: 'Deal', Status: 'Hot', 'Peluang (%)': 100, 'Tanggal Follow Up': '2026-07-20', 'Nominal Deal': 60000000, 'Last Updated': '2026-07-20' },
-                { 'ID Pipeline': 'PL-102', 'Nama Sekolah': 'SMK NEGERI 2 BANDUNG', 'Nama Marketing': 'Siti Rahma', Aktivitas: 'Negosiasi', Status: 'Warm', 'Peluang (%)': 80, 'Tanggal Follow Up': '2026-07-25', 'Nominal Deal': 45000000, 'Last Updated': '2026-07-25' },
-                { 'ID Pipeline': 'PL-103', 'Nama Sekolah': 'SMP AL AZHAR 1', 'Nama Marketing': 'Budi Santoso', Aktivitas: 'Follow Up', Status: 'Warm', 'Peluang (%)': 40, 'Tanggal Follow Up': '2026-07-28', 'Nominal Deal': 30000000, 'Last Updated': '2026-07-28' },
-                { 'ID Pipeline': 'PL-104', 'Nama Sekolah': 'SMA TARUNA NUSANTARA', 'Nama Marketing': 'Budi Santoso', Aktivitas: 'Prospect', Status: 'Cold', 'Peluang (%)': 20, 'Tanggal Follow Up': '2026-08-01', 'Nominal Deal': 0, 'Last Updated': '2026-07-10' }
-            ],
-            marketing: [
-                { 'ID Marketing': 'MKT-100', Username: 'owner', Password: 'own123', Nama: 'Owner Utama', 'Nomor WhatsApp': '08100000000', Area: 'Pusat', Role: 'Owner', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-101', Username: 'hr', Password: 'hr123', Nama: 'HR Manager', 'Nomor WhatsApp': '08111111111', Area: 'Jakarta', Role: 'HR', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-102', Username: 'mkt1', Password: 'mkt123', Nama: 'Budi Santoso', 'Nomor WhatsApp': '08123456789', Area: 'Jakarta Pusat', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-103', Username: 'mkt2', Password: 'mkt123', Nama: 'Siti Rahma', 'Nomor WhatsApp': '08219876543', Area: 'Bandung', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-104', Username: 'mkt3', Password: 'mkt123', Nama: 'Dimas Prasetyo', 'Nomor WhatsApp': '08123456701', Area: 'Surabaya', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-105', Username: 'mkt4', Password: 'mkt123', Nama: 'Rina Melati', 'Nomor WhatsApp': '08123456702', Area: 'Semarang', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-106', Username: 'mkt5', Password: 'mkt123', Nama: 'Andi Wijaya', 'Nomor WhatsApp': '08123456703', Area: 'Yogyakarta', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-107', Username: 'mkt6', Password: 'mkt123', Nama: 'Dewi Lestari', 'Nomor WhatsApp': '08123456704', Area: 'Malang', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-108', Username: 'mkt7', Password: 'mkt123', Nama: 'Fajar Hidayat', 'Nomor WhatsApp': '08123456705', Area: 'Solo', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-109', Username: 'mkt8', Password: 'mkt123', Nama: 'Gita Gutawa', 'Nomor WhatsApp': '08123456706', Area: 'Denpasar', Role: 'Marketing', 'Target Deal Bulanan': 400000000 }
-            ]
-        };
-
         window.onload = function() {
             window.initThemeMode();
             const savedState = localStorage.getItem('bts_marketing_state');
@@ -1261,6 +1301,8 @@
             } else {
                 window.loadSeedData();
             }
+
+            window.ensureSeedAccounts();
 
             const sessionUser = sessionStorage.getItem('bts_active_session_user');
             if (sessionUser) {
@@ -1286,7 +1328,7 @@
             appState.sekolah = initialSeedData.sekolah;
             appState.activity = initialSeedData.activity;
             appState.pipeline = initialSeedData.pipeline;
-            appState.marketing = initialSeedData.marketing;
+            appState.marketing = [...initialSeedData.marketing];
             window.saveStateToLocal();
         };
 
@@ -1327,8 +1369,8 @@
 
         window.handleLogin = async function(e) {
             if (e) e.preventDefault();
-            const usernameInput = document.getElementById('login-username').value.trim();
-            const passwordInput = document.getElementById('login-password').value.trim();
+            const usernameInput = (document.getElementById('login-username')?.value || '').trim();
+            const passwordInput = (document.getElementById('login-password')?.value || '').trim();
 
             if (!usernameInput || !passwordInput) {
                 window.showToast('Silakan masukkan username dan password!', 'warning');
@@ -1338,9 +1380,17 @@
             window.setButtonLoading('btn-login-submit', true, 'Memverifikasi...');
 
             try {
-                let matchedUser = appState.marketing.find(m => 
-                    m.Username && m.Username.toLowerCase() === usernameInput.toLowerCase() && m.Password === passwordInput
-                );
+                window.ensureSeedAccounts();
+
+                let matchedUser = appState.marketing.find(m => {
+                    const mUsername = (m.Username || '').toString().trim().toLowerCase();
+                    const mNama = (m.Nama || '').toString().trim().toLowerCase();
+                    const inputUn = usernameInput.toLowerCase();
+                    const mPassword = (m.Password || '').toString().trim();
+                    
+                    const isNameOrUserMatch = (mUsername === inputUn) || (mNama === inputUn);
+                    return isNameOrUserMatch && (mPassword === passwordInput);
+                });
 
                 if (!matchedUser) {
                     window.showToast('Username atau Password salah.', 'error');
@@ -1424,7 +1474,10 @@
                     appState.sekolah = result.data.sekolah || appState.sekolah;
                     appState.activity = result.data.activity || appState.activity;
                     appState.pipeline = result.data.pipeline || appState.pipeline;
-                    appState.marketing = result.data.marketing || appState.marketing;
+                    if (result.data.marketing && result.data.marketing.length > 0) {
+                        appState.marketing = result.data.marketing;
+                    }
+                    window.ensureSeedAccounts();
                     if (result.data.settings) appState.settings = { ...appState.settings, ...result.data.settings };
                     window.saveStateToLocal(); window.refreshAllViews();
                     if (showToastMsg) window.showToast('Data berhasil disinkronkan dari Google Sheets!', 'success');
@@ -1522,14 +1575,12 @@
             window.populateDropdowns();
         };
 
-        /* RENDER DASHBOARD KPIS READ FROM SINGLE SOURCE OF TRUTH */
         window.renderDashboardKPIs = function() {
             const yr = appState.filterYear;
             const mo = appState.filterMonth;
             const scope = appState.filterScope || 'Satu Periode';
             const mktFilter = appState.filterMarketing || 'ALL';
 
-            // Global Targets from Single Source of Truth
             const globalTargets = window.getGlobalKpiTargets();
 
             const filteredActivities = appState.activity.filter(a => {
@@ -1539,7 +1590,6 @@
                 const matchesMonth = mo === '0' || (d.getMonth() + 1).toString() === mo;
                 const matchesMkt = mktFilter === 'ALL' || (a['Nama Marketing'] && a['Nama Marketing'].toLowerCase() === mktFilter.toLowerCase());
                 
-                // Date scope filtering
                 if (scope === 'Hari Ini') {
                     const today = new Date().toISOString().split('T')[0];
                     if (a['Tanggal Kunjungan'] !== today) return false;
@@ -1570,11 +1620,9 @@
                 .filter(p => p.Aktivitas === 'Deal')
                 .reduce((sum, p) => sum + (Number(p['Nominal Deal']) || 0), 0);
 
-            // Conversion Rate = (Total Deal ÷ Total Presentasi) × 100%
             const conversionRate = totalPresentasi > 0 ? ((totalDeal / totalPresentasi) * 100).toFixed(1) : '0';
             const progressRevenuePct = Math.min(100, Math.round((totalRevenueDeal / (globalTargets.targetRevenue || 1)) * 100));
 
-            // Render Active Cards strictly reading targets from Global Settings
             const cardsConfig = appState.settings.kpiCards || [];
             const activeCards = cardsConfig.filter(c => c.active).sort((a, b) => (a.order || 0) - (b.order || 0));
 
@@ -2245,7 +2293,6 @@
             historyTimeline.innerHTML = historyHtml || '<p class="text-xs text-slate-500 italic">Belum ada riwayat koordinat GPS.</p>';
         };
 
-        /* RENDER CARD CONFIGURATION WITHOUT TARGET INPUT FIELDS */
         window.renderKpiConfigSection = function() {
             const container = document.getElementById('kpi-cards-config-container');
             if (!container) return;
