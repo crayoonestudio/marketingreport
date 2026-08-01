@@ -229,7 +229,7 @@
                 </div>
             </div>
 
-            <!-- Global Filter Bar (Tahun, Bulan, Scope Periode, Marketing) -->
+            <!-- Global Filter Bar (Tahun, Bulan, Marketing) -->
             <div class="flex flex-wrap items-center gap-2 bg-slate-900/90 p-1.5 rounded-xl border border-slate-800">
                 <span class="text-xs text-slate-400 px-1 font-semibold hidden sm:inline"><i class="fa-solid fa-filter mr-1 text-indigo-400"></i>Filter:</span>
                 
@@ -254,14 +254,6 @@
                     <option value="12">Desember</option>
                 </select>
 
-                <!-- Scope Periode Dropdown -->
-                <select id="filter-period-scope" onchange="window.handlePeriodScopeChange(this.value)" class="bg-slate-800 border border-slate-700 text-indigo-300 font-bold text-xs rounded-lg px-2 py-1 focus:outline-none focus:border-indigo-500">
-                    <option value="Satu Periode">Satu Periode (Juli–Desember)</option>
-                    <option value="Hari Ini">Hari Ini</option>
-                    <option value="Minggu Ini">Minggu Ini</option>
-                    <option value="Bulan Ini">Bulan Ini</option>
-                </select>
-
                 <!-- Filter Marketing Dropdown -->
                 <select id="filter-marketing-dashboard" onchange="window.handleMarketingFilterChange(this.value)" class="bg-slate-800 border border-slate-700 text-indigo-300 font-bold text-xs rounded-lg px-2 py-1 focus:outline-none focus:border-indigo-500">
                     <option value="ALL">Semua Marketing</option>
@@ -278,6 +270,12 @@
                     <i class="fa-solid fa-share-nodes text-indigo-400"></i>
                     <span class="hidden lg:inline">Bagikan Link Sync HP/PC</span>
                 </button>
+
+                <!-- Indicator Tanggal Real-Time (Asia/Jakarta WIB) -->
+                <div class="flex items-center gap-2 bg-slate-800/90 px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-bold text-indigo-300 shadow-sm" title="Tanggal Real-Time saat ini (WIB)">
+                    <i class="fa-solid fa-calendar-day text-indigo-400"></i>
+                    <span id="header-realtime-date">1 Agustus 2026</span>
+                </div>
 
                 <button id="btn-theme-toggle" onclick="window.toggleThemeMode()" title="Ganti Tema (Light / Dark Mode)" class="w-9 h-9 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 rounded-lg transition-all flex items-center justify-center text-sm shadow">
                     <i id="theme-toggle-icon" class="fa-solid fa-sun"></i>
@@ -572,7 +570,7 @@
             <section id="view-settings" class="hidden space-y-6">
                 <div class="glass-panel p-5">
                     <h2 class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-sliders text-amber-400 mr-2"></i>Pengaturan Admin (Khusus Owner & HR)</h2>
-                    <p class="text-xs text-slate-400 mb-6">Kelola akun Marketing 1 - 8, nama, username, password, target, serta kustomisasi Kartu Dashboard KPI</p>
+                    <p class="text-xs text-slate-400 mb-6">Kelola profil perusahaan, backup database, akun Marketing 1 - 8, serta kustomisasi Sales Funnel KPI</p>
 
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div class="space-y-4">
@@ -617,83 +615,300 @@
                         </div>
                     </div>
 
-                    <!-- CARD SECTION: Pengaturan Dashboard KPI Global (Single Source of Truth) -->
-                    <div class="mt-8 pt-6 border-t border-slate-800 space-y-4">
+                    <!-- CARD SECTION: Pengaturan Dashboard KPI (Sales Funnel Concept) -->
+                    <div class="mt-8 pt-6 border-t border-slate-800 space-y-6">
+                        <!-- Funnel Header Title Bar -->
                         <div class="flex flex-wrap justify-between items-center gap-4">
                             <div>
-                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                    <i class="fa-solid fa-sliders text-cyan-400"></i> Pengaturan Dashboard KPI (Global Single Source of Truth)
+                                <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+                                    <span>Pengaturan Dashboard KPI (Sales Funnel Concept)</span>
                                 </h3>
-                                <p class="text-xs text-slate-400">Pusat konfigurasi target KPI global (Juli–Desember). Perubahan langsung menyegarkan seluruh Dashboard & laporan.</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Semua perubahan target KPI akan tersinkron ke seluruh dashboard & laporan secara realtime.</p>
                             </div>
-                            <div class="flex gap-2">
-                                <button onclick="window.resetKpiDashboardSettingsToDefault()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-lg transition border border-slate-700">
-                                    <i class="fa-solid fa-rotate-left mr-1"></i>Reset Default
+                            <div class="flex items-center gap-2">
+                                <button onclick="window.resetKpiDashboardSettingsToDefault()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl transition border border-slate-700 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-rotate-left"></i> <span>Reset ke Default</span>
                                 </button>
-                                <button id="btn-save-kpi-settings" onclick="window.saveKpiDashboardSettings()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-lg shadow transition flex items-center gap-1.5">
-                                    <i class="fa-solid fa-save"></i> <span>Simpan Pengaturan Dashboard</span>
+                                <button id="btn-save-kpi-settings" onclick="window.saveKpiDashboardSettings()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition flex items-center gap-2">
+                                    <i class="fa-solid fa-floppy-disk"></i> <span>Simpan Perubahan</span>
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Global Formula & Target Settings -->
-                        <div class="p-4 bg-slate-900/90 border border-slate-800 rounded-xl space-y-4">
-                            <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-wider border-b border-slate-800 pb-2">Target KPI Per Marketing (Periode Juli–Desember)</h4>
+                        <!-- 4 FUNNEL CARDS WITH CONNECTING ARROWS -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch relative">
                             
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Target Database Sekolah / Periode</label>
-                                    <input type="number" id="cfg-target-db" value="100" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white">
-                                    <span class="text-[10px] text-slate-400 mt-0.5 block">Default: 100 Sekolah / Periode</span>
+                            <!-- CARD 1: DATABASE -->
+                            <div class="glass-panel p-0 rounded-2xl overflow-hidden border border-blue-500/40 flex flex-col justify-between shadow-lg relative group">
+                                <div class="bg-blue-600 py-2 px-4 text-center">
+                                    <h4 class="text-xs font-extrabold text-white tracking-wider uppercase">1. DATABASE</h4>
                                 </div>
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Target Canvassing Harian (Hari Kerja)</label>
-                                    <input type="number" id="cfg-target-harian-val" value="3" onchange="window.recalculateGlobalTargetsUI()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white">
-                                    <span class="text-[10px] text-slate-400 mt-0.5 block">Default: 3 / Hari (Senin–Jumat)</span>
+                                <div class="p-5 flex flex-col items-center text-center space-y-4 flex-1 justify-center">
+                                    <div class="w-16 h-16 rounded-full bg-blue-500/10 border-2 border-blue-500/30 flex items-center justify-center text-blue-400 text-2xl shadow-inner">
+                                        <i class="fa-solid fa-school"></i>
+                                    </div>
+                                    <div class="w-full space-y-1.5">
+                                        <label class="block text-[11px] font-bold text-slate-300">Target Database Sekolah / Periode</label>
+                                        <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 focus-within:border-blue-500">
+                                            <input type="number" id="cfg-target-db" value="100" oninput="window.recalculateFunnelUI()" class="w-full bg-transparent text-sm font-extrabold text-white focus:outline-none text-center">
+                                            <span class="text-xs font-semibold text-slate-400 shrink-0 ml-1">Sekolah</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Target Canvassing Periode (Otomatis)</label>
-                                    <input type="text" id="cfg-target-canvass" value="390 Canvassing (130 Hari Kerja × 3/Hari)" readonly class="w-full bg-slate-900/80 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-400 font-semibold cursor-not-allowed">
-                                    <span class="text-[10px] text-slate-400 mt-0.5 block">Formula: 130 Hari Kerja × Target Harian</span>
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Target Presentasi Periode (Otomatis)</label>
-                                    <input type="text" id="cfg-target-presentasi" value="30 Presentasi (6 Bulan × 5/Bulan)" readonly class="w-full bg-slate-900/80 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-400 font-semibold cursor-not-allowed">
-                                    <span class="text-[10px] text-slate-400 mt-0.5 block">Formula: 6 Bulan × 5 Presentasi</span>
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Target Deal (Jumlah) / Periode</label>
-                                    <input type="number" id="cfg-target-deal-count" value="16" onchange="window.recalculateGlobalTargetsUI()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white">
-                                    <span class="text-[10px] text-slate-400 mt-0.5 block">Default: 16 Deal / Periode</span>
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Belum Deal (Otomatis)</label>
-                                    <input type="text" id="cfg-target-belum-deal" value="14 Sekolah (30 Presentasi - 16 Deal)" readonly class="w-full bg-slate-900/80 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-400 font-semibold cursor-not-allowed">
-                                    <span class="text-[10px] text-slate-400 mt-0.5 block">Formula: Target Presentasi - Target Deal</span>
-                                </div>
-                                <div class="sm:col-span-2 md:col-span-3">
-                                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Target Revenue Periode (Otomatis: Target Deal × Nilai Deal Rp 25jt)</label>
-                                    <input type="text" id="cfg-target-revenue-bulanan" readonly class="w-full bg-slate-900/80 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-emerald-300 font-bold cursor-not-allowed">
-                                    <span class="text-[10px] text-slate-400 mt-0.5 block">Formula: Target Deal × Rp 25.000.000,-</span>
+                                <div class="bg-slate-950/40 py-2.5 px-3 text-center border-t border-slate-800">
+                                    <span class="text-[10px] text-slate-400 font-medium">Minimal memiliki 100 sekolah aktif</span>
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800/60">
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Rumus Conversion Rate (%)</label>
-                                    <input type="text" value="Deal Aktual ÷ Presentasi Aktual × 100%" readonly class="w-full bg-slate-900/80 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-400 font-semibold cursor-not-allowed">
+                            <!-- CARD 2: CANVASSING -->
+                            <div class="glass-panel p-0 rounded-2xl overflow-hidden border border-emerald-500/40 flex flex-col justify-between shadow-lg relative group">
+                                <div class="bg-emerald-600 py-2 px-4 text-center flex items-center justify-between">
+                                    <h4 class="text-xs font-extrabold text-white tracking-wider uppercase">2. CANVASSING</h4>
+                                    <span class="px-1.5 py-0.5 bg-emerald-950/60 text-emerald-200 text-[9px] font-extrabold rounded border border-emerald-400/30">Otomatis</span>
                                 </div>
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Rumus Progress Revenue (%)</label>
-                                    <input type="text" value="Revenue Aktual ÷ Target Revenue × 100%" readonly class="w-full bg-slate-900/80 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-400 font-semibold cursor-not-allowed">
+                                <div class="p-4 flex flex-col items-center text-center space-y-3 flex-1 justify-center">
+                                    <div class="w-14 h-14 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center text-emerald-400 text-2xl shadow-inner">
+                                        <i class="fa-solid fa-map-location-dot"></i>
+                                    </div>
+                                    
+                                    <div class="w-full space-y-2 text-left">
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-slate-300 mb-0.5">Target Canvassing Harian</label>
+                                            <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1">
+                                                <input type="number" id="cfg-target-harian-val" value="3" oninput="window.recalculateFunnelUI()" class="w-full bg-transparent text-xs font-bold text-white focus:outline-none">
+                                                <span class="text-[10px] text-slate-400 shrink-0 ml-1">Sekolah / Hari</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-slate-300 mb-0.5">Hari Kerja / Wk</label>
+                                                <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2 py-1">
+                                                    <input type="number" id="cfg-target-hari-kerja" value="5" oninput="window.recalculateFunnelUI()" class="w-full bg-transparent text-xs font-bold text-white focus:outline-none">
+                                                    <span class="text-[10px] text-slate-400 ml-0.5">Hari</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-slate-300 mb-0.5">Minggu / Bulan</label>
+                                                <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2 py-1">
+                                                    <input type="number" id="cfg-target-minggu-bulan" value="4" oninput="window.recalculateFunnelUI()" class="w-full bg-transparent text-xs font-bold text-white focus:outline-none">
+                                                    <span class="text-[10px] text-slate-400 ml-0.5">Wk</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="pt-1">
+                                            <div class="flex items-center justify-between mb-0.5">
+                                                <label class="block text-[10px] font-bold text-emerald-400">Target Canvassing Bulanan</label>
+                                                <span class="text-[9px] px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 font-bold rounded">Otomatis</span>
+                                            </div>
+                                            <div class="flex items-center bg-slate-950/80 border border-emerald-500/40 rounded-lg px-2.5 py-1">
+                                                <input type="number" id="cfg-target-canvass-calc" value="60" readonly class="w-full bg-transparent text-xs font-extrabold text-emerald-300 focus:outline-none cursor-not-allowed">
+                                                <span class="text-[10px] font-bold text-emerald-300 shrink-0 ml-1">Sekolah / Bulan</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-emerald-950/40 py-2 px-3 text-center border-t border-emerald-800/40">
+                                    <span class="text-[10px] text-emerald-400 font-semibold" id="cfg-canvass-formula-lbl">Rumus : 3 × 5 × 4 = 60 Sekolah / Bulan</span>
                                 </div>
                             </div>
+
+                            <!-- CARD 3: PRESENTASI -->
+                            <div class="glass-panel p-0 rounded-2xl overflow-hidden border border-amber-500/40 flex flex-col justify-between shadow-lg relative group">
+                                <div class="bg-amber-500 py-2 px-4 text-center flex items-center justify-between">
+                                    <h4 class="text-xs font-extrabold text-slate-950 tracking-wider uppercase">3. PRESENTASI</h4>
+                                    <span class="px-1.5 py-0.5 bg-amber-950/60 text-amber-200 text-[9px] font-extrabold rounded border border-amber-400/30">Otomatis</span>
+                                </div>
+                                <div class="p-5 flex flex-col items-center text-center space-y-4 flex-1 justify-center">
+                                    <div class="w-16 h-16 rounded-full bg-amber-500/10 border-2 border-amber-500/30 flex items-center justify-center text-amber-400 text-2xl shadow-inner">
+                                        <i class="fa-solid fa-chalkboard-user"></i>
+                                    </div>
+                                    <div class="w-full space-y-1.5">
+                                        <div class="flex items-center justify-between">
+                                            <label class="block text-[11px] font-bold text-slate-300">Target Presentasi / Bulan</label>
+                                            <span class="text-[9px] px-1.5 py-0.2 bg-amber-500/20 text-amber-300 font-bold rounded">Otomatis</span>
+                                        </div>
+                                        <div class="flex items-center bg-slate-950/80 border border-amber-500/40 rounded-xl px-3 py-1.5">
+                                            <input type="number" id="cfg-target-presentasi" value="30" readonly class="w-full bg-transparent text-sm font-extrabold text-amber-300 focus:outline-none text-center cursor-not-allowed">
+                                            <span class="text-xs font-semibold text-slate-400 shrink-0 ml-1">Sekolah</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-amber-950/40 py-2.5 px-3 text-center border-t border-amber-800/40">
+                                    <span class="text-[11px] text-amber-300 font-extrabold" id="cfg-badge-pres-pct">50% dari Target Canvassing Bulanan</span>
+                                </div>
+                            </div>
+
+                            <!-- CARD 4: DEAL -->
+                            <div class="glass-panel p-0 rounded-2xl overflow-hidden border border-teal-500/40 flex flex-col justify-between shadow-lg relative group">
+                                <div class="bg-teal-600 py-2 px-4 text-center flex items-center justify-between">
+                                    <h4 class="text-xs font-extrabold text-white tracking-wider uppercase">4. DEAL</h4>
+                                    <span class="px-1.5 py-0.5 bg-teal-950/60 text-teal-200 text-[9px] font-extrabold rounded border border-teal-400/30">Otomatis</span>
+                                </div>
+                                <div class="p-5 flex flex-col items-center text-center space-y-4 flex-1 justify-center">
+                                    <div class="w-16 h-16 rounded-full bg-teal-500/10 border-2 border-teal-500/30 flex items-center justify-center text-teal-400 text-2xl shadow-inner">
+                                        <i class="fa-solid fa-handshake"></i>
+                                    </div>
+                                    <div class="w-full space-y-1.5">
+                                        <div class="flex items-center justify-between">
+                                            <label class="block text-[11px] font-bold text-slate-300">Target Deal / Periode</label>
+                                            <span class="text-[9px] px-1.5 py-0.2 bg-teal-500/20 text-teal-300 font-bold rounded">Otomatis</span>
+                                        </div>
+                                        <div class="flex items-center bg-slate-950/80 border border-teal-500/40 rounded-xl px-3 py-1.5">
+                                            <input type="number" id="cfg-target-deal-count" value="20" readonly class="w-full bg-transparent text-sm font-extrabold text-teal-300 focus:outline-none text-center cursor-not-allowed">
+                                            <span class="text-xs font-semibold text-slate-400 shrink-0 ml-1">Sekolah</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-teal-950/40 py-2.5 px-3 text-center border-t border-teal-800/40">
+                                    <span class="text-[11px] text-teal-300 font-extrabold" id="cfg-badge-deal-pct">66.7% dari Target Presentasi</span>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- 3 BOTTOM SUMMARY & RATIO PANELS -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
+                            
+                            <!-- PANEL 1: RINGKASAN KPI TARGET -->
+                            <div class="glass-panel p-4 space-y-3 flex flex-col justify-between border border-slate-800">
+                                <h4 class="text-xs font-extrabold text-white uppercase tracking-wider border-b border-slate-800 pb-2 flex items-center gap-2">
+                                    <i class="fa-solid fa-list-check text-blue-400"></i> Ringkasan KPI Target
+                                </h4>
+                                
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-xs">
+                                        <thead class="text-[10px] text-slate-400 uppercase font-extrabold bg-slate-950/60 border-b border-slate-800">
+                                            <tr>
+                                                <th class="py-2 px-2">Tahapan</th>
+                                                <th class="py-2 px-2 text-center">Target</th>
+                                                <th class="py-2 px-2 text-right">Persentase dari DB</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-800 text-slate-200">
+                                            <tr>
+                                                <td class="py-2 px-2 font-bold flex items-center gap-1.5 text-blue-400"><i class="fa-solid fa-school text-xs"></i> Database</td>
+                                                <td class="py-2 px-2 text-center font-extrabold" id="sum-db-val">100 Sekolah</td>
+                                                <td class="py-2 px-2 text-right font-extrabold text-blue-400" id="sum-db-pct">100%</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-2 px-2 font-bold flex items-center gap-1.5 text-emerald-400"><i class="fa-solid fa-location-dot text-xs"></i> Canvassing</td>
+                                                <td class="py-2 px-2 text-center font-extrabold" id="sum-canvass-val">60 Sekolah</td>
+                                                <td class="py-2 px-2 text-right font-extrabold text-emerald-400" id="sum-canvass-pct">60%</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-2 px-2 font-bold flex items-center gap-1.5 text-amber-400"><i class="fa-solid fa-chalkboard-user text-xs"></i> Presentasi</td>
+                                                <td class="py-2 px-2 text-center font-extrabold" id="sum-pres-val">30 Sekolah</td>
+                                                <td class="py-2 px-2 text-right font-extrabold text-amber-400" id="sum-pres-pct">30%</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-2 px-2 font-bold flex items-center gap-1.5 text-teal-400"><i class="fa-solid fa-handshake text-xs"></i> Deal</td>
+                                                <td class="py-2 px-2 text-center font-extrabold" id="sum-deal-val">20 Sekolah</td>
+                                                <td class="py-2 px-2 text-right font-extrabold text-teal-400" id="sum-deal-pct">20%</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="p-2.5 bg-blue-950/30 border border-blue-500/20 rounded-xl flex items-center gap-2 text-[10px] text-blue-300">
+                                    <i class="fa-solid fa-circle-info shrink-0 text-blue-400 text-xs"></i>
+                                    <span id="sum-db-note">Persentase dihitung otomatis berdasarkan Target Database (100 Sekolah).</span>
+                                </div>
+                            </div>
+
+                            <!-- PANEL 2: RASIO KONVERSI -->
+                            <div class="glass-panel p-4 space-y-3 flex flex-col justify-between border border-slate-800">
+                                <h4 class="text-xs font-extrabold text-white uppercase tracking-wider border-b border-slate-800 pb-2 flex items-center gap-2">
+                                    <i class="fa-solid fa-percent text-amber-400"></i> Rasio Konversi
+                                </h4>
+
+                                <div class="space-y-2.5">
+                                    <div class="p-2 bg-slate-950/60 border border-slate-800 rounded-xl flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <div class="p-1.5 rounded-lg bg-blue-500/10 text-blue-400"><i class="fa-solid fa-school text-xs"></i></div>
+                                            <div>
+                                                <div class="text-[11px] font-extrabold text-white">Database ➔ Canvassing</div>
+                                                <div class="text-[9px] text-slate-400" id="lbl-ratio-db-canvass">60 dari 100 sekolah</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 w-20">
+                                            <input type="number" id="cfg-ratio-db-canvass" value="60" step="0.1" oninput="window.recalculateFunnelUI()" class="w-full bg-transparent text-xs font-extrabold text-white focus:outline-none text-right">
+                                            <span class="text-xs font-bold text-slate-400 ml-1">%</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-2 bg-slate-950/60 border border-slate-800 rounded-xl flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <div class="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400"><i class="fa-solid fa-location-dot text-xs"></i></div>
+                                            <div>
+                                                <div class="text-[11px] font-extrabold text-white">Canvassing ➔ Presentasi</div>
+                                                <div class="text-[9px] text-slate-400" id="lbl-ratio-canvass-pres">30 dari 60 sekolah</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 w-20">
+                                            <input type="number" id="cfg-ratio-canvass-pres" value="50" step="0.1" oninput="window.recalculateFunnelUI()" class="w-full bg-transparent text-xs font-extrabold text-white focus:outline-none text-right">
+                                            <span class="text-xs font-bold text-slate-400 ml-1">%</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-2 bg-slate-950/60 border border-slate-800 rounded-xl flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <div class="p-1.5 rounded-lg bg-amber-500/10 text-amber-400"><i class="fa-solid fa-chalkboard-user text-xs"></i></div>
+                                            <div>
+                                                <div class="text-[11px] font-extrabold text-white">Presentasi ➔ Deal</div>
+                                                <div class="text-[9px] text-slate-400" id="lbl-ratio-pres-deal">20 dari 30 sekolah</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 w-20">
+                                            <input type="number" id="cfg-ratio-pres-deal" value="66.7" step="0.1" oninput="window.recalculateFunnelUI()" class="w-full bg-transparent text-xs font-extrabold text-white focus:outline-none text-right">
+                                            <span class="text-xs font-bold text-slate-400 ml-1">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-2.5 bg-indigo-950/40 border border-indigo-500/30 rounded-xl flex items-center justify-between">
+                                    <div>
+                                        <div class="text-[10px] font-bold text-indigo-300">Konversi Total Database ➔ Deal</div>
+                                        <div class="text-[9px] text-slate-400" id="lbl-total-conv-sub">20 dari 100 sekolah</div>
+                                    </div>
+                                    <span class="text-base font-extrabold text-indigo-300" id="lbl-total-conv-pct">20%</span>
+                                </div>
+                            </div>
+
+                            <!-- PANEL 3: TARGET REVENUE -->
+                            <div class="glass-panel p-4 space-y-3 flex flex-col justify-between border border-slate-800">
+                                <h4 class="text-xs font-extrabold text-white uppercase tracking-wider border-b border-slate-800 pb-2 flex items-center gap-2">
+                                    <i class="fa-solid fa-sack-dollar text-emerald-400"></i> Target Revenue
+                                </h4>
+
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-slate-300 mb-1">Target Revenue / Periode</label>
+                                        <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 focus-within:border-emerald-500">
+                                            <input type="text" id="cfg-target-revenue-bulanan" placeholder="Rp 500.000.000" onkeyup="window.formatCurrencyInputWithDec(this)" class="w-full bg-transparent text-sm font-extrabold text-emerald-400 focus:outline-none">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-slate-300 mb-1">Rumus Progress Revenue</label>
+                                        <input type="text" id="cfg-rumus-revenue" value="(Revenue Aktual / Target Revenue) × 100" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 font-mono">
+                                        <span class="text-[9px] text-slate-400 mt-1 block">Contoh: (185000000 / 500000000) × 100</span>
+                                    </div>
+                                </div>
+
+                                <div class="p-2.5 bg-emerald-950/40 border border-emerald-500/30 rounded-xl flex items-center gap-2 text-[10px] text-emerald-300">
+                                    <i class="fa-solid fa-circle-check shrink-0 text-emerald-400 text-xs"></i>
+                                    <span>Digunakan untuk menghitung Progress Revenue di semua dashboard & laporan.</span>
+                                </div>
+                            </div>
+
                         </div>
 
                         <!-- Card Configuration Grid (WITHOUT TARGET FIELDS) -->
-                        <div class="space-y-3">
+                        <div class="space-y-3 pt-2">
                             <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Kelola Kartu KPI Dashboard (Visual & Urutan)</h4>
-                            <p class="text-[11px] text-slate-400">Seluruh target kartu dikendalikan secara terpusat oleh Pengaturan Target KPI di atas.</p>
+                            <p class="text-[11px] text-slate-400">Seluruh target kartu dikendalikan secara terpusat oleh Pengaturan Sales Funnel KPI di atas.</p>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="kpi-cards-config-container">
                                 <!-- Cards dynamically rendered without target inputs -->
                             </div>
@@ -1044,6 +1259,14 @@
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number || 0);
         };
 
+        window.updateRealtimeHeaderDate = function() {
+            const dateEl = document.getElementById('header-realtime-date');
+            if (!dateEl) return;
+            const now = new Date();
+            const options = { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' };
+            dateEl.innerText = new Intl.DateTimeFormat('id-ID', options).format(now);
+        };
+
         const ALL_MENUS = [
             { id: 'dashboard', name: 'Dashboard KPI' },
             { id: 'sekolah', name: 'Data Sekolah' },
@@ -1090,9 +1313,20 @@
             settings: {
                 companyName: 'PT Annual Book Creative',
                 logoUrl: '',
-                targetDatabase: 100,      // Editable Global Target
-                targetHarian: 3,          // Editable Canvassing Harian (Mon-Fri)
-                targetDeal: 16,           // Editable Global Target
+                targetDatabase: 100,
+                targetHarian: 3,
+                targetHariKerja: 5,
+                targetMingguBulan: 4,
+                targetCanvass: 60,
+                targetPresentasi: 30,
+                targetDeal: 20,
+                targetBelumDeal: 10,
+                targetRevenue: 500000000,
+                ratioDbCanvass: 60,
+                ratioCanvassPres: 50,
+                ratioPresDeal: 66.7,
+                rumusConversion: 'Deal ÷ Presentasi × 100%',
+                rumusRevenue: '(Revenue Aktual / Target Revenue) × 100',
                 averageDealValue: 25000000,
                 marketingPermissions: ['dashboard', 'sekolah', 'daily', 'pipeline', 'notifications', 'gps'],
                 kpiCards: [
@@ -1108,31 +1342,24 @@
             }
         };
 
-        /* Single Source of Truth Target Calculator */
         window.getGlobalKpiTargets = function() {
             const targetDb = Number(appState.settings.targetDatabase) || 100;
             const targetHarian = Number(appState.settings.targetHarian) || 3;
-            const targetDeal = Number(appState.settings.targetDeal) || 16;
-            const avgDealVal = Number(appState.settings.averageDealValue) || 25000000;
-
-            // July - December = 6 Months (~130 Working Days Mon-Fri)
-            const workingDaysPeriod = 130;
-            const monthsPeriod = 6;
-
-            const targetCanvass = workingDaysPeriod * targetHarian; // 130 * 3 = 390
-            const targetPresentasi = monthsPeriod * 5;              // 6 * 5 = 30
-            const belumDealBenchmark = Math.max(0, targetPresentasi - targetDeal); // 30 - 16 = 14
-            const targetRevenue = targetDeal * avgDealVal;         // 16 * 25.000.000 = 400.000.000
+            const targetHariKerja = Number(appState.settings.targetHariKerja) || 5;
+            const targetMingguBulan = Number(appState.settings.targetMingguBulan) || 4;
+            const targetCanvass = Number(appState.settings.targetCanvass) || (targetHarian * targetHariKerja * targetMingguBulan);
+            const targetPresentasi = Number(appState.settings.targetPresentasi) || 30;
+            const targetDeal = Number(appState.settings.targetDeal) || 20;
+            const belumDealBenchmark = Math.max(0, targetPresentasi - targetDeal);
+            const targetRevenue = Number(appState.settings.targetRevenue) || 500000000;
+            const ratioDbCanvass = Number(appState.settings.ratioDbCanvass) || 60;
+            const ratioCanvassPres = Number(appState.settings.ratioCanvassPres) || 50;
+            const ratioPresDeal = Number(appState.settings.ratioPresDeal) || 66.7;
 
             return {
-                targetDb,
-                targetHarian,
-                targetCanvass,
-                targetPresentasi,
-                targetDeal,
-                belumDealBenchmark,
-                targetRevenue,
-                avgDealVal
+                targetDb, targetHarian, targetHariKerja, targetMingguBulan,
+                targetCanvass, targetPresentasi, targetDeal, belumDealBenchmark,
+                targetRevenue, ratioDbCanvass, ratioCanvassPres, ratioPresDeal
             };
         };
 
@@ -1156,20 +1383,59 @@
             }
         };
 
-        window.recalculateGlobalTargetsUI = function() {
-            const targets = window.getGlobalKpiTargets();
-            const harianInput = Number(document.getElementById('cfg-target-harian-val')?.value) || 3;
-            const dealInput = Number(document.getElementById('cfg-target-deal-count')?.value) || 16;
+        window.recalculateFunnelUI = function() {
+            const targetDb = Number(document.getElementById('cfg-target-db')?.value) || 100;
+            const targetHarian = Number(document.getElementById('cfg-target-harian-val')?.value) || 3;
+            const targetHariKerja = Number(document.getElementById('cfg-target-hari-kerja')?.value) || 5;
+            const targetMingguBulan = Number(document.getElementById('cfg-target-minggu-bulan')?.value) || 4;
             
-            const canvassComputed = 130 * harianInput;
-            const presentasiComputed = 30;
-            const belumDealComputed = Math.max(0, presentasiComputed - dealInput);
-            const revenueComputed = dealInput * targets.avgDealVal;
+            // 1. Canvassing Bulanan (Otomatis = Harian * Hari Kerja * Minggu)
+            const targetCanvassCalc = targetHarian * targetHariKerja * targetMingguBulan;
+            const canvassInput = document.getElementById('cfg-target-canvass-calc');
+            if (canvassInput) canvassInput.value = targetCanvassCalc;
 
-            if (document.getElementById('cfg-target-canvass')) document.getElementById('cfg-target-canvass').value = `${canvassComputed} Canvassing (130 Hari Kerja × ${harianInput}/Hari)`;
-            if (document.getElementById('cfg-target-presentasi')) document.getElementById('cfg-target-presentasi').value = `30 Presentasi (6 Bulan × 5/Bulan)`;
-            if (document.getElementById('cfg-target-belum-deal')) document.getElementById('cfg-target-belum-deal').value = `${belumDealComputed} Sekolah (30 Presentasi - ${dealInput} Deal)`;
-            if (document.getElementById('cfg-target-revenue-bulanan')) document.getElementById('cfg-target-revenue-bulanan').value = window.formatRupiah(revenueComputed);
+            // 2. Presentasi (Otomatis = Target Canvassing Bulanan * Ratio Canvass->Pres)
+            const ratioCanvassPres = Number(document.getElementById('cfg-ratio-canvass-pres')?.value) || 50;
+            const targetPresentasi = Math.round(targetCanvassCalc * (ratioCanvassPres / 100));
+            const presInput = document.getElementById('cfg-target-presentasi');
+            if (presInput) presInput.value = targetPresentasi;
+
+            // 3. Deal (Otomatis = Target Presentasi * Ratio Pres->Deal)
+            const ratioPresDeal = Number(document.getElementById('cfg-ratio-pres-deal')?.value) || 66.7;
+            const targetDeal = Math.round(targetPresentasi * (ratioPresDeal / 100));
+            const dealInput = document.getElementById('cfg-target-deal-count');
+            if (dealInput) dealInput.value = targetDeal;
+
+            const formulaLbl = document.getElementById('cfg-canvass-formula-lbl');
+            if (formulaLbl) formulaLbl.innerText = `Rumus : ${targetHarian} × ${targetHariKerja} × ${targetMingguBulan} = ${targetCanvassCalc} Sekolah / Bulan`;
+
+            const presPct = ratioCanvassPres.toFixed(1);
+            const badgePres = document.getElementById('cfg-badge-pres-pct');
+            if (badgePres) badgePres.innerText = `${presPct}% dari Target Canvassing Bulanan`;
+
+            const dealPct = ratioPresDeal.toFixed(1);
+            const badgeDeal = document.getElementById('cfg-badge-deal-pct');
+            if (badgeDeal) badgeDeal.innerText = `${dealPct}% dari Target Presentasi`;
+
+            const pctCanvassOfDb = targetDb > 0 ? ((targetCanvassCalc / targetDb) * 100).toFixed(0) : 0;
+            const pctPresOfDb = targetDb > 0 ? ((targetPresentasi / targetDb) * 100).toFixed(0) : 0;
+            const pctDealOfDb = targetDb > 0 ? ((targetDeal / targetDb) * 100).toFixed(0) : 0;
+
+            if (document.getElementById('sum-db-val')) document.getElementById('sum-db-val').innerText = `${targetDb} Sekolah`;
+            if (document.getElementById('sum-canvass-val')) document.getElementById('sum-canvass-val').innerText = `${targetCanvassCalc} Sekolah`;
+            if (document.getElementById('sum-canvass-pct')) document.getElementById('sum-canvass-pct').innerText = `${pctCanvassOfDb}%`;
+            if (document.getElementById('sum-pres-val')) document.getElementById('sum-pres-val').innerText = `${targetPresentasi} Sekolah`;
+            if (document.getElementById('sum-pres-pct')) document.getElementById('sum-pres-pct').innerText = `${pctPresOfDb}%`;
+            if (document.getElementById('sum-deal-val')) document.getElementById('sum-deal-val').innerText = `${targetDeal} Sekolah`;
+            if (document.getElementById('sum-deal-pct')) document.getElementById('sum-deal-pct').innerText = `${pctDealOfDb}%`;
+
+            if (document.getElementById('lbl-ratio-db-canvass')) document.getElementById('lbl-ratio-db-canvass').innerText = `${targetCanvassCalc} dari ${targetDb} sekolah`;
+            if (document.getElementById('lbl-ratio-canvass-pres')) document.getElementById('lbl-ratio-canvass-pres').innerText = `${targetPresentasi} dari ${targetCanvassCalc} sekolah`;
+            if (document.getElementById('lbl-ratio-pres-deal')) document.getElementById('lbl-ratio-pres-deal').innerText = `${targetDeal} dari ${targetPresentasi} sekolah`;
+
+            const totalConvPct = targetDb > 0 ? ((targetDeal / targetDb) * 100).toFixed(0) : 0;
+            if (document.getElementById('lbl-total-conv-sub')) document.getElementById('lbl-total-conv-sub').innerText = `${targetDeal} dari ${targetDb} sekolah`;
+            if (document.getElementById('lbl-total-conv-pct')) document.getElementById('lbl-total-conv-pct').innerText = `${totalConvPct}%`;
         };
 
         window.updateFilterUI = function() {
@@ -1182,8 +1448,6 @@
             }
             const monthSelect = document.getElementById('filter-month');
             if (monthSelect) monthSelect.value = appState.filterMonth || '0';
-            const scopeSelect = document.getElementById('filter-period-scope');
-            if (scopeSelect) scopeSelect.value = appState.filterScope || 'Satu Periode';
             const yearLabel = document.getElementById('chart-year-label');
             if (yearLabel) yearLabel.innerText = 'Tahun ' + yr;
         };
@@ -1196,12 +1460,6 @@
 
         window.handleMonthChange = function(monthVal) {
             appState.filterMonth = monthVal;
-            window.updateFilterUI();
-            window.refreshAllViews();
-        };
-
-        window.handlePeriodScopeChange = function(scopeVal) {
-            appState.filterScope = scopeVal;
             window.updateFilterUI();
             window.refreshAllViews();
         };
@@ -1233,21 +1491,24 @@
                 { 'ID Pipeline': 'PL-104', 'Nama Sekolah': 'SMA TARUNA NUSANTARA', 'Nama Marketing': 'Budi Santoso', Aktivitas: 'Prospect', Status: 'Cold', 'Peluang (%)': 20, 'Tanggal Follow Up': '2026-08-01', 'Nominal Deal': 0, 'Last Updated': '2026-07-10' }
             ],
             marketing: [
-                { 'ID Marketing': 'MKT-100', Username: 'owner', Password: 'own123', Nama: 'Owner Utama', 'Nomor WhatsApp': '08100000000', Area: 'Pusat', Role: 'Owner', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-101', Username: 'hr', Password: 'hr123', Nama: 'HR Manager', 'Nomor WhatsApp': '08111111111', Area: 'Jakarta', Role: 'HR', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-102', Username: 'mkt1', Password: 'mkt123', Nama: 'Budi Santoso', 'Nomor WhatsApp': '08123456789', Area: 'Jakarta Pusat', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-103', Username: 'mkt2', Password: 'mkt123', Nama: 'Siti Rahma', 'Nomor WhatsApp': '08219876543', Area: 'Bandung', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-104', Username: 'mkt3', Password: 'mkt123', Nama: 'Dimas Prasetyo', 'Nomor WhatsApp': '08123456701', Area: 'Surabaya', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-105', Username: 'mkt4', Password: 'mkt123', Nama: 'Rina Melati', 'Nomor WhatsApp': '08123456702', Area: 'Semarang', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-106', Username: 'mkt5', Password: 'mkt123', Nama: 'Andi Wijaya', 'Nomor WhatsApp': '08123456703', Area: 'Yogyakarta', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-107', Username: 'mkt6', Password: 'mkt123', Nama: 'Dewi Lestari', 'Nomor WhatsApp': '08123456704', Area: 'Malang', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-108', Username: 'mkt7', Password: 'mkt123', Nama: 'Fajar Hidayat', 'Nomor WhatsApp': '08123456705', Area: 'Solo', Role: 'Marketing', 'Target Deal Bulanan': 400000000 },
-                { 'ID Marketing': 'MKT-109', Username: 'mkt8', Password: 'mkt123', Nama: 'Gita Gutawa', 'Nomor WhatsApp': '08123456706', Area: 'Denpasar', Role: 'Marketing', 'Target Deal Bulanan': 400000000 }
+                { 'ID Marketing': 'MKT-100', Username: 'owner', Password: 'own123', Nama: 'Owner Utama', 'Nomor WhatsApp': '08100000000', Area: 'Pusat', Role: 'Owner', 'Target Deal Bulanan': 500000000 },
+                { 'ID Marketing': 'MKT-101', Username: 'hr', Password: 'hr123', Nama: 'HR Manager', 'Nomor WhatsApp': '08111111111', Area: 'Jakarta', Role: 'HR', 'Target Deal Bulanan': 500000000 },
+                { 'ID Marketing': 'MKT-102', Username: 'mkt1', Password: 'mkt123', Nama: 'Budi Santoso', 'Nomor WhatsApp': '08123456789', Area: 'Jakarta Pusat', Role: 'Marketing', 'Target Deal Bulanan': 500000000 },
+                { 'ID Marketing': 'MKT-103', Username: 'mkt2', Password: 'mkt123', Nama: 'Siti Rahma', 'Nomor WhatsApp': '08219876543', Area: 'Bandung', Role: 'Marketing', 'Target Deal Bulanan': 500000000 },
+                { 'ID Marketing': 'MKT-104', Username: 'mkt3', Password: 'mkt123', Nama: 'Dimas Prasetyo', 'Nomor WhatsApp': '08123456701', Area: 'Surabaya', Role: 'Marketing', 'Target Deal Bulanan': 500000000 },
+                { 'ID Marketing': 'MKT-105', Username: 'mkt4', Password: 'mkt123', Nama: 'Rina Melati', 'Nomor WhatsApp': '08123456702', Area: 'Semarang', Role: 'Marketing', 'Target Deal Bulanan': 500000000 },
+                { 'ID Marketing': 'MKT-106', Username: 'mkt5', Password: 'mkt123', Nama: 'Andi Wijaya', 'Nomor WhatsApp': '08123456703', Area: 'Yogyakarta', Role: 'Marketing', 'Target Deal Bulanan': 500000000 },
+                { 'ID Marketing': 'MKT-107', Username: 'mkt6', Password: 'mkt123', Nama: 'Dewi Lestari', 'Nomor WhatsApp': '08123456704', Area: 'Malang', Role: 'Marketing', 'Target Deal Bulanan': 500000000 },
+                { 'ID Marketing': 'MKT-108', Username: 'mkt7', Password: 'mkt123', Nama: 'Fajar Hidayat', 'Nomor WhatsApp': '08123456705', Area: 'Solo', Role: 'Marketing', 'Target Deal Bulanan': 500000000 },
+                { 'ID Marketing': 'MKT-109', Username: 'mkt8', Password: 'mkt123', Nama: 'Gita Gutawa', 'Nomor WhatsApp': '08123456706', Area: 'Denpasar', Role: 'Marketing', 'Target Deal Bulanan': 500000000 }
             ]
         };
 
         window.onload = function() {
             window.initThemeMode();
+            window.updateRealtimeHeaderDate();
+            setInterval(window.updateRealtimeHeaderDate, 60000);
+
             const savedState = localStorage.getItem('bts_marketing_state');
             if (savedState) {
                 try {
@@ -1523,14 +1784,11 @@
             window.populateDropdowns();
         };
 
-        /* RENDER DASHBOARD KPIS READ FROM SINGLE SOURCE OF TRUTH */
         window.renderDashboardKPIs = function() {
             const yr = appState.filterYear;
             const mo = appState.filterMonth;
-            const scope = appState.filterScope || 'Satu Periode';
             const mktFilter = appState.filterMarketing || 'ALL';
 
-            // Global Targets from Single Source of Truth
             const globalTargets = window.getGlobalKpiTargets();
 
             const filteredActivities = appState.activity.filter(a => {
@@ -1539,12 +1797,6 @@
                 const matchesYear = d.getFullYear().toString() === yr;
                 const matchesMonth = mo === '0' || (d.getMonth() + 1).toString() === mo;
                 const matchesMkt = mktFilter === 'ALL' || (a['Nama Marketing'] && a['Nama Marketing'].toLowerCase() === mktFilter.toLowerCase());
-                
-                // Date scope filtering
-                if (scope === 'Hari Ini') {
-                    const today = new Date().toISOString().split('T')[0];
-                    if (a['Tanggal Kunjungan'] !== today) return false;
-                }
                 return matchesYear && matchesMonth && matchesMkt;
             });
 
@@ -1554,11 +1806,6 @@
                 const matchesYear = d.getFullYear().toString() === yr;
                 const matchesMonth = mo === '0' || (d.getMonth() + 1).toString() === mo;
                 const matchesMkt = mktFilter === 'ALL' || (p['Nama Marketing'] && p['Nama Marketing'].toLowerCase() === mktFilter.toLowerCase());
-                
-                if (scope === 'Hari Ini') {
-                    const today = new Date().toISOString().split('T')[0];
-                    if (p['Tanggal Follow Up'] !== today) return false;
-                }
                 return matchesYear && matchesMonth && matchesMkt;
             });
 
@@ -1571,11 +1818,9 @@
                 .filter(p => p.Aktivitas === 'Deal')
                 .reduce((sum, p) => sum + (Number(p['Nominal Deal']) || 0), 0);
 
-            // Conversion Rate = (Total Deal ÷ Total Presentasi) × 100%
             const conversionRate = totalPresentasi > 0 ? ((totalDeal / totalPresentasi) * 100).toFixed(1) : '0';
             const progressRevenuePct = Math.min(100, Math.round((totalRevenueDeal / (globalTargets.targetRevenue || 1)) * 100));
 
-            // Render Active Cards strictly reading targets from Global Settings
             const cardsConfig = appState.settings.kpiCards || [];
             const activeCards = cardsConfig.filter(c => c.active).sort((a, b) => (a.order || 0) - (b.order || 0));
 
@@ -2246,7 +2491,6 @@
             historyTimeline.innerHTML = historyHtml || '<p class="text-xs text-slate-500 italic">Belum ada riwayat koordinat GPS.</p>';
         };
 
-        /* RENDER CARD CONFIGURATION WITHOUT TARGET INPUT FIELDS */
         window.renderKpiConfigSection = function() {
             const container = document.getElementById('kpi-cards-config-container');
             if (!container) return;
@@ -2298,14 +2542,22 @@
                 </div>
             `).join('');
 
-            const cfgDbEl = document.getElementById('cfg-target-db');
-            if (cfgDbEl) cfgDbEl.value = appState.settings.targetDatabase || 100;
-            const cfgDealEl = document.getElementById('cfg-target-deal-count');
-            if (cfgDealEl) cfgDealEl.value = appState.settings.targetDeal || 16;
-            const cfgHarianEl = document.getElementById('cfg-target-harian-val');
-            if (cfgHarianEl) cfgHarianEl.value = appState.settings.targetHarian || 3;
+            if (document.getElementById('cfg-target-db')) document.getElementById('cfg-target-db').value = appState.settings.targetDatabase ?? 100;
+            if (document.getElementById('cfg-target-harian-val')) document.getElementById('cfg-target-harian-val').value = appState.settings.targetHarian ?? 3;
+            if (document.getElementById('cfg-target-hari-kerja')) document.getElementById('cfg-target-hari-kerja').value = appState.settings.targetHariKerja ?? 5;
+            if (document.getElementById('cfg-target-minggu-bulan')) document.getElementById('cfg-target-minggu-bulan').value = appState.settings.targetMingguBulan ?? 4;
+            if (document.getElementById('cfg-target-canvass-calc')) document.getElementById('cfg-target-canvass-calc').value = appState.settings.targetCanvass ?? 60;
+            if (document.getElementById('cfg-target-presentasi')) document.getElementById('cfg-target-presentasi').value = appState.settings.targetPresentasi ?? 30;
+            if (document.getElementById('cfg-target-deal-count')) document.getElementById('cfg-target-deal-count').value = appState.settings.targetDeal ?? 20;
+            if (document.getElementById('cfg-target-revenue-bulanan')) document.getElementById('cfg-target-revenue-bulanan').value = window.formatCurrencyInputWithDec(String(appState.settings.targetRevenue ?? 500000000));
+            
+            if (document.getElementById('cfg-ratio-db-canvass')) document.getElementById('cfg-ratio-db-canvass').value = appState.settings.ratioDbCanvass ?? 60;
+            if (document.getElementById('cfg-ratio-canvass-pres')) document.getElementById('cfg-ratio-canvass-pres').value = appState.settings.ratioCanvassPres ?? 50;
+            if (document.getElementById('cfg-ratio-pres-deal')) document.getElementById('cfg-ratio-pres-deal').value = appState.settings.ratioPresDeal ?? 66.7;
 
-            window.recalculateGlobalTargetsUI();
+            if (document.getElementById('cfg-rumus-revenue')) document.getElementById('cfg-rumus-revenue').value = appState.settings.rumusRevenue || '(Revenue Aktual / Target Revenue) × 100';
+
+            window.recalculateFunnelUI();
         };
 
         window.saveKpiDashboardSettings = async function() {
@@ -2313,12 +2565,35 @@
 
             try {
                 const targetDbInput = Number(document.getElementById('cfg-target-db')?.value) || 100;
-                const targetDealInput = Number(document.getElementById('cfg-target-deal-count')?.value) || 16;
-                const numHarian = Number(document.getElementById('cfg-target-harian-val')?.value) || 3;
+                const targetHarianInput = Number(document.getElementById('cfg-target-harian-val')?.value) || 3;
+                const targetHariKerjaInput = Number(document.getElementById('cfg-target-hari-kerja')?.value) || 5;
+                const targetMingguBulanInput = Number(document.getElementById('cfg-target-minggu-bulan')?.value) || 4;
+                const targetCanvassInput = Number(document.getElementById('cfg-target-canvass-calc')?.value) || (targetHarianInput * targetHariKerjaInput * targetMingguBulanInput);
+                const targetPresentasiInput = Number(document.getElementById('cfg-target-presentasi')?.value) || 30;
+                const targetDealInput = Number(document.getElementById('cfg-target-deal-count')?.value) || 20;
                 
+                const rawRev = document.getElementById('cfg-target-revenue-bulanan')?.value || '0';
+                const targetRevenueInput = Number(rawRev.replace(/[^0-9]/g, '')) || 500000000;
+
+                const ratioDbCanvassInput = Number(document.getElementById('cfg-ratio-db-canvass')?.value) || 60;
+                const ratioCanvassPresInput = Number(document.getElementById('cfg-ratio-canvass-pres')?.value) || 50;
+                const ratioPresDealInput = Number(document.getElementById('cfg-ratio-pres-deal')?.value) || 66.7;
+
+                const rumusRevenueInput = document.getElementById('cfg-rumus-revenue')?.value.trim() || '(Revenue Aktual / Target Revenue) × 100';
+
                 appState.settings.targetDatabase = targetDbInput;
+                appState.settings.targetHarian = targetHarianInput;
+                appState.settings.targetHariKerja = targetHariKerjaInput;
+                appState.settings.targetMingguBulan = targetMingguBulanInput;
+                appState.settings.targetCanvass = targetCanvassInput;
+                appState.settings.targetPresentasi = targetPresentasiInput;
                 appState.settings.targetDeal = targetDealInput;
-                appState.settings.targetHarian = numHarian;
+                appState.settings.targetBelumDeal = Math.max(0, targetPresentasiInput - targetDealInput);
+                appState.settings.targetRevenue = targetRevenueInput;
+                appState.settings.ratioDbCanvass = ratioDbCanvassInput;
+                appState.settings.ratioCanvassPres = ratioCanvassPresInput;
+                appState.settings.ratioPresDeal = ratioPresDealInput;
+                appState.settings.rumusRevenue = rumusRevenueInput;
 
                 const cardsConfig = appState.settings.kpiCards || [];
                 
@@ -2345,14 +2620,21 @@
 
                 window.saveStateToLocal();
                 window.refreshAllViews();
-                window.showToast('Pengaturan Dashboard KPI Global berhasil disimpan & disinkronkan!', 'success');
+                window.showToast('Pengaturan Sales Funnel KPI berhasil disimpan & disinkronkan!', 'success');
 
                 await window.apiCall('saveGeneralSettings', {
                     companyName: appState.settings.companyName,
                     logoUrl: appState.settings.logoUrl,
-                    targetHarian: numHarian,
+                    targetHarian: targetHarianInput,
                     targetDatabase: targetDbInput,
-                    targetDeal: targetDealInput
+                    targetCanvass: targetCanvassInput,
+                    targetPresentasi: targetPresentasiInput,
+                    targetDeal: targetDealInput,
+                    targetRevenue: targetRevenueInput,
+                    ratioDbCanvass: ratioDbCanvassInput,
+                    ratioCanvassPres: ratioCanvassPresInput,
+                    ratioPresDeal: ratioPresDealInput,
+                    rumusRevenue: rumusRevenueInput
                 });
                 window.fetchSyncFromGAS(false);
             } catch(err) {
@@ -2363,10 +2645,20 @@
         window.resetKpiDashboardSettingsToDefault = function() {
             appState.settings.targetDatabase = 100;
             appState.settings.targetHarian = 3;
-            appState.settings.targetDeal = 16;
+            appState.settings.targetHariKerja = 5;
+            appState.settings.targetMingguBulan = 4;
+            appState.settings.targetCanvass = 60;
+            appState.settings.targetPresentasi = 30;
+            appState.settings.targetDeal = 20;
+            appState.settings.targetBelumDeal = 10;
+            appState.settings.targetRevenue = 500000000;
+            appState.settings.ratioDbCanvass = 60;
+            appState.settings.ratioCanvassPres = 50;
+            appState.settings.ratioPresDeal = 66.7;
+            appState.settings.rumusRevenue = '(Revenue Aktual / Target Revenue) × 100';
             window.saveStateToLocal();
             window.refreshAllViews();
-            window.showToast('Pengaturan Dashboard KPI telah dikembalikan ke default.', 'info');
+            window.showToast('Pengaturan Sales Funnel KPI dikembalikan ke default.', 'info');
         };
 
         window.renderMarketingTable = function() {
@@ -2501,6 +2793,30 @@
             finally { window.setButtonLoading('btn-save-marketing', false); }
         };
 
+        window.handleLogoUpload = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Logo = e.target.result;
+                document.getElementById('setting-logo-base64').value = base64Logo;
+                appState.settings.logoUrl = base64Logo;
+                
+                const previewImg = document.getElementById('app-company-logo');
+                const previewIcon = document.getElementById('app-company-icon');
+                if (previewImg && previewIcon) {
+                    previewImg.src = base64Logo;
+                    previewImg.classList.remove('hidden');
+                    previewIcon.classList.add('hidden');
+                }
+                const box = document.getElementById('logo-preview-box');
+                if (box) box.innerHTML = `<img src="${base64Logo}" class="w-full h-full object-cover">`;
+                
+                window.showToast('Logo berhasil diunggah!', 'success');
+            };
+            reader.readAsDataURL(file);
+        };
+
         window.saveGeneralSettings = async function() {
             window.setButtonLoading('btn-save-gen-settings', true, 'Menyimpan...');
             try {
@@ -2508,10 +2824,44 @@
                 document.getElementById('app-company-name').innerText = appState.settings.companyName;
                 window.saveStateToLocal();
                 window.showToast('Pengaturan profil berhasil disimpan!', 'success');
-                await window.apiCall('saveGeneralSettings', { companyName: appState.settings.companyName });
+                await window.apiCall('saveGeneralSettings', { companyName: appState.settings.companyName, logoUrl: appState.settings.logoUrl });
                 window.fetchSyncFromGAS(false);
             } catch(err) { window.showToast('Gagal menyimpan profil.', 'error'); } 
             finally { window.setButtonLoading('btn-save-gen-settings', false); }
+        };
+
+        window.handleBackupDatabase = function() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `Backup_BTS_Marketing_${Date.now()}.json`);
+            dlAnchorElem.click();
+            window.showToast('File backup database JSON berhasil diunduh.', 'success');
+        };
+
+        window.handleRestoreDatabase = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const restoredData = JSON.parse(e.target.result);
+                    if (restoredData && restoredData.sekolah && restoredData.pipeline) {
+                        appState.sekolah = restoredData.sekolah;
+                        appState.activity = restoredData.activity || [];
+                        appState.pipeline = restoredData.pipeline || [];
+                        appState.marketing = restoredData.marketing || appState.marketing;
+                        if (restoredData.settings) appState.settings = restoredData.settings;
+                        window.saveStateToLocal();
+                        window.refreshAllViews();
+                        window.showToast('Database berhasil dipulihkan dari file backup!', 'success');
+                        await window.apiCall('restoreDatabase', { jsonString: JSON.stringify(restoredData) });
+                    } else {
+                        window.showToast('Format file JSON backup tidak valid!', 'error');
+                    }
+                } catch (err) { window.showToast('Gagal memproses file backup.', 'error'); }
+            };
+            reader.readAsText(file);
         };
 
         window.exportDashboardPdf = function() {
@@ -2524,7 +2874,7 @@
                 doc.setFontSize(15); doc.setFont("helvetica", "bold");
                 doc.text("LAPORAN EXECUTIVE DASHBOARD KPI", 14, 15);
                 doc.setFontSize(9); doc.setFont("helvetica", "normal");
-                doc.text(`Perusahaan: ${appState.settings.companyName} | Scope: ${appState.filterScope} | Periode: ${window.getMonthName(appState.filterMonth)} ${appState.filterYear}`, 14, 21);
+                doc.text(`Perusahaan: ${appState.settings.companyName} | Periode: ${window.getMonthName(appState.filterMonth)} ${appState.filterYear}`, 14, 21);
 
                 const tableColumn = ["Metrik KPI", "Judul Kartu", "Target Global (Single Source of Truth)"];
                 const tableRows = [
@@ -2541,6 +2891,12 @@
                 window.showToast('PDF Dashboard KPI berhasil dibuat!', 'success');
             } catch (err) { window.print(); }
         };
+
+        window.exportSekolahPdf = function() { window.exportDashboardPdf(); };
+        window.exportDailyPdf = function() { window.exportDashboardPdf(); };
+        window.exportPipelinePdf = function() { window.exportDashboardPdf(); };
+        window.exportNotificationsPdf = function() { window.exportDashboardPdf(); };
+        window.exportGpsPdf = function() { window.exportDashboardPdf(); };
 
         window.exportSekolahExcel = function() {
             const ws = XLSX.utils.json_to_sheet(appState.sekolah);
