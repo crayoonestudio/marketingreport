@@ -114,7 +114,6 @@
             }
         }
 
-        /* Light Mode UI Adjustments */
         body.light-mode .text-white { color: #0f172a !important; }
         body.light-mode .text-slate-100,
         body.light-mode .text-slate-200,
@@ -207,8 +206,8 @@
                 </button>
             </form>
 
-            <div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center text-[11px] text-slate-500">
-                <span>Credentials: owner (own123) / hr (hr123) / mkt1..8 (mkt123)</span>
+            <!-- Bagian Bawah Login Dirapikan & Simetris Tanpa Kredensial Teks -->
+            <div class="mt-6 pt-4 border-t border-slate-800 flex justify-center items-center text-[11px] text-slate-500">
                 <button onclick="window.openConfigModal()" class="text-indigo-400 hover:underline"><i class="fa-solid fa-gear mr-1"></i>Set Web App URL</button>
             </div>
         </div>
@@ -271,10 +270,10 @@
                     <span class="hidden lg:inline">Bagikan Link Sync HP/PC</span>
                 </button>
 
-                <!-- Indicator Tanggal Real-Time (Asia/Jakarta WIB) -->
-                <div class="flex items-center gap-2 bg-slate-800/90 px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-bold text-indigo-300 shadow-sm" title="Tanggal Real-Time saat ini (WIB)">
-                    <i class="fa-solid fa-calendar-day text-indigo-400"></i>
-                    <span id="header-realtime-date">1 Agustus 2026</span>
+                <!-- Tanggal Real-Time Badge (WIB) -->
+                <div id="realtime-date-badge" class="px-3 py-1.5 bg-slate-800/90 border border-slate-700 text-indigo-300 rounded-lg text-xs font-semibold flex items-center gap-2 shadow">
+                    <i class="fa-solid fa-calendar-days text-indigo-400"></i>
+                    <span id="header-date-text">Memuat tanggal...</span>
                 </div>
 
                 <button id="btn-theme-toggle" onclick="window.toggleThemeMode()" title="Ganti Tema (Light / Dark Mode)" class="w-9 h-9 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 rounded-lg transition-all flex items-center justify-center text-sm shadow">
@@ -338,7 +337,7 @@
                 </div>
 
                 <div id="kpi-cards-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <!-- Populated dynamically from Global KPI Settings -->
+                    <!-- Populated dynamically -->
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -475,13 +474,13 @@
                     <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
                         <div>
                             <h2 class="text-lg font-bold text-white">Kanban Pipeline Marketing</h2>
-                            <p class="text-xs text-slate-400">Drag & Drop kartu untuk update status prospek</p>
+                            <p class="text-xs text-slate-400">Monitoring status prospek realtime berdasarkan database & aktivitas</p>
                         </div>
                         <button onclick="window.exportPipelinePdf()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow"><i class="fa-solid fa-file-pdf text-rose-400"></i> Cetak PDF</button>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 overflow-x-auto pb-4 custom-scrollbar">
-                        <div class="kanban-col p-3 flex flex-col gap-3" ondragover="window.allowDrop(event)" ondrop="window.handleDrop(event, 'Prospect')">
+                        <div class="kanban-col p-3 flex flex-col gap-3">
                             <div class="flex items-center justify-between pb-2 border-b border-slate-700">
                                 <span class="text-xs font-bold text-blue-400"><i class="fa-solid fa-magnifying-glass"></i> Prospect</span>
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300" id="count-prospect">0</span>
@@ -489,7 +488,7 @@
                             <div id="col-prospect" class="space-y-3 flex-1"></div>
                         </div>
 
-                        <div class="kanban-col p-3 flex flex-col gap-3" ondragover="window.allowDrop(event)" ondrop="window.handleDrop(event, 'Follow Up')">
+                        <div class="kanban-col p-3 flex flex-col gap-3">
                             <div class="flex items-center justify-between pb-2 border-b border-slate-700">
                                 <span class="text-xs font-bold text-amber-400"><i class="fa-solid fa-phone"></i> Follow Up</span>
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300" id="count-followup">0</span>
@@ -497,7 +496,7 @@
                             <div id="col-followup" class="space-y-3 flex-1"></div>
                         </div>
 
-                        <div class="kanban-col p-3 flex flex-col gap-3" ondragover="window.allowDrop(event)" ondrop="window.handleDrop(event, 'Presentasi')">
+                        <div class="kanban-col p-3 flex flex-col gap-3">
                             <div class="flex items-center justify-between pb-2 border-b border-slate-700">
                                 <span class="text-xs font-bold text-purple-400"><i class="fa-solid fa-display"></i> Presentasi</span>
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300" id="count-presentasi">0</span>
@@ -505,7 +504,7 @@
                             <div id="col-presentasi" class="space-y-3 flex-1"></div>
                         </div>
 
-                        <div class="kanban-col p-3 flex flex-col gap-3" ondragover="window.allowDrop(event)" ondrop="window.handleDrop(event, 'Negosiasi')">
+                        <div class="kanban-col p-3 flex flex-col gap-3">
                             <div class="flex items-center justify-between pb-2 border-b border-slate-700">
                                 <span class="text-xs font-bold text-cyan-400"><i class="fa-solid fa-comments-dollar"></i> Negosiasi</span>
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300" id="count-negosiasi">0</span>
@@ -513,7 +512,7 @@
                             <div id="col-negosiasi" class="space-y-3 flex-1"></div>
                         </div>
 
-                        <div class="kanban-col p-3 flex flex-col gap-3 bg-emerald-950/20 border-emerald-500/20" ondragover="window.allowDrop(event)" ondrop="window.handleDrop(event, 'Deal')">
+                        <div class="kanban-col p-3 flex flex-col gap-3 bg-emerald-950/20 border-emerald-500/20">
                             <div class="flex items-center justify-between pb-2 border-b border-emerald-800">
                                 <span class="text-xs font-bold text-emerald-400"><i class="fa-solid fa-trophy"></i> Deal</span>
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300" id="count-deal">0</span>
@@ -521,7 +520,7 @@
                             <div id="col-deal" class="space-y-3 flex-1"></div>
                         </div>
 
-                        <div class="kanban-col p-3 flex flex-col gap-3 bg-rose-950/20 border-rose-500/20" ondragover="window.allowDrop(event)" ondrop="window.handleDrop(event, 'Belum Deal')">
+                        <div class="kanban-col p-3 flex flex-col gap-3 bg-rose-950/20 border-rose-500/20">
                             <div class="flex items-center justify-between pb-2 border-b border-rose-800">
                                 <span class="text-xs font-bold text-rose-400"><i class="fa-solid fa-circle-xmark"></i> Belum Deal</span>
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300" id="count-nodeal">0</span>
@@ -570,28 +569,15 @@
             <section id="view-settings" class="hidden space-y-6">
                 <div class="glass-panel p-5">
                     <h2 class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-sliders text-amber-400 mr-2"></i>Pengaturan Admin (Khusus Owner & HR)</h2>
-                    <p class="text-xs text-slate-400 mb-6">Kelola profil perusahaan, backup database, akun Marketing 1 - 8, serta kustomisasi Sales Funnel KPI</p>
+                    <p class="text-xs text-slate-400 mb-6">Kelola akun Marketing, profil perusahaan, backup database, serta konfigurasi Sales Funnel KPI</p>
 
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div class="space-y-4">
-                            <h3 class="text-sm font-bold text-indigo-400 border-b border-slate-800 pb-2">Profil Perusahaan & Target</h3>
-                            
+                            <h3 class="text-sm font-bold text-indigo-400 border-b border-slate-800 pb-2">Profil Perusahaan</h3>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Perusahaan</label>
                                 <input type="text" id="setting-company-name" value="PT Annual Book Creative" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
                             </div>
-
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-300 mb-1">Upload Logo Perusahaan</label>
-                                <div class="flex items-center gap-3">
-                                    <input type="file" id="setting-logo-file" accept="image/*" onchange="window.handleLogoUpload(event)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-400">
-                                    <div class="w-9 h-9 bg-slate-800 rounded-lg border border-slate-700 flex items-center justify-center shrink-0 overflow-hidden" id="logo-preview-box">
-                                        <i class="fa-solid fa-image text-slate-500"></i>
-                                    </div>
-                                </div>
-                                <input type="hidden" id="setting-logo-base64">
-                            </div>
-
                             <button id="btn-save-gen-settings" onclick="window.saveGeneralSettings()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg shadow transition flex items-center gap-2">
                                 <i class="fa-solid fa-floppy-disk"></i> <span>Simpan Pengaturan Profil</span>
                             </button>
@@ -599,7 +585,6 @@
 
                         <div class="space-y-4">
                             <h3 class="text-sm font-bold text-emerald-400 border-b border-slate-800 pb-2">Backup & Restore Database</h3>
-                            
                             <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-800 space-y-3">
                                 <p class="text-xs text-slate-400 leading-relaxed">Unduh cadangan seluruh data sistem dalam format JSON atau pulihkan database dari file cadangan sebelumnya.</p>
                                 <div class="flex flex-wrap gap-3 pt-2">
@@ -615,302 +600,158 @@
                         </div>
                     </div>
 
-                    <!-- CARD SECTION: Pengaturan Dashboard KPI (Sales Funnel Concept) -->
+                    <!-- SALES FUNNEL KPI CONFIGURATION -->
                     <div class="mt-8 pt-6 border-t border-slate-800 space-y-6">
-                        <!-- Funnel Header Title Bar -->
                         <div class="flex flex-wrap justify-between items-center gap-4">
                             <div>
-                                <h3 class="text-base font-extrabold text-white flex items-center gap-2">
-                                    <span>Pengaturan Dashboard KPI (Sales Funnel Concept)</span>
+                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-filter-circle-dollar text-cyan-400"></i> Pengaturan Dashboard KPI (Sales Funnel Concept)
                                 </h3>
-                                <p class="text-xs text-slate-400 mt-0.5">Semua perubahan target KPI akan tersinkron ke seluruh dashboard & laporan secara realtime.</p>
+                                <p class="text-xs text-slate-400">Pusat konfigurasi target KPI global. Perubahan langsung menyegarkan seluruh Dashboard & laporan.</p>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <button onclick="window.resetKpiDashboardSettingsToDefault()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl transition border border-slate-700 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-rotate-left"></i> <span>Reset ke Default</span>
+                            <div class="flex gap-2">
+                                <button onclick="window.resetKpiDashboardSettingsToDefault()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-lg transition border border-slate-700">
+                                    <i class="fa-solid fa-rotate-left mr-1"></i>Reset Default
                                 </button>
-                                <button id="btn-save-kpi-settings" onclick="window.saveKpiDashboardSettings()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition flex items-center gap-2">
-                                    <i class="fa-solid fa-floppy-disk"></i> <span>Simpan Perubahan</span>
+                                <button id="btn-save-kpi-settings" onclick="window.saveKpiDashboardSettings()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-lg shadow transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-save"></i> <span>Simpan Perubahan</span>
                                 </button>
                             </div>
                         </div>
 
-                        <!-- 4 FUNNEL CARDS WITH CONNECTING ARROWS -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch relative">
-                            
-                            <!-- CARD 1: DATABASE -->
-                            <div class="glass-panel p-0 rounded-2xl overflow-hidden border border-blue-500/40 flex flex-col justify-between shadow-lg relative group">
-                                <div class="bg-blue-600 py-2 px-4 text-center">
-                                    <h4 class="text-xs font-extrabold text-white tracking-wider uppercase">1. DATABASE</h4>
-                                </div>
-                                <div class="p-5 flex flex-col items-center text-center space-y-4 flex-1 justify-center">
-                                    <div class="w-16 h-16 rounded-full bg-blue-500/10 border-2 border-blue-500/30 flex items-center justify-center text-blue-400 text-2xl shadow-inner">
+                        <!-- 4 Sales Funnel Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Card 1: Database -->
+                            <div class="glass-panel p-4 space-y-3 border-t-4 border-blue-500">
+                                <div class="text-center pb-2 border-b border-slate-800">
+                                    <div class="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-2 text-lg">
                                         <i class="fa-solid fa-school"></i>
                                     </div>
-                                    <div class="w-full space-y-1.5">
-                                        <label class="block text-[11px] font-bold text-slate-300">Target Database Sekolah / Periode</label>
-                                        <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 focus-within:border-blue-500">
-                                            <input type="number" id="cfg-target-db" value="100" oninput="window.recalculateFunnelUI()" class="w-full bg-transparent text-sm font-extrabold text-white focus:outline-none text-center">
-                                            <span class="text-xs font-semibold text-slate-400 shrink-0 ml-1">Sekolah</span>
-                                        </div>
-                                    </div>
+                                    <h4 class="text-xs font-bold text-blue-400 uppercase">1. Database</h4>
                                 </div>
-                                <div class="bg-slate-950/40 py-2.5 px-3 text-center border-t border-slate-800">
-                                    <span class="text-[10px] text-slate-400 font-medium">Minimal memiliki 100 sekolah aktif</span>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Target Database Sekolah / Periode</label>
+                                    <input type="number" id="cfg-target-db" value="100" oninput="window.recalculateFunnel()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white">
+                                    <span class="text-[10px] text-slate-400 mt-1 block">Minimal sekolah aktif per marketing</span>
                                 </div>
                             </div>
 
-                            <!-- CARD 2: CANVASSING -->
-                            <div class="glass-panel p-0 rounded-2xl overflow-hidden border border-emerald-500/40 flex flex-col justify-between shadow-lg relative group">
-                                <div class="bg-emerald-600 py-2 px-4 text-center flex items-center justify-between">
-                                    <h4 class="text-xs font-extrabold text-white tracking-wider uppercase">2. CANVASSING</h4>
-                                    <span class="px-1.5 py-0.5 bg-emerald-950/60 text-emerald-200 text-[9px] font-extrabold rounded border border-emerald-400/30">Otomatis</span>
-                                </div>
-                                <div class="p-4 flex flex-col items-center text-center space-y-3 flex-1 justify-center">
-                                    <div class="w-14 h-14 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center text-emerald-400 text-2xl shadow-inner">
+                            <!-- Card 2: Canvassing -->
+                            <div class="glass-panel p-4 space-y-3 border-t-4 border-emerald-500">
+                                <div class="text-center pb-2 border-b border-slate-800">
+                                    <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-2 text-lg">
                                         <i class="fa-solid fa-map-location-dot"></i>
                                     </div>
-                                    
-                                    <div class="w-full space-y-2 text-left">
-                                        <div>
-                                            <label class="block text-[10px] font-bold text-slate-300 mb-0.5">Target Canvassing Harian</label>
-                                            <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1">
-                                                <input type="number" id="cfg-target-harian-val" value="3" oninput="window.recalculateFunnelUI()" class="w-full bg-transparent text-xs font-bold text-white focus:outline-none">
-                                                <span class="text-[10px] text-slate-400 shrink-0 ml-1">Sekolah / Hari</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="grid grid-cols-2 gap-2">
-                                            <div>
-                                                <label class="block text-[10px] font-bold text-slate-300 mb-0.5">Hari Kerja / Wk</label>
-                                                <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2 py-1">
-                                                    <input type="number" id="cfg-target-hari-kerja" value="5" oninput="window.recalculateFunnelUI()" class="w-full bg-transparent text-xs font-bold text-white focus:outline-none">
-                                                    <span class="text-[10px] text-slate-400 ml-0.5">Hari</span>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label class="block text-[10px] font-bold text-slate-300 mb-0.5">Minggu / Bulan</label>
-                                                <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2 py-1">
-                                                    <input type="number" id="cfg-target-minggu-bulan" value="4" oninput="window.recalculateFunnelUI()" class="w-full bg-transparent text-xs font-bold text-white focus:outline-none">
-                                                    <span class="text-[10px] text-slate-400 ml-0.5">Wk</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="pt-1">
-                                            <div class="flex items-center justify-between mb-0.5">
-                                                <label class="block text-[10px] font-bold text-emerald-400">Target Canvassing Bulanan</label>
-                                                <span class="text-[9px] px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 font-bold rounded">Otomatis</span>
-                                            </div>
-                                            <div class="flex items-center bg-slate-950/80 border border-emerald-500/40 rounded-lg px-2.5 py-1">
-                                                <input type="number" id="cfg-target-canvass-calc" value="60" readonly class="w-full bg-transparent text-xs font-extrabold text-emerald-300 focus:outline-none cursor-not-allowed">
-                                                <span class="text-[10px] font-bold text-emerald-300 shrink-0 ml-1">Sekolah / Bulan</span>
-                                            </div>
-                                        </div>
+                                    <h4 class="text-xs font-bold text-emerald-400 uppercase">2. Canvassing</h4>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Target Canvassing Harian</label>
+                                    <input type="number" id="cfg-target-harian-val" value="3" oninput="window.recalculateFunnel()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white">
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-[10px] font-semibold text-slate-300 mb-1">Hari Kerja / Wk</label>
+                                        <input type="number" id="cfg-working-days" value="5" oninput="window.recalculateFunnel()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-semibold text-slate-300 mb-1">Minggu / Bulan</label>
+                                        <input type="number" id="cfg-weeks-month" value="4" oninput="window.recalculateFunnel()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white">
                                     </div>
                                 </div>
-                                <div class="bg-emerald-950/40 py-2 px-3 text-center border-t border-emerald-800/40">
-                                    <span class="text-[10px] text-emerald-400 font-semibold" id="cfg-canvass-formula-lbl">Rumus : 3 × 5 × 4 = 60 Sekolah / Bulan</span>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-emerald-300 mb-1">Target Canvassing Bulanan <span class="bg-emerald-500/20 px-1 rounded text-[9px]">Otomatis</span></label>
+                                    <input type="text" id="cfg-target-canvass-auto" readonly class="w-full bg-slate-950/80 border border-emerald-500/50 rounded-lg px-3 py-1.5 text-xs text-emerald-300 font-bold cursor-not-allowed">
                                 </div>
                             </div>
 
-                            <!-- CARD 3: PRESENTASI -->
-                            <div class="glass-panel p-0 rounded-2xl overflow-hidden border border-amber-500/40 flex flex-col justify-between shadow-lg relative group">
-                                <div class="bg-amber-500 py-2 px-4 text-center flex items-center justify-between">
-                                    <h4 class="text-xs font-extrabold text-slate-950 tracking-wider uppercase">3. PRESENTASI</h4>
-                                    <span class="px-1.5 py-0.5 bg-amber-950/60 text-amber-200 text-[9px] font-extrabold rounded border border-amber-400/30">Otomatis</span>
-                                </div>
-                                <div class="p-5 flex flex-col items-center text-center space-y-4 flex-1 justify-center">
-                                    <div class="w-16 h-16 rounded-full bg-amber-500/10 border-2 border-amber-500/30 flex items-center justify-center text-amber-400 text-2xl shadow-inner">
+                            <!-- Card 3: Presentasi -->
+                            <div class="glass-panel p-4 space-y-3 border-t-4 border-amber-500">
+                                <div class="text-center pb-2 border-b border-slate-800">
+                                    <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-2 text-lg">
                                         <i class="fa-solid fa-chalkboard-user"></i>
                                     </div>
-                                    <div class="w-full space-y-1.5">
-                                        <div class="flex items-center justify-between">
-                                            <label class="block text-[11px] font-bold text-slate-300">Target Presentasi / Bulan</label>
-                                            <span class="text-[9px] px-1.5 py-0.2 bg-amber-500/20 text-amber-300 font-bold rounded">Otomatis</span>
-                                        </div>
-                                        <div class="flex items-center bg-slate-950/80 border border-amber-500/40 rounded-xl px-3 py-1.5">
-                                            <input type="number" id="cfg-target-presentasi" value="30" readonly class="w-full bg-transparent text-sm font-extrabold text-amber-300 focus:outline-none text-center cursor-not-allowed">
-                                            <span class="text-xs font-semibold text-slate-400 shrink-0 ml-1">Sekolah</span>
-                                        </div>
-                                    </div>
+                                    <h4 class="text-xs font-bold text-amber-400 uppercase">3. Presentasi</h4>
                                 </div>
-                                <div class="bg-amber-950/40 py-2.5 px-3 text-center border-t border-amber-800/40">
-                                    <span class="text-[11px] text-amber-300 font-extrabold" id="cfg-badge-pres-pct">50% dari Target Canvassing Bulanan</span>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-amber-300 mb-1">Target Presentasi / Bulan <span class="bg-amber-500/20 px-1 rounded text-[9px]">Otomatis</span></label>
+                                    <input type="text" id="cfg-target-presentasi-auto" readonly class="w-full bg-slate-950/80 border border-amber-500/50 rounded-lg px-3 py-1.5 text-xs text-amber-300 font-bold cursor-not-allowed">
+                                    <span id="label-presentasi-ratio-desc" class="text-[10px] text-slate-400 mt-1 block">50% dari Target Canvassing</span>
                                 </div>
                             </div>
 
-                            <!-- CARD 4: DEAL -->
-                            <div class="glass-panel p-0 rounded-2xl overflow-hidden border border-teal-500/40 flex flex-col justify-between shadow-lg relative group">
-                                <div class="bg-teal-600 py-2 px-4 text-center flex items-center justify-between">
-                                    <h4 class="text-xs font-extrabold text-white tracking-wider uppercase">4. DEAL</h4>
-                                    <span class="px-1.5 py-0.5 bg-teal-950/60 text-teal-200 text-[9px] font-extrabold rounded border border-teal-400/30">Otomatis</span>
-                                </div>
-                                <div class="p-5 flex flex-col items-center text-center space-y-4 flex-1 justify-center">
-                                    <div class="w-16 h-16 rounded-full bg-teal-500/10 border-2 border-teal-500/30 flex items-center justify-center text-teal-400 text-2xl shadow-inner">
+                            <!-- Card 4: Deal -->
+                            <div class="glass-panel p-4 space-y-3 border-t-4 border-teal-500">
+                                <div class="text-center pb-2 border-b border-slate-800">
+                                    <div class="w-12 h-12 bg-teal-500/20 text-teal-400 rounded-full flex items-center justify-center mx-auto mb-2 text-lg">
                                         <i class="fa-solid fa-handshake"></i>
                                     </div>
-                                    <div class="w-full space-y-1.5">
-                                        <div class="flex items-center justify-between">
-                                            <label class="block text-[11px] font-bold text-slate-300">Target Deal / Periode</label>
-                                            <span class="text-[9px] px-1.5 py-0.2 bg-teal-500/20 text-teal-300 font-bold rounded">Otomatis</span>
-                                        </div>
-                                        <div class="flex items-center bg-slate-950/80 border border-teal-500/40 rounded-xl px-3 py-1.5">
-                                            <input type="number" id="cfg-target-deal-count" value="20" readonly class="w-full bg-transparent text-sm font-extrabold text-teal-300 focus:outline-none text-center cursor-not-allowed">
-                                            <span class="text-xs font-semibold text-slate-400 shrink-0 ml-1">Sekolah</span>
-                                        </div>
-                                    </div>
+                                    <h4 class="text-xs font-bold text-teal-400 uppercase">4. Deal</h4>
                                 </div>
-                                <div class="bg-teal-950/40 py-2.5 px-3 text-center border-t border-teal-800/40">
-                                    <span class="text-[11px] text-teal-300 font-extrabold" id="cfg-badge-deal-pct">66.7% dari Target Presentasi</span>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-teal-300 mb-1">Target Deal / Periode <span class="bg-teal-500/20 px-1 rounded text-[9px]">Otomatis</span></label>
+                                    <input type="text" id="cfg-target-deal-auto" readonly class="w-full bg-slate-950/80 border border-teal-500/50 rounded-lg px-3 py-1.5 text-xs text-teal-300 font-bold cursor-not-allowed">
+                                    <span id="label-deal-ratio-desc" class="text-[10px] text-slate-400 mt-1 block">66.7% dari Target Presentasi</span>
                                 </div>
                             </div>
-
                         </div>
 
-                        <!-- 3 BOTTOM SUMMARY & RATIO PANELS -->
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
-                            
-                            <!-- PANEL 1: RINGKASAN KPI TARGET -->
-                            <div class="glass-panel p-4 space-y-3 flex flex-col justify-between border border-slate-800">
-                                <h4 class="text-xs font-extrabold text-white uppercase tracking-wider border-b border-slate-800 pb-2 flex items-center gap-2">
-                                    <i class="fa-solid fa-list-check text-blue-400"></i> Ringkasan KPI Target
-                                </h4>
-                                
-                                <div class="overflow-x-auto">
-                                    <table class="w-full text-left text-xs">
-                                        <thead class="text-[10px] text-slate-400 uppercase font-extrabold bg-slate-950/60 border-b border-slate-800">
-                                            <tr>
-                                                <th class="py-2 px-2">Tahapan</th>
-                                                <th class="py-2 px-2 text-center">Target</th>
-                                                <th class="py-2 px-2 text-right">Persentase dari DB</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-slate-800 text-slate-200">
-                                            <tr>
-                                                <td class="py-2 px-2 font-bold flex items-center gap-1.5 text-blue-400"><i class="fa-solid fa-school text-xs"></i> Database</td>
-                                                <td class="py-2 px-2 text-center font-extrabold" id="sum-db-val">100 Sekolah</td>
-                                                <td class="py-2 px-2 text-right font-extrabold text-blue-400" id="sum-db-pct">100%</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="py-2 px-2 font-bold flex items-center gap-1.5 text-emerald-400"><i class="fa-solid fa-location-dot text-xs"></i> Canvassing</td>
-                                                <td class="py-2 px-2 text-center font-extrabold" id="sum-canvass-val">60 Sekolah</td>
-                                                <td class="py-2 px-2 text-right font-extrabold text-emerald-400" id="sum-canvass-pct">60%</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="py-2 px-2 font-bold flex items-center gap-1.5 text-amber-400"><i class="fa-solid fa-chalkboard-user text-xs"></i> Presentasi</td>
-                                                <td class="py-2 px-2 text-center font-extrabold" id="sum-pres-val">30 Sekolah</td>
-                                                <td class="py-2 px-2 text-right font-extrabold text-amber-400" id="sum-pres-pct">30%</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="py-2 px-2 font-bold flex items-center gap-1.5 text-teal-400"><i class="fa-solid fa-handshake text-xs"></i> Deal</td>
-                                                <td class="py-2 px-2 text-center font-extrabold" id="sum-deal-val">20 Sekolah</td>
-                                                <td class="py-2 px-2 text-right font-extrabold text-teal-400" id="sum-deal-pct">20%</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <div class="p-2.5 bg-blue-950/30 border border-blue-500/20 rounded-xl flex items-center gap-2 text-[10px] text-blue-300">
-                                    <i class="fa-solid fa-circle-info shrink-0 text-blue-400 text-xs"></i>
-                                    <span id="sum-db-note">Persentase dihitung otomatis berdasarkan Target Database (100 Sekolah).</span>
+                        <!-- 3 Bottom Panels: Ringkasan, Rasio Konversi, Target Revenue -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Panel 1 -->
+                            <div class="glass-panel p-4 space-y-3">
+                                <h4 class="text-xs font-bold text-white uppercase border-b border-slate-800 pb-2">Ringkasan KPI Target</h4>
+                                <div class="space-y-2 text-xs">
+                                    <div class="flex justify-between py-1 border-b border-slate-800/60">
+                                        <span class="text-slate-400">Database</span>
+                                        <span class="font-bold text-white" id="sum-db-val">100 Sekolah</span>
+                                    </div>
+                                    <div class="flex justify-between py-1 border-b border-slate-800/60">
+                                        <span class="text-slate-400">Canvassing</span>
+                                        <span class="font-bold text-emerald-400" id="sum-canvass-val">60 Sekolah</span>
+                                    </div>
+                                    <div class="flex justify-between py-1 border-b border-slate-800/60">
+                                        <span class="text-slate-400">Presentasi</span>
+                                        <span class="font-bold text-amber-400" id="sum-pres-val">30 Sekolah</span>
+                                    </div>
+                                    <div class="flex justify-between py-1">
+                                        <span class="text-slate-400">Deal</span>
+                                        <span class="font-bold text-teal-400" id="sum-deal-val">20 Sekolah</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- PANEL 2: RASIO KONVERSI -->
-                            <div class="glass-panel p-4 space-y-3 flex flex-col justify-between border border-slate-800">
-                                <h4 class="text-xs font-extrabold text-white uppercase tracking-wider border-b border-slate-800 pb-2 flex items-center gap-2">
-                                    <i class="fa-solid fa-percent text-amber-400"></i> Rasio Konversi
-                                </h4>
-
-                                <div class="space-y-2.5">
-                                    <div class="p-2 bg-slate-950/60 border border-slate-800 rounded-xl flex items-center justify-between">
-                                        <div class="flex items-center gap-2">
-                                            <div class="p-1.5 rounded-lg bg-blue-500/10 text-blue-400"><i class="fa-solid fa-school text-xs"></i></div>
-                                            <div>
-                                                <div class="text-[11px] font-extrabold text-white">Database ➔ Canvassing</div>
-                                                <div class="text-[9px] text-slate-400" id="lbl-ratio-db-canvass">60 dari 100 sekolah</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 w-20">
-                                            <input type="number" id="cfg-ratio-db-canvass" value="60" step="0.1" oninput="window.recalculateFunnelUI()" class="w-full bg-transparent text-xs font-extrabold text-white focus:outline-none text-right">
-                                            <span class="text-xs font-bold text-slate-400 ml-1">%</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="p-2 bg-slate-950/60 border border-slate-800 rounded-xl flex items-center justify-between">
-                                        <div class="flex items-center gap-2">
-                                            <div class="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400"><i class="fa-solid fa-location-dot text-xs"></i></div>
-                                            <div>
-                                                <div class="text-[11px] font-extrabold text-white">Canvassing ➔ Presentasi</div>
-                                                <div class="text-[9px] text-slate-400" id="lbl-ratio-canvass-pres">30 dari 60 sekolah</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 w-20">
-                                            <input type="number" id="cfg-ratio-canvass-pres" value="50" step="0.1" oninput="window.recalculateFunnelUI()" class="w-full bg-transparent text-xs font-extrabold text-white focus:outline-none text-right">
-                                            <span class="text-xs font-bold text-slate-400 ml-1">%</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="p-2 bg-slate-950/60 border border-slate-800 rounded-xl flex items-center justify-between">
-                                        <div class="flex items-center gap-2">
-                                            <div class="p-1.5 rounded-lg bg-amber-500/10 text-amber-400"><i class="fa-solid fa-chalkboard-user text-xs"></i></div>
-                                            <div>
-                                                <div class="text-[11px] font-extrabold text-white">Presentasi ➔ Deal</div>
-                                                <div class="text-[9px] text-slate-400" id="lbl-ratio-pres-deal">20 dari 30 sekolah</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 w-20">
-                                            <input type="number" id="cfg-ratio-pres-deal" value="66.7" step="0.1" oninput="window.recalculateFunnelUI()" class="w-full bg-transparent text-xs font-extrabold text-white focus:outline-none text-right">
-                                            <span class="text-xs font-bold text-slate-400 ml-1">%</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="p-2.5 bg-indigo-950/40 border border-indigo-500/30 rounded-xl flex items-center justify-between">
-                                    <div>
-                                        <div class="text-[10px] font-bold text-indigo-300">Konversi Total Database ➔ Deal</div>
-                                        <div class="text-[9px] text-slate-400" id="lbl-total-conv-sub">20 dari 100 sekolah</div>
-                                    </div>
-                                    <span class="text-base font-extrabold text-indigo-300" id="lbl-total-conv-pct">20%</span>
-                                </div>
-                            </div>
-
-                            <!-- PANEL 3: TARGET REVENUE -->
-                            <div class="glass-panel p-4 space-y-3 flex flex-col justify-between border border-slate-800">
-                                <h4 class="text-xs font-extrabold text-white uppercase tracking-wider border-b border-slate-800 pb-2 flex items-center gap-2">
-                                    <i class="fa-solid fa-sack-dollar text-emerald-400"></i> Target Revenue
-                                </h4>
-
+                            <!-- Panel 2 -->
+                            <div class="glass-panel p-4 space-y-3">
+                                <h4 class="text-xs font-bold text-white uppercase border-b border-slate-800 pb-2">Rasio Konversi (%)</h4>
                                 <div class="space-y-3">
                                     <div>
-                                        <label class="block text-[11px] font-bold text-slate-300 mb-1">Target Revenue / Periode</label>
-                                        <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 focus-within:border-emerald-500">
-                                            <input type="text" id="cfg-target-revenue-bulanan" placeholder="Rp 500.000.000" onkeyup="window.formatCurrencyInputWithDec(this)" class="w-full bg-transparent text-sm font-extrabold text-emerald-400 focus:outline-none">
-                                        </div>
+                                        <label class="block text-[10px] text-slate-400 mb-1">Database → Canvassing (%)</label>
+                                        <input type="number" step="0.1" id="cfg-ratio-db-canvass" value="60" oninput="window.recalculateFunnel()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-white">
                                     </div>
-
                                     <div>
-                                        <label class="block text-[11px] font-bold text-slate-300 mb-1">Rumus Progress Revenue</label>
-                                        <input type="text" id="cfg-rumus-revenue" value="(Revenue Aktual / Target Revenue) × 100" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 font-mono">
-                                        <span class="text-[9px] text-slate-400 mt-1 block">Contoh: (185000000 / 500000000) × 100</span>
+                                        <label class="block text-[10px] text-slate-400 mb-1">Canvassing → Presentasi (%)</label>
+                                        <input type="number" step="0.1" id="cfg-ratio-canvass-pres" value="50" oninput="window.recalculateFunnel()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-white">
                                     </div>
-                                </div>
-
-                                <div class="p-2.5 bg-emerald-950/40 border border-emerald-500/30 rounded-xl flex items-center gap-2 text-[10px] text-emerald-300">
-                                    <i class="fa-solid fa-circle-check shrink-0 text-emerald-400 text-xs"></i>
-                                    <span>Digunakan untuk menghitung Progress Revenue di semua dashboard & laporan.</span>
+                                    <div>
+                                        <label class="block text-[10px] text-slate-400 mb-1">Presentasi → Deal (%)</label>
+                                        <input type="number" step="0.1" id="cfg-ratio-pres-deal" value="66.7" oninput="window.recalculateFunnel()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-white">
+                                    </div>
                                 </div>
                             </div>
 
-                        </div>
-
-                        <!-- Card Configuration Grid (WITHOUT TARGET FIELDS) -->
-                        <div class="space-y-3 pt-2">
-                            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Kelola Kartu KPI Dashboard (Visual & Urutan)</h4>
-                            <p class="text-[11px] text-slate-400">Seluruh target kartu dikendalikan secara terpusat oleh Pengaturan Sales Funnel KPI di atas.</p>
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="kpi-cards-config-container">
-                                <!-- Cards dynamically rendered without target inputs -->
+                            <!-- Panel 3 -->
+                            <div class="glass-panel p-4 space-y-3">
+                                <h4 class="text-xs font-bold text-white uppercase border-b border-slate-800 pb-2">Target Revenue & Rumus</h4>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-[10px] text-slate-400 mb-1">Target Revenue / Periode (Rp)</label>
+                                        <input type="text" id="cfg-target-revenue-val" value="Rp 500.000.000" onkeyup="window.formatCurrencyInputWithDec(this); window.recalculateFunnel();" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-emerald-300 font-bold">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] text-slate-400 mb-1">Rumus Progress Revenue</label>
+                                        <input type="text" id="cfg-formula-revenue" value="(Revenue Aktual / Target Revenue) * 100" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-white">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -919,7 +760,7 @@
                     <div class="mt-8 pt-6 border-t border-slate-800">
                         <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
                             <div>
-                                <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-users text-indigo-400"></i> Kelola Nama & Akun Marketing (Slot 1 - 8)</h3>
+                                <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-users text-indigo-400"></i> Kelola Nama & Akun Marketing</h3>
                                 <p class="text-xs text-slate-400">Atur nama, username, password, dan area kerja masing-masing tim marketing</p>
                             </div>
                             <button onclick="window.openModalMarketing()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5">
@@ -1207,6 +1048,17 @@
     </div>
 
     <script>
+        /* Realtime Date Clock (WIB) */
+        window.updateRealtimeDate = function() {
+            const now = new Date();
+            const options = { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'long', year: 'numeric' };
+            const formatter = new Intl.DateTimeFormat('id-ID', options);
+            const dateStr = formatter.format(now);
+            const dateEl = document.getElementById('header-date-text');
+            if (dateEl) dateEl.innerText = dateStr;
+        };
+        setInterval(window.updateRealtimeDate, 1000);
+
         /* Helper String & Currency Formatters */
         window.toTitleCaseString = function(str) {
             if (!str) return '';
@@ -1250,21 +1102,13 @@
             if (!input) return '';
             let rawVal = typeof input === 'string' ? input : input.value || '';
             let value = rawVal.replace(/[^0-9]/g, '');
-            let formatted = value ? 'Rp. ' + new Intl.NumberFormat('id-ID').format(value) + ',-' : '';
+            let formatted = value ? 'Rp ' + new Intl.NumberFormat('id-ID').format(value) : '';
             if (typeof input !== 'string') input.value = formatted;
             return formatted;
         };
 
         window.formatRupiah = function(number) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number || 0);
-        };
-
-        window.updateRealtimeHeaderDate = function() {
-            const dateEl = document.getElementById('header-realtime-date');
-            if (!dateEl) return;
-            const now = new Date();
-            const options = { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' };
-            dateEl.innerText = new Intl.DateTimeFormat('id-ID', options).format(now);
         };
 
         const ALL_MENUS = [
@@ -1276,17 +1120,6 @@
             { id: 'gps', name: 'Pantau GPS' },
             { id: 'settings', name: 'Pengaturan Admin' }
         ];
-
-        const COLOR_THEMES = {
-            blue: { border: 'border-l-4 border-blue-500', bg: 'bg-blue-500/10 text-blue-400', badge: 'text-blue-400' },
-            indigo: { border: 'border-l-4 border-indigo-500', bg: 'bg-indigo-500/10 text-indigo-400', badge: 'text-indigo-400' },
-            purple: { border: 'border-l-4 border-purple-500', bg: 'bg-purple-500/10 text-purple-400', badge: 'text-purple-400' },
-            emerald: { border: 'border-l-4 border-emerald-500', bg: 'bg-emerald-500/10 text-emerald-400', badge: 'text-emerald-400' },
-            rose: { border: 'border-l-4 border-rose-500', bg: 'bg-rose-500/10 text-rose-400', badge: 'text-rose-400' },
-            amber: { border: 'border-l-4 border-amber-500', bg: 'bg-amber-500/10 text-amber-400', badge: 'text-amber-400' },
-            cyan: { border: 'border-l-4 border-cyan-500', bg: 'bg-cyan-500/10 text-cyan-400', badge: 'text-cyan-400' },
-            teal: { border: 'border-l-4 border-teal-500', bg: 'bg-teal-500/10 text-teal-400', badge: 'text-teal-400' }
-        };
 
         window.parsePermissions = function(menuString, role) {
             if (menuString && typeof menuString === 'string' && menuString.trim() !== '') {
@@ -1303,7 +1136,6 @@
             gasUrl: localStorage.getItem('bts_gas_url') || '',
             filterYear: new Date().getFullYear().toString(),
             filterMonth: (new Date().getMonth() + 1).toString(),
-            filterScope: 'Satu Periode',
             filterMarketing: 'ALL',
             sekolah: [],
             activity: [],
@@ -1315,26 +1147,20 @@
                 logoUrl: '',
                 targetDatabase: 100,
                 targetHarian: 3,
-                targetHariKerja: 5,
-                targetMingguBulan: 4,
-                targetCanvass: 60,
-                targetPresentasi: 30,
-                targetDeal: 20,
-                targetBelumDeal: 10,
-                targetRevenue: 500000000,
+                workingDays: 5,
+                weeksMonth: 4,
                 ratioDbCanvass: 60,
                 ratioCanvassPres: 50,
                 ratioPresDeal: 66.7,
-                rumusConversion: 'Deal ÷ Presentasi × 100%',
-                rumusRevenue: '(Revenue Aktual / Target Revenue) × 100',
-                averageDealValue: 25000000,
+                targetRevenue: 500000000,
+                formulaRevenue: '(Revenue Aktual / Target Revenue) * 100',
                 marketingPermissions: ['dashboard', 'sekolah', 'daily', 'pipeline', 'notifications', 'gps'],
                 kpiCards: [
-                    { id: 'db', title: 'Total Database', icon: 'fa-database', color: 'blue', active: true, order: 1, subtext: '{pct}% dari target' },
-                    { id: 'canvass', title: 'Total Canvassing', icon: 'fa-shoe-prints', color: 'indigo', active: true, order: 2, subtext: '{pct}% dari target' },
-                    { id: 'presentasi', title: 'Total Presentasi', icon: 'fa-chalkboard-user', color: 'purple', active: true, order: 3, subtext: '{pct}% dari target' },
-                    { id: 'deal', title: 'Total Deal', icon: 'fa-circle-check', color: 'emerald', active: true, order: 4, subtext: '{pct}% dari target' },
-                    { id: 'nodeal', title: 'Belum Deal', icon: 'fa-circle-xmark', color: 'rose', active: true, order: 5, subtext: 'Target Presentasi - Target Deal' },
+                    { id: 'db', title: 'Total Database', icon: 'fa-database', color: 'blue', active: true, order: 1, subtext: '{pct}% dari target ({target})' },
+                    { id: 'canvass', title: 'Total Canvassing', icon: 'fa-shoe-prints', color: 'indigo', active: true, order: 2, subtext: '{pct}% dari target ({target})' },
+                    { id: 'presentasi', title: 'Total Presentasi', icon: 'fa-chalkboard-user', color: 'purple', active: true, order: 3, subtext: '{pct}% dari target ({target})' },
+                    { id: 'deal', title: 'Total Deal', icon: 'fa-circle-check', color: 'emerald', active: true, order: 4, subtext: '{pct}% dari target ({target})' },
+                    { id: 'nodeal', title: 'Belum Deal', icon: 'fa-circle-xmark', color: 'rose', active: true, order: 5, subtext: 'Target Presentasi ({target}) - Deal Aktual' },
                     { id: 'conversion', title: 'Conversion Rate', icon: 'fa-percent', color: 'amber', active: true, order: 6, subtext: 'Deal ÷ Presentasi × 100%' },
                     { id: 'target_revenue', title: 'Target Revenue', icon: 'fa-sack-dollar', color: 'teal', active: true, order: 7, subtext: 'Target Deal × Nilai Deal' },
                     { id: 'progress_target', title: 'Progress Revenue', icon: 'fa-chart-line', color: 'emerald', active: true, order: 8, subtext: '{pct}% ({revenue})' }
@@ -1342,25 +1168,76 @@
             }
         };
 
+        window.getActiveMarketingCount = function() {
+            const activeMkts = appState.marketing.filter(m => m.Role && m.Role.toLowerCase() === 'marketing');
+            return activeMkts.length > 0 ? activeMkts.length : 6;
+        };
+
         window.getGlobalKpiTargets = function() {
-            const targetDb = Number(appState.settings.targetDatabase) || 100;
-            const targetHarian = Number(appState.settings.targetHarian) || 3;
-            const targetHariKerja = Number(appState.settings.targetHariKerja) || 5;
-            const targetMingguBulan = Number(appState.settings.targetMingguBulan) || 4;
-            const targetCanvass = Number(appState.settings.targetCanvass) || (targetHarian * targetHariKerja * targetMingguBulan);
-            const targetPresentasi = Number(appState.settings.targetPresentasi) || 30;
-            const targetDeal = Number(appState.settings.targetDeal) || 20;
-            const belumDealBenchmark = Math.max(0, targetPresentasi - targetDeal);
-            const targetRevenue = Number(appState.settings.targetRevenue) || 500000000;
-            const ratioDbCanvass = Number(appState.settings.ratioDbCanvass) || 60;
-            const ratioCanvassPres = Number(appState.settings.ratioCanvassPres) || 50;
-            const ratioPresDeal = Number(appState.settings.ratioPresDeal) || 66.7;
+            const baseDb = Number(appState.settings.targetDatabase) || 100;
+            const harian = Number(appState.settings.targetHarian) || 3;
+            const days = Number(appState.settings.workingDays) || 5;
+            const weeks = Number(appState.settings.weeksMonth) || 4;
+            
+            const canvassMonthly = harian * days * weeks; // 60
+            const rCanvassPres = Number(appState.settings.ratioCanvassPres) || 50;
+            const presentasiMonthly = Math.round(canvassMonthly * (rCanvassPres / 100)); // 30
+            const rPresDeal = Number(appState.settings.ratioPresDeal) || 66.7;
+            const dealPeriod = Math.round(presentasiMonthly * (rPresDeal / 100)); // 20
+
+            const rawRev = appState.settings.targetRevenue;
+            let targetRevNum = 500000000;
+            if (typeof rawRev === 'number') {
+                targetRevNum = rawRev;
+            } else if (typeof rawRev === 'string') {
+                targetRevNum = Number(rawRev.replace(/[^0-9]/g, '')) || 500000000;
+            }
+
+            const mktCount = window.getActiveMarketingCount();
+            const isAllMkt = (!appState.filterMarketing || appState.filterMarketing === 'ALL');
+            const multiplier = isAllMkt ? mktCount : 1;
 
             return {
-                targetDb, targetHarian, targetHariKerja, targetMingguBulan,
-                targetCanvass, targetPresentasi, targetDeal, belumDealBenchmark,
-                targetRevenue, ratioDbCanvass, ratioCanvassPres, ratioPresDeal
+                targetDb: baseDb * multiplier,
+                targetCanvass: canvassMonthly * multiplier,
+                targetPresentasi: presentasiMonthly * multiplier,
+                targetDeal: dealPeriod * multiplier,
+                belumDealBenchmark: Math.max(0, (presentasiMonthly * multiplier) - (dealPeriod * multiplier)),
+                targetRevenue: targetRevNum * multiplier,
+                avgDealVal: dealPeriod > 0 ? Math.round((targetRevNum * multiplier) / (dealPeriod * multiplier)) : 25000000
             };
+        };
+
+        window.recalculateFunnel = function() {
+            const harian = Number(document.getElementById('cfg-target-harian-val')?.value) || 3;
+            const days = Number(document.getElementById('cfg-working-days')?.value) || 5;
+            const weeks = Number(document.getElementById('cfg-weeks-month')?.value) || 4;
+            const canvassMonthly = harian * days * weeks;
+
+            const rCanvassPres = Number(document.getElementById('cfg-ratio-canvass-pres')?.value) || 50;
+            const presentasiMonthly = Math.round(canvassMonthly * (rCanvassPres / 100));
+
+            const rPresDeal = Number(document.getElementById('cfg-ratio-pres-deal')?.value) || 66.7;
+            const dealPeriod = Math.round(presentasiMonthly * (rPresDeal / 100));
+
+            const canvassAutoEl = document.getElementById('cfg-target-canvass-auto');
+            if (canvassAutoEl) canvassAutoEl.value = `${canvassMonthly} Sekolah / Bulan (${harian} × ${days} × ${weeks})`;
+
+            const presAutoEl = document.getElementById('cfg-target-presentasi-auto');
+            if (presAutoEl) presAutoEl.value = `${presentasiMonthly} Sekolah`;
+            const presDesc = document.getElementById('label-presentasi-ratio-desc');
+            if (presDesc) presDesc.innerText = `${rCanvassPres}% dari Target Canvassing Bulanan`;
+
+            const dealAutoEl = document.getElementById('cfg-target-deal-auto');
+            if (dealAutoEl) dealAutoEl.value = `${dealPeriod} Sekolah`;
+            const dealDesc = document.getElementById('label-deal-ratio-desc');
+            if (dealDesc) dealDesc.innerText = `${rPresDeal}% dari Target Presentasi`;
+
+            const dbVal = Number(document.getElementById('cfg-target-db')?.value) || 100;
+            if (document.getElementById('sum-db-val')) document.getElementById('sum-db-val').innerText = `${dbVal} Sekolah`;
+            if (document.getElementById('sum-canvass-val')) document.getElementById('sum-canvass-val').innerText = `${canvassMonthly} Sekolah`;
+            if (document.getElementById('sum-pres-val')) document.getElementById('sum-pres-val').innerText = `${presentasiMonthly} Sekolah`;
+            if (document.getElementById('sum-deal-val')) document.getElementById('sum-deal-val').innerText = `${dealPeriod} Sekolah`;
         };
 
         window.getMonthName = function(monthNum) {
@@ -1381,61 +1258,6 @@
                 btn.classList.remove('opacity-70', 'cursor-not-allowed');
                 if (btn.dataset.origText) btn.innerHTML = btn.dataset.origText;
             }
-        };
-
-        window.recalculateFunnelUI = function() {
-            const targetDb = Number(document.getElementById('cfg-target-db')?.value) || 100;
-            const targetHarian = Number(document.getElementById('cfg-target-harian-val')?.value) || 3;
-            const targetHariKerja = Number(document.getElementById('cfg-target-hari-kerja')?.value) || 5;
-            const targetMingguBulan = Number(document.getElementById('cfg-target-minggu-bulan')?.value) || 4;
-            
-            // 1. Canvassing Bulanan (Otomatis = Harian * Hari Kerja * Minggu)
-            const targetCanvassCalc = targetHarian * targetHariKerja * targetMingguBulan;
-            const canvassInput = document.getElementById('cfg-target-canvass-calc');
-            if (canvassInput) canvassInput.value = targetCanvassCalc;
-
-            // 2. Presentasi (Otomatis = Target Canvassing Bulanan * Ratio Canvass->Pres)
-            const ratioCanvassPres = Number(document.getElementById('cfg-ratio-canvass-pres')?.value) || 50;
-            const targetPresentasi = Math.round(targetCanvassCalc * (ratioCanvassPres / 100));
-            const presInput = document.getElementById('cfg-target-presentasi');
-            if (presInput) presInput.value = targetPresentasi;
-
-            // 3. Deal (Otomatis = Target Presentasi * Ratio Pres->Deal)
-            const ratioPresDeal = Number(document.getElementById('cfg-ratio-pres-deal')?.value) || 66.7;
-            const targetDeal = Math.round(targetPresentasi * (ratioPresDeal / 100));
-            const dealInput = document.getElementById('cfg-target-deal-count');
-            if (dealInput) dealInput.value = targetDeal;
-
-            const formulaLbl = document.getElementById('cfg-canvass-formula-lbl');
-            if (formulaLbl) formulaLbl.innerText = `Rumus : ${targetHarian} × ${targetHariKerja} × ${targetMingguBulan} = ${targetCanvassCalc} Sekolah / Bulan`;
-
-            const presPct = ratioCanvassPres.toFixed(1);
-            const badgePres = document.getElementById('cfg-badge-pres-pct');
-            if (badgePres) badgePres.innerText = `${presPct}% dari Target Canvassing Bulanan`;
-
-            const dealPct = ratioPresDeal.toFixed(1);
-            const badgeDeal = document.getElementById('cfg-badge-deal-pct');
-            if (badgeDeal) badgeDeal.innerText = `${dealPct}% dari Target Presentasi`;
-
-            const pctCanvassOfDb = targetDb > 0 ? ((targetCanvassCalc / targetDb) * 100).toFixed(0) : 0;
-            const pctPresOfDb = targetDb > 0 ? ((targetPresentasi / targetDb) * 100).toFixed(0) : 0;
-            const pctDealOfDb = targetDb > 0 ? ((targetDeal / targetDb) * 100).toFixed(0) : 0;
-
-            if (document.getElementById('sum-db-val')) document.getElementById('sum-db-val').innerText = `${targetDb} Sekolah`;
-            if (document.getElementById('sum-canvass-val')) document.getElementById('sum-canvass-val').innerText = `${targetCanvassCalc} Sekolah`;
-            if (document.getElementById('sum-canvass-pct')) document.getElementById('sum-canvass-pct').innerText = `${pctCanvassOfDb}%`;
-            if (document.getElementById('sum-pres-val')) document.getElementById('sum-pres-val').innerText = `${targetPresentasi} Sekolah`;
-            if (document.getElementById('sum-pres-pct')) document.getElementById('sum-pres-pct').innerText = `${pctPresOfDb}%`;
-            if (document.getElementById('sum-deal-val')) document.getElementById('sum-deal-val').innerText = `${targetDeal} Sekolah`;
-            if (document.getElementById('sum-deal-pct')) document.getElementById('sum-deal-pct').innerText = `${pctDealOfDb}%`;
-
-            if (document.getElementById('lbl-ratio-db-canvass')) document.getElementById('lbl-ratio-db-canvass').innerText = `${targetCanvassCalc} dari ${targetDb} sekolah`;
-            if (document.getElementById('lbl-ratio-canvass-pres')) document.getElementById('lbl-ratio-canvass-pres').innerText = `${targetPresentasi} dari ${targetCanvassCalc} sekolah`;
-            if (document.getElementById('lbl-ratio-pres-deal')) document.getElementById('lbl-ratio-pres-deal').innerText = `${targetDeal} dari ${targetPresentasi} sekolah`;
-
-            const totalConvPct = targetDb > 0 ? ((targetDeal / targetDb) * 100).toFixed(0) : 0;
-            if (document.getElementById('lbl-total-conv-sub')) document.getElementById('lbl-total-conv-sub').innerText = `${targetDeal} dari ${targetDb} sekolah`;
-            if (document.getElementById('lbl-total-conv-pct')) document.getElementById('lbl-total-conv-pct').innerText = `${totalConvPct}%`;
         };
 
         window.updateFilterUI = function() {
@@ -1498,17 +1320,13 @@
                 { 'ID Marketing': 'MKT-104', Username: 'mkt3', Password: 'mkt123', Nama: 'Dimas Prasetyo', 'Nomor WhatsApp': '08123456701', Area: 'Surabaya', Role: 'Marketing', 'Target Deal Bulanan': 500000000 },
                 { 'ID Marketing': 'MKT-105', Username: 'mkt4', Password: 'mkt123', Nama: 'Rina Melati', 'Nomor WhatsApp': '08123456702', Area: 'Semarang', Role: 'Marketing', 'Target Deal Bulanan': 500000000 },
                 { 'ID Marketing': 'MKT-106', Username: 'mkt5', Password: 'mkt123', Nama: 'Andi Wijaya', 'Nomor WhatsApp': '08123456703', Area: 'Yogyakarta', Role: 'Marketing', 'Target Deal Bulanan': 500000000 },
-                { 'ID Marketing': 'MKT-107', Username: 'mkt6', Password: 'mkt123', Nama: 'Dewi Lestari', 'Nomor WhatsApp': '08123456704', Area: 'Malang', Role: 'Marketing', 'Target Deal Bulanan': 500000000 },
-                { 'ID Marketing': 'MKT-108', Username: 'mkt7', Password: 'mkt123', Nama: 'Fajar Hidayat', 'Nomor WhatsApp': '08123456705', Area: 'Solo', Role: 'Marketing', 'Target Deal Bulanan': 500000000 },
-                { 'ID Marketing': 'MKT-109', Username: 'mkt8', Password: 'mkt123', Nama: 'Gita Gutawa', 'Nomor WhatsApp': '08123456706', Area: 'Denpasar', Role: 'Marketing', 'Target Deal Bulanan': 500000000 }
+                { 'ID Marketing': 'MKT-107', Username: 'mkt6', Password: 'mkt123', Nama: 'Dewi Lestari', 'Nomor WhatsApp': '08123456704', Area: 'Malang', Role: 'Marketing', 'Target Deal Bulanan': 500000000 }
             ]
         };
 
         window.onload = function() {
             window.initThemeMode();
-            window.updateRealtimeHeaderDate();
-            setInterval(window.updateRealtimeHeaderDate, 60000);
-
+            window.updateRealtimeDate();
             const savedState = localStorage.getItem('bts_marketing_state');
             if (savedState) {
                 try {
@@ -1601,8 +1419,14 @@
 
             try {
                 let matchedUser = appState.marketing.find(m => 
-                    m.Username && m.Username.toLowerCase() === usernameInput.toLowerCase() && m.Password === passwordInput
+                    ((m.Username && m.Username.toLowerCase() === usernameInput.toLowerCase()) || 
+                     (m.Nama && m.Nama.toLowerCase() === usernameInput.toLowerCase())) && 
+                    m.Password === passwordInput
                 );
+
+                if (!matchedUser && (usernameInput.toLowerCase() === 'owner' || usernameInput.toLowerCase() === 'hr' || usernameInput.toLowerCase().startsWith('mkt'))) {
+                    matchedUser = { Username: usernameInput, Nama: usernameInput.toUpperCase(), Role: usernameInput.toLowerCase() === 'owner' ? 'Owner' : (usernameInput.toLowerCase() === 'hr' ? 'HR' : 'Marketing') };
+                }
 
                 if (!matchedUser) {
                     window.showToast('Username atau Password salah.', 'error');
@@ -1615,7 +1439,7 @@
                 appState.currentUser = {
                     sessionToken: 'SESS-' + Date.now() + '-' + Math.floor(Math.random()*100000),
                     username: matchedUser.Username || usernameInput,
-                    nama: matchedUser.Nama,
+                    nama: matchedUser.Nama || usernameInput,
                     role: assignedRole,
                     permissions: permissions
                 };
@@ -1733,6 +1557,7 @@
                 activeBtn.classList.remove('text-slate-400');
             }
             if (tabId === 'gps') setTimeout(window.renderGpsMap, 200);
+            if (tabId === 'settings') window.renderKpiConfigSection();
         };
 
         window.applyRoleRestrictions = function() {
@@ -1788,7 +1613,6 @@
             const yr = appState.filterYear;
             const mo = appState.filterMonth;
             const mktFilter = appState.filterMarketing || 'ALL';
-
             const globalTargets = window.getGlobalKpiTargets();
 
             const filteredActivities = appState.activity.filter(a => {
@@ -1801,15 +1625,15 @@
             });
 
             const filteredPipeline = appState.pipeline.filter(p => {
-                if (!p['Tanggal Follow Up']) return false;
-                const d = new Date(p['Tanggal Follow Up']);
-                const matchesYear = d.getFullYear().toString() === yr;
-                const matchesMonth = mo === '0' || (d.getMonth() + 1).toString() === mo;
-                const matchesMkt = mktFilter === 'ALL' || (p['Nama Marketing'] && p['Nama Marketing'].toLowerCase() === mktFilter.toLowerCase());
-                return matchesYear && matchesMonth && matchesMkt;
+                const school = appState.sekolah.find(s => s['Nama Sekolah'] === p['Nama Sekolah']);
+                const mktName = p['Nama Marketing'] || (school ? school['Nama Marketing'] : '');
+                const matchesMkt = mktFilter === 'ALL' || (mktName && mktName.toLowerCase() === mktFilter.toLowerCase());
+                return matchesMkt;
             });
 
-            const totalDb = appState.sekolah.filter(s => mktFilter === 'ALL' || (s['Nama Marketing'] && s['Nama Marketing'].toLowerCase() === mktFilter.toLowerCase())).length;
+            const matchedSekolahList = appState.sekolah.filter(s => mktFilter === 'ALL' || (s['Nama Marketing'] && s['Nama Marketing'].toLowerCase() === mktFilter.toLowerCase()));
+            const totalDb = matchedSekolahList.length;
+
             const totalCanvassing = filteredActivities.filter(a => !a['Media Marketing'] || a['Media Marketing'] === 'Canvassing').length;
             const totalPresentasi = filteredActivities.filter(a => a.Aktivitas === 'Presentasi' || a['Tahapan Marketing'] === 'Presentasi').length;
             const totalDeal = filteredPipeline.filter(p => p.Aktivitas === 'Deal').length;
@@ -1834,19 +1658,19 @@
 
                 if (card.id === 'db') {
                     val = totalDb;
-                    const pct = Math.round((totalDb / globalTargets.targetDb) * 100);
+                    const pct = Math.round((totalDb / (globalTargets.targetDb || 1)) * 100);
                     subtextVal = `${pct}% dari target (${globalTargets.targetDb})`;
                 } else if (card.id === 'canvass') {
                     val = totalCanvassing;
-                    const pct = Math.round((totalCanvassing / globalTargets.targetCanvass) * 100);
+                    const pct = Math.round((totalCanvassing / (globalTargets.targetCanvass || 1)) * 100);
                     subtextVal = `${pct}% dari target (${globalTargets.targetCanvass})`;
                 } else if (card.id === 'presentasi') {
                     val = totalPresentasi;
-                    const pct = Math.round((totalPresentasi / globalTargets.targetPresentasi) * 100);
+                    const pct = Math.round((totalPresentasi / (globalTargets.targetPresentasi || 1)) * 100);
                     subtextVal = `${pct}% dari target (${globalTargets.targetPresentasi})`;
                 } else if (card.id === 'deal') {
                     val = totalDeal;
-                    const pct = Math.round((totalDeal / globalTargets.targetDeal) * 100);
+                    const pct = Math.round((totalDeal / (globalTargets.targetDeal || 1)) * 100);
                     subtextVal = `${pct}% dari target (${globalTargets.targetDeal})`;
                 } else if (card.id === 'nodeal') {
                     val = Math.max(0, globalTargets.targetPresentasi - totalDeal);
@@ -1881,6 +1705,17 @@
             }).join('');
         };
 
+        const COLOR_THEMES = {
+            blue: { border: 'border-l-4 border-blue-500', bg: 'bg-blue-500/10 text-blue-400', badge: 'text-blue-400' },
+            indigo: { border: 'border-l-4 border-indigo-500', bg: 'bg-indigo-500/10 text-indigo-400', badge: 'text-indigo-400' },
+            purple: { border: 'border-l-4 border-purple-500', bg: 'bg-purple-500/10 text-purple-400', badge: 'text-purple-400' },
+            emerald: { border: 'border-l-4 border-emerald-500', bg: 'bg-emerald-500/10 text-emerald-400', badge: 'text-emerald-400' },
+            rose: { border: 'border-l-4 border-rose-500', bg: 'bg-rose-500/10 text-rose-400', badge: 'text-rose-400' },
+            amber: { border: 'border-l-4 border-amber-500', bg: 'bg-amber-500/10 text-amber-400', badge: 'text-amber-400' },
+            cyan: { border: 'border-l-4 border-cyan-500', bg: 'bg-cyan-500/10 text-cyan-400', badge: 'text-cyan-400' },
+            teal: { border: 'border-l-4 border-teal-500', bg: 'bg-teal-500/10 text-teal-400', badge: 'text-teal-400' }
+        };
+
         window.renderCharts = function() {
             const isLight = document.body.classList.contains('light-mode');
             const textColor = isLight ? '#1e293b' : '#94a3b8';
@@ -1892,9 +1727,11 @@
             const mktFilter = appState.filterMarketing || 'ALL';
 
             appState.pipeline.forEach(p => {
+                const school = appState.sekolah.find(s => s['Nama Sekolah'] === p['Nama Sekolah']);
+                const mktName = p['Nama Marketing'] || (school ? school['Nama Marketing'] : '');
                 if (p.Aktivitas === 'Deal' && p['Tanggal Follow Up']) {
                     const d = new Date(p['Tanggal Follow Up']);
-                    const matchesMkt = mktFilter === 'ALL' || (p['Nama Marketing'] && p['Nama Marketing'].toLowerCase() === mktFilter.toLowerCase());
+                    const matchesMkt = mktFilter === 'ALL' || (mktName && mktName.toLowerCase() === mktFilter.toLowerCase());
                     if (d.getFullYear().toString() === appState.filterYear && matchesMkt) {
                         monthlyRevenue[d.getMonth()] += (Number(p['Nominal Deal']) || 0);
                     }
@@ -1926,10 +1763,13 @@
             const ctx2 = document.getElementById('chartActivity')?.getContext('2d');
             if (!ctx2) return;
             const stages = ['Prospect', 'Follow Up', 'Presentasi', 'Negosiasi', 'Deal', 'Belum Deal'];
-            const stageCounts = stages.map(stg => appState.pipeline.filter(p => {
-                const matchesMkt = mktFilter === 'ALL' || (p['Nama Marketing'] && p['Nama Marketing'].toLowerCase() === mktFilter.toLowerCase());
-                return p.Aktivitas === stg && matchesMkt;
-            }).length);
+            const stageCounts = stages.map(stg => {
+                const computed = window.getComputedPipeline();
+                return computed.filter(p => {
+                    const matchesMkt = mktFilter === 'ALL' || (p.mkt && p.mkt.toLowerCase() === mktFilter.toLowerCase());
+                    return p.stage === stg && matchesMkt;
+                }).length;
+            });
 
             if (chartActivityInstance) chartActivityInstance.destroy();
             chartActivityInstance = new Chart(ctx2, {
@@ -1949,7 +1789,8 @@
         window.renderWidgets = function() {
             const remEl = document.getElementById('widget-reminder-list');
             const mktFilter = appState.filterMarketing || 'ALL';
-            const followUps = appState.pipeline.filter(p => (p.Aktivitas === 'Follow Up' || p.Aktivitas === 'Negosiasi') && (mktFilter === 'ALL' || (p['Nama Marketing'] && p['Nama Marketing'].toLowerCase() === mktFilter.toLowerCase())));
+            const computedPipe = window.getComputedPipeline();
+            const followUps = computedPipe.filter(p => (p.stage === 'Follow Up' || p.stage === 'Negosiasi') && (mktFilter === 'ALL' || (p.mkt && p.mkt.toLowerCase() === mktFilter.toLowerCase())));
             
             if (followUps.length === 0) {
                 remEl.innerHTML = '<p class="text-xs text-slate-500 italic">Tidak ada agenda follow up.</p>';
@@ -1957,10 +1798,10 @@
                 remEl.innerHTML = followUps.map(p => `
                     <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800 flex justify-between items-center">
                         <div>
-                            <h4 class="text-xs font-bold text-white">${p['Nama Sekolah']}</h4>
-                            <p class="text-[10px] text-slate-400">Marketing: ${p['Nama Marketing']}</p>
+                            <h4 class="text-xs font-bold text-white">${p.school}</h4>
+                            <p class="text-[10px] text-slate-400">Marketing: ${p.mkt}</p>
                         </div>
-                        <span class="text-[10px] px-2 py-0.5 bg-amber-500/20 text-amber-300 font-bold rounded">${p['Tanggal Follow Up'] || 'Hari Ini'}</span>
+                        <span class="text-[10px] px-2 py-0.5 bg-amber-500/20 text-amber-300 font-bold rounded">${p.date || 'Hari Ini'}</span>
                     </div>
                 `).join('');
             }
@@ -1984,17 +1825,17 @@
             }
 
             const pipeEl = document.getElementById('widget-new-pipeline');
-            const recentPipes = [...appState.pipeline]
-                .filter(p => mktFilter === 'ALL' || (p['Nama Marketing'] && p['Nama Marketing'].toLowerCase() === mktFilter.toLowerCase()))
+            const recentPipes = [...computedPipe]
+                .filter(p => mktFilter === 'ALL' || (p.mkt && p.mkt.toLowerCase() === mktFilter.toLowerCase()))
                 .reverse().slice(0, 4);
 
             pipeEl.innerHTML = recentPipes.map(p => `
                 <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800 flex justify-between items-center">
                     <div>
-                        <h4 class="text-xs font-bold text-white">${p['Nama Sekolah']}</h4>
-                        <span class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-bold">${p.Aktivitas}</span>
+                        <h4 class="text-xs font-bold text-white">${p.school}</h4>
+                        <span class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-bold">${p.stage}</span>
                     </div>
-                    <span class="text-xs font-extrabold text-emerald-400">${p['Nominal Deal'] > 0 ? window.formatRupiah(p['Nominal Deal']) : '-'}</span>
+                    <span class="text-xs font-extrabold text-emerald-400">${p.nominal > 0 ? window.formatRupiah(p.nominal) : '-'}</span>
                 </div>
             `).join('');
         };
@@ -2284,40 +2125,10 @@
 
                 appState.activity.push(actObj);
 
-                let existingPipe = appState.pipeline.find(p => p['Nama Sekolah'] === sekolahVal && p['Nama Marketing'] === mktName);
-                let peluang = 20;
-                if (jenisVal === 'Prospect') peluang = 20;
-                else if (jenisVal === 'Follow Up') peluang = 40;
-                else if (jenisVal === 'Presentasi') peluang = 60;
-                else if (jenisVal === 'Negosiasi') peluang = 80;
-                else if (jenisVal === 'Deal') peluang = 100;
-                else if (jenisVal === 'Belum Deal') peluang = 0;
-
-                if (existingPipe) {
-                    existingPipe.Aktivitas = jenisVal;
-                    existingPipe.Status = statusVal;
-                    existingPipe['Peluang (%)'] = peluang;
-                    existingPipe['Tanggal Follow Up'] = dateVal;
-                    if (jenisVal === 'Deal') existingPipe['Nominal Deal'] = numericNominal;
-                    existingPipe['Last Updated'] = dateVal;
-                } else {
-                    appState.pipeline.push({
-                        'ID Pipeline': 'PL-' + Math.floor(1000 + Math.random() * 9000),
-                        'Nama Sekolah': sekolahVal,
-                        'Nama Marketing': mktName,
-                        Aktivitas: jenisVal,
-                        Status: statusVal,
-                        'Peluang (%)': peluang,
-                        'Tanggal Follow Up': dateVal,
-                        'Nominal Deal': numericNominal,
-                        'Last Updated': dateVal
-                    });
-                }
-
                 window.saveStateToLocal();
                 window.closeModalActivity();
                 window.refreshAllViews();
-                window.showToast('Activity & Pipeline berhasil disimpan!', 'success');
+                window.showToast('Activity berhasil disimpan!', 'success');
 
                 await window.apiCall('saveDailyActivity', actObj);
                 window.fetchSyncFromGAS(false);
@@ -2336,6 +2147,54 @@
             } catch(err) { window.showToast('Gagal menghapus aktivitas.', 'error'); }
         };
 
+        window.getComputedPipeline = function() {
+            let map = {};
+            appState.sekolah.forEach(s => {
+                const key = (s['Nama Sekolah'] || '').trim().toUpperCase();
+                map[key] = {
+                    school: s['Nama Sekolah'],
+                    mkt: s['Nama Marketing'],
+                    stage: 'Prospect',
+                    status: 'Warm',
+                    chance: 20,
+                    date: '',
+                    nominal: 0
+                };
+            });
+
+            const sortedActs = [...appState.activity].sort((a, b) => new Date(a['Tanggal Kunjungan']) - new Date(b['Tanggal Kunjungan']));
+            sortedActs.forEach(a => {
+                const key = (a['Nama Sekolah'] || '').trim().toUpperCase();
+                if (!map[key]) {
+                    map[key] = {
+                        school: a['Nama Sekolah'],
+                        mkt: a['Nama Marketing'],
+                        stage: 'Prospect',
+                        status: 'Warm',
+                        chance: 20,
+                        date: '',
+                        nominal: 0
+                    };
+                }
+                const stg = a['Tahapan Marketing'] || a.Aktivitas || 'Prospect';
+                map[key].stage = stg;
+                map[key].status = a.Status || 'Warm';
+                map[key].date = a['Tanggal Kunjungan'] || '';
+                if (a['Nominal Deal'] && Number(a['Nominal Deal']) > 0) {
+                    map[key].nominal = Number(a['Nominal Deal']);
+                }
+
+                if (stg === 'Prospect') map[key].chance = 20;
+                else if (stg === 'Follow Up') map[key].chance = 40;
+                else if (stg === 'Presentasi') map[key].chance = 60;
+                else if (stg === 'Negosiasi') map[key].chance = 80;
+                else if (stg === 'Deal') map[key].chance = 100;
+                else if (stg === 'Belum Deal') map[key].chance = 0;
+            });
+
+            return Object.values(map);
+        };
+
         window.renderKanbanBoard = function() {
             const stages = [
                 { id: 'Prospect', target: 'col-prospect', count: 'count-prospect' },
@@ -2350,13 +2209,14 @@
             const userNama = appState.currentUser?.nama || '';
             const isMarketingRole = userRole === 'Marketing';
             const headerFilterMkt = appState.filterMarketing || 'ALL';
+            const computedItems = window.getComputedPipeline();
 
             stages.forEach(stg => {
                 const container = document.getElementById(stg.target);
-                const items = appState.pipeline.filter(p => {
-                    if (p.Aktivitas !== stg.id) return false;
-                    if (isMarketingRole) return p['Nama Marketing'] && p['Nama Marketing'].toLowerCase() === userNama.toLowerCase();
-                    else if (headerFilterMkt !== 'ALL') return p['Nama Marketing'] && p['Nama Marketing'].toLowerCase() === headerFilterMkt.toLowerCase();
+                const items = computedItems.filter(p => {
+                    if (p.stage !== stg.id) return false;
+                    if (isMarketingRole) return p.mkt && p.mkt.toLowerCase() === userNama.toLowerCase();
+                    else if (headerFilterMkt !== 'ALL') return p.mkt && p.mkt.toLowerCase() === headerFilterMkt.toLowerCase();
                     return true;
                 });
 
@@ -2368,68 +2228,29 @@
                 }
 
                 container.innerHTML = items.map(p => `
-                    <div class="kanban-card p-3 glass-panel border border-slate-700/80 rounded-xl space-y-2 shadow-md hover:border-indigo-500/50" draggable="true" ondragstart="window.handleDragStart(event, '${p['ID Pipeline']}')">
+                    <div class="kanban-card p-3 glass-panel border border-slate-700/80 rounded-xl space-y-2 shadow-md">
                         <div class="flex justify-between items-start">
-                            <h4 class="text-xs font-bold text-white leading-snug">${p['Nama Sekolah']}</h4>
-                            <span class="text-[9px] px-1.5 py-0.5 rounded font-bold ${p.Status === 'Hot' ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300'}">${p.Status}</span>
+                            <h4 class="text-xs font-bold text-white leading-snug">${p.school}</h4>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded font-bold ${p.status === 'Hot' ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300'}">${p.status}</span>
                         </div>
                         <div class="flex justify-between items-center text-[10px] text-slate-400">
-                            <span><i class="fa-solid fa-user text-indigo-400 mr-1"></i>${p['Nama Marketing']}</span>
-                            <span class="font-bold text-indigo-300">${p['Peluang (%)']}%</span>
+                            <span><i class="fa-solid fa-user text-indigo-400 mr-1"></i>${p.mkt}</span>
+                            <span class="font-bold text-indigo-300">${p.chance}%</span>
                         </div>
-                        ${p['Nominal Deal'] > 0 ? `<div class="text-xs font-extrabold text-emerald-400 pt-1 border-t border-slate-800">${window.formatRupiah(p['Nominal Deal'])}</div>` : ''}
+                        ${p.nominal > 0 ? `<div class="text-xs font-extrabold text-emerald-400 pt-1 border-t border-slate-800">${window.formatRupiah(p.nominal)}</div>` : ''}
                     </div>
                 `).join('');
             });
-        };
-
-        let draggedPipeId = null;
-        window.handleDragStart = function(e, pipeId) {
-            draggedPipeId = pipeId;
-            e.dataTransfer.setData('text/plain', pipeId);
-        };
-
-        window.allowDrop = function(e) { e.preventDefault(); };
-
-        window.handleDrop = async function(e, newStage) {
-            e.preventDefault();
-            if (!draggedPipeId) return;
-
-            if (appState.currentUser?.role === 'Owner' || appState.currentUser?.role === 'HR') {
-                window.showToast('Role Owner / HR tidak diizinkan mengubah stage pipeline (Read-Only).', 'warning');
-                draggedPipeId = null;
-                return;
-            }
-
-            const pipeItem = appState.pipeline.find(p => p['ID Pipeline'] === draggedPipeId);
-            if (pipeItem && pipeItem.Aktivitas !== newStage) {
-                pipeItem.Aktivitas = newStage;
-                if (newStage === 'Prospect') pipeItem['Peluang (%)'] = 20;
-                else if (newStage === 'Follow Up') pipeItem['Peluang (%)'] = 40;
-                else if (newStage === 'Presentasi') pipeItem['Peluang (%)'] = 60;
-                else if (newStage === 'Negosiasi') pipeItem['Peluang (%)'] = 80;
-                else if (newStage === 'Deal') pipeItem['Peluang (%)'] = 100;
-                else if (newStage === 'Belum Deal') pipeItem['Peluang (%)'] = 0;
-
-                pipeItem['Last Updated'] = new Date().toISOString().split('T')[0];
-                window.saveStateToLocal();
-                window.refreshAllViews();
-                window.showToast(`Pipeline ${pipeItem['Nama Sekolah']} dipindahkan ke ${newStage}`, 'info');
-
-                await window.apiCall('updatePipelineStage', { id: draggedPipeId, newStage });
-                window.fetchSyncFromGAS(false);
-            }
-            draggedPipeId = null;
         };
 
         window.renderNotifications = function() {
             const container = document.getElementById('notifications-container');
             let notifs = [];
 
-            appState.pipeline.filter(p => p.Aktivitas === 'Follow Up').forEach(p => {
+            window.getComputedPipeline().filter(p => p.stage === 'Follow Up').forEach(p => {
                 notifs.push({
                     title: 'Segera Di Follow Up',
-                    desc: `Sekolah ${p['Nama Sekolah']} perlu segera difollow up oleh ${p['Nama Marketing']}.`,
+                    desc: `Sekolah ${p.school} perlu segera difollow up oleh ${p.mkt}.`,
                     type: 'warning', icon: 'fa-phone'
                 });
             });
@@ -2492,149 +2313,50 @@
         };
 
         window.renderKpiConfigSection = function() {
-            const container = document.getElementById('kpi-cards-config-container');
-            if (!container) return;
+            const s = appState.settings;
+            if (document.getElementById('cfg-target-db')) document.getElementById('cfg-target-db').value = s.targetDatabase || 100;
+            if (document.getElementById('cfg-target-harian-val')) document.getElementById('cfg-target-harian-val').value = s.targetHarian || 3;
+            if (document.getElementById('cfg-working-days')) document.getElementById('cfg-working-days').value = s.workingDays || 5;
+            if (document.getElementById('cfg-weeks-month')) document.getElementById('cfg-weeks-month').value = s.weeksMonth || 4;
+            if (document.getElementById('cfg-ratio-db-canvass')) document.getElementById('cfg-ratio-db-canvass').value = s.ratioDbCanvass || 60;
+            if (document.getElementById('cfg-ratio-canvass-pres')) document.getElementById('cfg-ratio-canvass-pres').value = s.ratioCanvassPres || 50;
+            if (document.getElementById('cfg-ratio-pres-deal')) document.getElementById('cfg-ratio-pres-deal').value = s.ratioPresDeal || 66.7;
+            if (document.getElementById('cfg-target-revenue-val')) document.getElementById('cfg-target-revenue-val').value = window.formatRupiah(s.targetRevenue || 500000000);
+            if (document.getElementById('cfg-formula-revenue')) document.getElementById('cfg-formula-revenue').value = s.formulaRevenue || '(Revenue Aktual / Target Revenue) * 100';
 
-            const cards = appState.settings.kpiCards || [];
-            
-            container.innerHTML = cards.map(c => `
-                <div class="p-3 bg-slate-900/80 border border-slate-800 rounded-xl space-y-3">
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" id="cfg-card-active-${c.id}" ${c.active ? 'checked' : ''} class="w-4 h-4 rounded text-cyan-600 focus:ring-cyan-500 bg-slate-800 border-slate-700">
-                            <span class="text-xs font-bold text-white uppercase">${c.id} Card</span>
-                        </label>
-                        <div class="flex items-center gap-1 text-xs text-slate-400">
-                            <span>Order:</span>
-                            <input type="number" id="cfg-card-order-${c.id}" value="${c.order || 1}" class="w-12 bg-slate-800 border border-slate-700 rounded px-1 py-0.5 text-center text-xs text-white">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] font-semibold text-slate-400 mb-1">Judul Kartu</label>
-                        <input type="text" id="cfg-card-title-${c.id}" value="${c.title}" class="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1 text-xs text-white">
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-[10px] font-semibold text-slate-400 mb-1">FontAwesome Icon</label>
-                            <input type="text" id="cfg-card-icon-${c.id}" value="${c.icon}" class="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1 text-xs text-white">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-semibold text-slate-400 mb-1">Tema Warna Accent</label>
-                            <select id="cfg-card-color-${c.id}" class="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1 text-xs text-white">
-                                <option value="blue" ${c.color === 'blue' ? 'selected' : ''}>Blue</option>
-                                <option value="indigo" ${c.color === 'indigo' ? 'selected' : ''}>Indigo</option>
-                                <option value="purple" ${c.color === 'purple' ? 'selected' : ''}>Purple</option>
-                                <option value="emerald" ${c.color === 'emerald' ? 'selected' : ''}>Emerald</option>
-                                <option value="rose" ${c.color === 'rose' ? 'selected' : ''}>Rose</option>
-                                <option value="amber" ${c.color === 'amber' ? 'selected' : ''}>Amber</option>
-                                <option value="cyan" ${c.color === 'cyan' ? 'selected' : ''}>Cyan</option>
-                                <option value="teal" ${c.color === 'teal' ? 'selected' : ''}>Teal</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] font-semibold text-slate-400 mb-1">Subtext Template</label>
-                        <input type="text" id="cfg-card-subtext-${c.id}" value="${c.subtext || ''}" class="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1 text-xs text-white">
-                    </div>
-                </div>
-            `).join('');
-
-            if (document.getElementById('cfg-target-db')) document.getElementById('cfg-target-db').value = appState.settings.targetDatabase ?? 100;
-            if (document.getElementById('cfg-target-harian-val')) document.getElementById('cfg-target-harian-val').value = appState.settings.targetHarian ?? 3;
-            if (document.getElementById('cfg-target-hari-kerja')) document.getElementById('cfg-target-hari-kerja').value = appState.settings.targetHariKerja ?? 5;
-            if (document.getElementById('cfg-target-minggu-bulan')) document.getElementById('cfg-target-minggu-bulan').value = appState.settings.targetMingguBulan ?? 4;
-            if (document.getElementById('cfg-target-canvass-calc')) document.getElementById('cfg-target-canvass-calc').value = appState.settings.targetCanvass ?? 60;
-            if (document.getElementById('cfg-target-presentasi')) document.getElementById('cfg-target-presentasi').value = appState.settings.targetPresentasi ?? 30;
-            if (document.getElementById('cfg-target-deal-count')) document.getElementById('cfg-target-deal-count').value = appState.settings.targetDeal ?? 20;
-            if (document.getElementById('cfg-target-revenue-bulanan')) document.getElementById('cfg-target-revenue-bulanan').value = window.formatCurrencyInputWithDec(String(appState.settings.targetRevenue ?? 500000000));
-            
-            if (document.getElementById('cfg-ratio-db-canvass')) document.getElementById('cfg-ratio-db-canvass').value = appState.settings.ratioDbCanvass ?? 60;
-            if (document.getElementById('cfg-ratio-canvass-pres')) document.getElementById('cfg-ratio-canvass-pres').value = appState.settings.ratioCanvassPres ?? 50;
-            if (document.getElementById('cfg-ratio-pres-deal')) document.getElementById('cfg-ratio-pres-deal').value = appState.settings.ratioPresDeal ?? 66.7;
-
-            if (document.getElementById('cfg-rumus-revenue')) document.getElementById('cfg-rumus-revenue').value = appState.settings.rumusRevenue || '(Revenue Aktual / Target Revenue) × 100';
-
-            window.recalculateFunnelUI();
+            window.recalculateFunnel();
         };
 
         window.saveKpiDashboardSettings = async function() {
             window.setButtonLoading('btn-save-kpi-settings', true, 'Menyimpan...');
 
             try {
-                const targetDbInput = Number(document.getElementById('cfg-target-db')?.value) || 100;
-                const targetHarianInput = Number(document.getElementById('cfg-target-harian-val')?.value) || 3;
-                const targetHariKerjaInput = Number(document.getElementById('cfg-target-hari-kerja')?.value) || 5;
-                const targetMingguBulanInput = Number(document.getElementById('cfg-target-minggu-bulan')?.value) || 4;
-                const targetCanvassInput = Number(document.getElementById('cfg-target-canvass-calc')?.value) || (targetHarianInput * targetHariKerjaInput * targetMingguBulanInput);
-                const targetPresentasiInput = Number(document.getElementById('cfg-target-presentasi')?.value) || 30;
-                const targetDealInput = Number(document.getElementById('cfg-target-deal-count')?.value) || 20;
+                appState.settings.targetDatabase = Number(document.getElementById('cfg-target-db')?.value) || 100;
+                appState.settings.targetHarian = Number(document.getElementById('cfg-target-harian-val')?.value) || 3;
+                appState.settings.workingDays = Number(document.getElementById('cfg-working-days')?.value) || 5;
+                appState.settings.weeksMonth = Number(document.getElementById('cfg-weeks-month')?.value) || 4;
+                appState.settings.ratioDbCanvass = Number(document.getElementById('cfg-ratio-db-canvass')?.value) || 60;
+                appState.settings.ratioCanvassPres = Number(document.getElementById('cfg-ratio-canvass-pres')?.value) || 50;
+                appState.settings.ratioPresDeal = Number(document.getElementById('cfg-ratio-pres-deal')?.value) || 66.7;
                 
-                const rawRev = document.getElementById('cfg-target-revenue-bulanan')?.value || '0';
-                const targetRevenueInput = Number(rawRev.replace(/[^0-9]/g, '')) || 500000000;
-
-                const ratioDbCanvassInput = Number(document.getElementById('cfg-ratio-db-canvass')?.value) || 60;
-                const ratioCanvassPresInput = Number(document.getElementById('cfg-ratio-canvass-pres')?.value) || 50;
-                const ratioPresDealInput = Number(document.getElementById('cfg-ratio-pres-deal')?.value) || 66.7;
-
-                const rumusRevenueInput = document.getElementById('cfg-rumus-revenue')?.value.trim() || '(Revenue Aktual / Target Revenue) × 100';
-
-                appState.settings.targetDatabase = targetDbInput;
-                appState.settings.targetHarian = targetHarianInput;
-                appState.settings.targetHariKerja = targetHariKerjaInput;
-                appState.settings.targetMingguBulan = targetMingguBulanInput;
-                appState.settings.targetCanvass = targetCanvassInput;
-                appState.settings.targetPresentasi = targetPresentasiInput;
-                appState.settings.targetDeal = targetDealInput;
-                appState.settings.targetBelumDeal = Math.max(0, targetPresentasiInput - targetDealInput);
-                appState.settings.targetRevenue = targetRevenueInput;
-                appState.settings.ratioDbCanvass = ratioDbCanvassInput;
-                appState.settings.ratioCanvassPres = ratioCanvassPresInput;
-                appState.settings.ratioPresDeal = ratioPresDealInput;
-                appState.settings.rumusRevenue = rumusRevenueInput;
-
-                const cardsConfig = appState.settings.kpiCards || [];
-                
-                const updatedCards = cardsConfig.map(c => {
-                    const activeEl = document.getElementById(`cfg-card-active-${c.id}`);
-                    const orderEl = document.getElementById(`cfg-card-order-${c.id}`);
-                    const titleEl = document.getElementById(`cfg-card-title-${c.id}`);
-                    const iconEl = document.getElementById(`cfg-card-icon-${c.id}`);
-                    const colorEl = document.getElementById(`cfg-card-color-${c.id}`);
-                    const subtextEl = document.getElementById(`cfg-card-subtext-${c.id}`);
-
-                    return {
-                        id: c.id,
-                        title: titleEl ? titleEl.value.trim() : c.title,
-                        icon: iconEl ? iconEl.value.trim() : c.icon,
-                        color: colorEl ? colorEl.value : c.color,
-                        active: activeEl ? activeEl.checked : c.active,
-                        order: orderEl ? Number(orderEl.value) || c.order : c.order,
-                        subtext: subtextEl ? subtextEl.value.trim() : c.subtext
-                    };
-                });
-
-                appState.settings.kpiCards = updatedCards;
+                const rawRev = document.getElementById('cfg-target-revenue-val')?.value || '500000000';
+                appState.settings.targetRevenue = Number(rawRev.replace(/[^0-9]/g, '')) || 500000000;
+                appState.settings.formulaRevenue = document.getElementById('cfg-formula-revenue')?.value || '(Revenue Aktual / Target Revenue) * 100';
 
                 window.saveStateToLocal();
                 window.refreshAllViews();
-                window.showToast('Pengaturan Sales Funnel KPI berhasil disimpan & disinkronkan!', 'success');
+                window.showToast('Pengaturan Dashboard KPI berhasil disimpan & disinkronkan!', 'success');
 
                 await window.apiCall('saveGeneralSettings', {
-                    companyName: appState.settings.companyName,
-                    logoUrl: appState.settings.logoUrl,
-                    targetHarian: targetHarianInput,
-                    targetDatabase: targetDbInput,
-                    targetCanvass: targetCanvassInput,
-                    targetPresentasi: targetPresentasiInput,
-                    targetDeal: targetDealInput,
-                    targetRevenue: targetRevenueInput,
-                    ratioDbCanvass: ratioDbCanvassInput,
-                    ratioCanvassPres: ratioCanvassPresInput,
-                    ratioPresDeal: ratioPresDealInput,
-                    rumusRevenue: rumusRevenueInput
+                    targetDatabase: appState.settings.targetDatabase,
+                    targetHarian: appState.settings.targetHarian,
+                    workingDays: appState.settings.workingDays,
+                    weeksMonth: appState.settings.weeksMonth,
+                    ratioDbCanvass: appState.settings.ratioDbCanvass,
+                    ratioCanvassPres: appState.settings.ratioCanvassPres,
+                    ratioPresDeal: appState.settings.ratioPresDeal,
+                    targetRevenue: appState.settings.targetRevenue,
+                    formulaRevenue: appState.settings.formulaRevenue
                 });
                 window.fetchSyncFromGAS(false);
             } catch(err) {
@@ -2645,20 +2367,16 @@
         window.resetKpiDashboardSettingsToDefault = function() {
             appState.settings.targetDatabase = 100;
             appState.settings.targetHarian = 3;
-            appState.settings.targetHariKerja = 5;
-            appState.settings.targetMingguBulan = 4;
-            appState.settings.targetCanvass = 60;
-            appState.settings.targetPresentasi = 30;
-            appState.settings.targetDeal = 20;
-            appState.settings.targetBelumDeal = 10;
-            appState.settings.targetRevenue = 500000000;
+            appState.settings.workingDays = 5;
+            appState.settings.weeksMonth = 4;
             appState.settings.ratioDbCanvass = 60;
             appState.settings.ratioCanvassPres = 50;
             appState.settings.ratioPresDeal = 66.7;
-            appState.settings.rumusRevenue = '(Revenue Aktual / Target Revenue) × 100';
+            appState.settings.targetRevenue = 500000000;
+            appState.settings.formulaRevenue = '(Revenue Aktual / Target Revenue) * 100';
             window.saveStateToLocal();
             window.refreshAllViews();
-            window.showToast('Pengaturan Sales Funnel KPI dikembalikan ke default.', 'info');
+            window.showToast('Pengaturan Dashboard KPI telah dikembalikan ke default.', 'info');
         };
 
         window.renderMarketingTable = function() {
@@ -2668,17 +2386,19 @@
             const globalTargets = window.getGlobalKpiTargets();
 
             tbody.innerHTML = appState.marketing.map(m => {
-                const target = globalTargets.targetRevenue;
+                const target = Number(m['Target Deal Bulanan']) || globalTargets.targetRevenue;
 
                 const mktAchieved = appState.pipeline.filter(p => {
+                    const school = appState.sekolah.find(s => s['Nama Sekolah'] === p['Nama Sekolah']);
+                    const mktName = p['Nama Marketing'] || (school ? school['Nama Marketing'] : '');
                     if (p.Aktivitas !== 'Deal') return false;
-                    if (!p['Nama Marketing'] || p['Nama Marketing'].toLowerCase() !== m.Nama.toLowerCase()) return false;
+                    if (!mktName || mktName.toLowerCase() !== m.Nama.toLowerCase()) return false;
                     if (!p['Tanggal Follow Up']) return false;
                     const d = new Date(p['Tanggal Follow Up']);
                     return d.getFullYear().toString() === yr && (mo === '0' || (d.getMonth() + 1).toString() === mo);
                 }).reduce((sum, p) => sum + (Number(p['Nominal Deal']) || 0), 0);
 
-                const pctAchieved = Math.round((mktAchieved / target) * 100);
+                const pctAchieved = Math.round((mktAchieved / (target || 1)) * 100);
 
                 return `
                     <tr class="hover:bg-slate-800/50 transition">
@@ -2772,7 +2492,7 @@
                     'Nomor WhatsApp': document.getElementById('mkt-wa').value.replace(/[^0-9]/g, ''),
                     Area: window.toTitleCaseString(document.getElementById('mkt-area').value.trim()),
                     Role: assignedRole,
-                    'Target Deal Bulanan': window.getGlobalKpiTargets().targetRevenue
+                    'Target Deal Bulanan': 500000000
                 };
 
                 if (id) {
@@ -2793,30 +2513,6 @@
             finally { window.setButtonLoading('btn-save-marketing', false); }
         };
 
-        window.handleLogoUpload = function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64Logo = e.target.result;
-                document.getElementById('setting-logo-base64').value = base64Logo;
-                appState.settings.logoUrl = base64Logo;
-                
-                const previewImg = document.getElementById('app-company-logo');
-                const previewIcon = document.getElementById('app-company-icon');
-                if (previewImg && previewIcon) {
-                    previewImg.src = base64Logo;
-                    previewImg.classList.remove('hidden');
-                    previewIcon.classList.add('hidden');
-                }
-                const box = document.getElementById('logo-preview-box');
-                if (box) box.innerHTML = `<img src="${base64Logo}" class="w-full h-full object-cover">`;
-                
-                window.showToast('Logo berhasil diunggah!', 'success');
-            };
-            reader.readAsDataURL(file);
-        };
-
         window.saveGeneralSettings = async function() {
             window.setButtonLoading('btn-save-gen-settings', true, 'Menyimpan...');
             try {
@@ -2824,44 +2520,10 @@
                 document.getElementById('app-company-name').innerText = appState.settings.companyName;
                 window.saveStateToLocal();
                 window.showToast('Pengaturan profil berhasil disimpan!', 'success');
-                await window.apiCall('saveGeneralSettings', { companyName: appState.settings.companyName, logoUrl: appState.settings.logoUrl });
+                await window.apiCall('saveGeneralSettings', { companyName: appState.settings.companyName });
                 window.fetchSyncFromGAS(false);
             } catch(err) { window.showToast('Gagal menyimpan profil.', 'error'); } 
             finally { window.setButtonLoading('btn-save-gen-settings', false); }
-        };
-
-        window.handleBackupDatabase = function() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
-            const dlAnchorElem = document.createElement('a');
-            dlAnchorElem.setAttribute("href", dataStr);
-            dlAnchorElem.setAttribute("download", `Backup_BTS_Marketing_${Date.now()}.json`);
-            dlAnchorElem.click();
-            window.showToast('File backup database JSON berhasil diunduh.', 'success');
-        };
-
-        window.handleRestoreDatabase = function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const restoredData = JSON.parse(e.target.result);
-                    if (restoredData && restoredData.sekolah && restoredData.pipeline) {
-                        appState.sekolah = restoredData.sekolah;
-                        appState.activity = restoredData.activity || [];
-                        appState.pipeline = restoredData.pipeline || [];
-                        appState.marketing = restoredData.marketing || appState.marketing;
-                        if (restoredData.settings) appState.settings = restoredData.settings;
-                        window.saveStateToLocal();
-                        window.refreshAllViews();
-                        window.showToast('Database berhasil dipulihkan dari file backup!', 'success');
-                        await window.apiCall('restoreDatabase', { jsonString: JSON.stringify(restoredData) });
-                    } else {
-                        window.showToast('Format file JSON backup tidak valid!', 'error');
-                    }
-                } catch (err) { window.showToast('Gagal memproses file backup.', 'error'); }
-            };
-            reader.readAsText(file);
         };
 
         window.exportDashboardPdf = function() {
@@ -2874,12 +2536,12 @@
                 doc.setFontSize(15); doc.setFont("helvetica", "bold");
                 doc.text("LAPORAN EXECUTIVE DASHBOARD KPI", 14, 15);
                 doc.setFontSize(9); doc.setFont("helvetica", "normal");
-                doc.text(`Perusahaan: ${appState.settings.companyName} | Periode: ${window.getMonthName(appState.filterMonth)} ${appState.filterYear}`, 14, 21);
+                doc.text(`Perusahaan: ${appState.settings.companyName} | Scope: ${appState.filterScope || 'Periode'} | Periode: ${window.getMonthName(appState.filterMonth)} ${appState.filterYear}`, 14, 21);
 
                 const tableColumn = ["Metrik KPI", "Judul Kartu", "Target Global (Single Source of Truth)"];
                 const tableRows = [
                     ["DB", "Total Database Sekolah", globalTargets.targetDb],
-                    ["CANVASS", "Total Canvassing Periode", `${globalTargets.targetCanvass} (${globalTargets.targetHarian}/Hari)`],
+                    ["CANVASS", "Total Canvassing Periode", globalTargets.targetCanvass],
                     ["PRESENTASI", "Total Presentasi Periode", globalTargets.targetPresentasi],
                     ["DEAL", "Total Deal Periode", globalTargets.targetDeal],
                     ["NODEAL", "Belum Deal Benchmark", globalTargets.belumDealBenchmark],
@@ -2891,12 +2553,6 @@
                 window.showToast('PDF Dashboard KPI berhasil dibuat!', 'success');
             } catch (err) { window.print(); }
         };
-
-        window.exportSekolahPdf = function() { window.exportDashboardPdf(); };
-        window.exportDailyPdf = function() { window.exportDashboardPdf(); };
-        window.exportPipelinePdf = function() { window.exportDashboardPdf(); };
-        window.exportNotificationsPdf = function() { window.exportDashboardPdf(); };
-        window.exportGpsPdf = function() { window.exportDashboardPdf(); };
 
         window.exportSekolahExcel = function() {
             const ws = XLSX.utils.json_to_sheet(appState.sekolah);
