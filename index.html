@@ -164,8 +164,8 @@
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Username</label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-3 top-3 text-slate-400 text-sm"></i>
-                        <input type="text" id="login-username" placeholder="owner / hr / mkt1" value="mkt1" required
-                            class="w-full bg-slate-900/80 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
+                        <input type="text" id="login-username" placeholder="owner / hr / mkt1" value="" required
+                            class="w-full bg-slate-900/80 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition placeholder-transparent">
                     </div>
                 </div>
 
@@ -173,8 +173,8 @@
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
                     <div class="relative">
                         <i class="fa-solid fa-lock absolute left-3 top-3 text-slate-400 text-sm"></i>
-                        <input type="password" id="login-password" placeholder="mkt123 / own123" value="mkt123" required
-                            class="w-full bg-slate-900/80 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
+                        <input type="password" id="login-password" placeholder="mkt123 / own123" value="" required
+                            class="w-full bg-slate-900/80 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition placeholder-transparent">
                     </div>
                 </div>
 
@@ -1195,8 +1195,54 @@
 
         /* Helper String & Currency Formatters */
         window.toTitleCaseString = function(str) {
-            if (!str) return '';
-            return str.toLowerCase().replace(/\b[a-z]/g, c => c.toUpperCase());
+            if (str === null || str === undefined) return '';
+            return String(str).toLowerCase().replace(/\b[a-z]/g, c => c.toUpperCase());
+        };
+
+        window.formatTitleCase = function(el) {
+            if (!el || el.value === undefined) return;
+            let start = el.selectionStart, end = el.selectionEnd;
+            let original = String(el.value), formatted = window.toTitleCaseString(original);
+            if (original !== formatted) {
+                el.value = formatted;
+                if (start !== null && end !== null) el.setSelectionRange(start, end);
+            }
+        };
+
+        window.formatUpperCase = function(el) {
+            if (!el || el.value === undefined) return;
+            let start = el.selectionStart, end = el.selectionEnd;
+            let original = String(el.value), formatted = original.toUpperCase();
+            if (original !== formatted) {
+                el.value = formatted;
+                if (start !== null && end !== null) el.setSelectionRange(start, end);
+            }
+        };
+
+        window.formatNumericOnly = function(el) {
+            if (!el || el.value === undefined) return;
+            let start = el.selectionStart, end = el.selectionEnd;
+            let original = String(el.value), formatted = original.replace(/[^0-9]/g, '');
+            if (original !== formatted) {
+                el.value = formatted;
+                if (start !== null && end !== null) {
+                    let diff = original.length - formatted.length;
+                    el.setSelectionRange(Math.max(0, start - diff), Math.max(0, end - diff));
+                }
+            }
+        };
+
+        window.formatCurrencyInputWithDec = function(input) {
+            if (!input) return '';
+            let rawVal = typeof input === 'string' ? input : String(input.value || '');
+            let value = rawVal.replace(/[^0-9]/g, '');
+            let formatted = value ? 'Rp ' + new Intl.NumberFormat('id-ID').format(value) : '';
+            if (typeof input !== 'string') input.value = formatted;
+            return formatted;
+        };
+
+        window.formatRupiah = function(number) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(number) || 0);
         };
 
         window.formatTitleCase = function(el) {
@@ -1350,8 +1396,8 @@
             let targetRevNum = 500000000;
             if (typeof rawRev === 'number') {
                 targetRevNum = rawRev;
-            } else if (typeof rawRev === 'string') {
-                targetRevNum = Number(rawRev.replace(/[^0-9]/g, '')) || 500000000;
+            } else if (rawRev) {
+                targetRevNum = Number(String(rawRev).replace(/[^0-9]/g, '')) || 500000000;
             }
 
             const mktCount = window.getActiveMarketingCount();
@@ -1645,6 +1691,11 @@
             let url = document.getElementById('input-gas-url').value.trim();
             if (!url) { window.showToast('URL Google Apps Script tidak boleh kosong!', 'warning'); return; }
 
+            if (url.includes('...') || !url.startsWith('http')) {
+                window.showToast('Masukkan URL Web App Google Apps Script milik Anda yang valid!', 'warning');
+                return;
+            }
+
             // Otomatis ubah /dev menjadi /exec jika pengguna salah menyalin URL dev
             if (url.endsWith('/dev')) {
                 url = url.replace(/\/dev$/, '/exec');
@@ -1674,10 +1725,18 @@
 
         window.fetchSyncFromGAS = async function(showToastMsg = true) {
             if (!appState.gasUrl) return;
+
+            let cleanUrl = appState.gasUrl.trim();
+            if (cleanUrl.includes('...') || !cleanUrl.startsWith('http')) {
+                if (showToastMsg) {
+                    window.showToast('URL Google Apps Script belum disetel dengan benar.', 'warning');
+                }
+                return;
+            }
+
             const spinner = document.getElementById('sync-spinner');
             if (spinner) spinner.classList.add('fa-spin');
 
-            let cleanUrl = appState.gasUrl.trim();
             if (cleanUrl.endsWith('/dev')) {
                 cleanUrl = cleanUrl.replace(/\/dev$/, '/exec');
                 appState.gasUrl = cleanUrl;
@@ -1695,6 +1754,9 @@
                 });
 
                 if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('URL Web App tidak ditemukan (HTTP 404). Silakan periksa kembali Web App URL Google Apps Script Anda.');
+                    }
                     throw new Error(`HTTP ${response.status}`);
                 }
 
@@ -1722,8 +1784,10 @@
                     throw new Error(result.message || 'Gagal memuat data');
                 }
             } catch (err) {
-                console.error('GAS Sync Error:', err);
-                if (showToastMsg) window.showToast(`Gagal terhubung: ${err.message}`, 'error');
+                if (showToastMsg) {
+                    console.error('GAS Sync Error:', err);
+                    window.showToast(`Gagal terhubung: ${err.message}`, 'error');
+                }
             } finally { 
                 if (spinner) spinner.classList.remove('fa-spin'); 
             }
@@ -1864,11 +1928,11 @@
             if (actSekolahSelect) {
                 actSekolahSelect.innerHTML = '<option value="">-- Pilih Sekolah --</option>';
                 const isMkt = appState.currentUser?.role === 'Marketing';
-                const list = isMkt ? appState.sekolah.filter(s => s['Nama Marketing'] === appState.currentUser?.nama) : appState.sekolah;
+                const list = isMkt ? appState.sekolah.filter(s => String(s['Nama Marketing'] || '') === String(appState.currentUser?.nama || '')) : appState.sekolah;
                 list.forEach(s => {
                     const opt = document.createElement('option');
-                    opt.value = s['Nama Sekolah'];
-                    opt.innerText = `${s['Nama Sekolah']} (${s.Wilayah || '-'})`;
+                    opt.value = String(s['Nama Sekolah'] || '');
+                    opt.innerText = `${String(s['Nama Sekolah'] || '')} (${String(s.Wilayah || '-')})`;
                     actSekolahSelect.appendChild(opt);
                 });
             }
@@ -2110,16 +2174,18 @@
             if (!tbody) return;
             tbody.innerHTML = '';
 
-            const searchVal = (document.getElementById('search-sekolah')?.value || '').toLowerCase();
-            const jenjangVal = document.getElementById('filter-jenjang')?.value || '';
-            const wilayahVal = document.getElementById('filter-wilayah')?.value || '';
-            const mktFilter = appState.filterMarketing || 'ALL';
+            const searchVal = String(document.getElementById('search-sekolah')?.value || '').toLowerCase();
+            const jenjangVal = String(document.getElementById('filter-jenjang')?.value || '');
+            const wilayahVal = String(document.getElementById('filter-wilayah')?.value || '');
+            const mktFilter = String(appState.filterMarketing || 'ALL');
 
             const filtered = appState.sekolah.filter(s => {
-                const matchesSearch = (s['Nama Sekolah'] || '').toLowerCase().includes(searchVal) || (s['Nama PIC'] || '').toLowerCase().includes(searchVal);
-                const matchesJenjang = !jenjangVal || s.Jenjang === jenjangVal;
-                const matchesWilayah = !wilayahVal || s.Wilayah === wilayahVal;
-                const matchesMkt = mktFilter === 'ALL' || s['Nama Marketing'] === mktFilter;
+                const schoolName = String(s['Nama Sekolah'] || '').toLowerCase();
+                const picName = String(s['Nama PIC'] || '').toLowerCase();
+                const matchesSearch = schoolName.includes(searchVal) || picName.includes(searchVal);
+                const matchesJenjang = !jenjangVal || String(s.Jenjang || '') === jenjangVal;
+                const matchesWilayah = !wilayahVal || String(s.Wilayah || '') === wilayahVal;
+                const matchesMkt = mktFilter === 'ALL' || String(s['Nama Marketing'] || '') === mktFilter;
                 return matchesSearch && matchesJenjang && matchesWilayah && matchesMkt;
             });
 
@@ -2131,21 +2197,25 @@
             filtered.forEach(s => {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-800/40 transition';
+                
+                const rawWa = s['Nomor WhatsApp'] != null ? String(s['Nomor WhatsApp']) : '';
+                const cleanWa = rawWa.replace(/[^0-9]/g, '');
+
                 tr.innerHTML = `
-                    <td class="p-3 font-mono text-[11px] text-slate-400">${s.ID}</td>
-                    <td class="p-3 font-bold text-white">${s['Nama Sekolah']}</td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">${s.Jenjang || '-'}</span></td>
-                    <td class="p-3 text-slate-400 max-w-xs truncate">${s.Alamat || '-'}</td>
-                    <td class="p-3 text-slate-300">${s.Wilayah || '-'}</td>
+                    <td class="p-3 font-mono text-[11px] text-slate-400">${String(s.ID || '')}</td>
+                    <td class="p-3 font-bold text-white">${String(s['Nama Sekolah'] || '')}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">${String(s.Jenjang || '-')}</span></td>
+                    <td class="p-3 text-slate-400 max-w-xs truncate">${String(s.Alamat || '-')}</td>
+                    <td class="p-3 text-slate-300">${String(s.Wilayah || '-')}</td>
                     <td class="p-3">
-                        <div class="font-semibold text-white">${s['Nama PIC'] || '-'}</div>
-                        <a href="https://wa.me/${(s['Nomor WhatsApp']||'').replace(/[^0-9]/g,'')}" target="_blank" class="text-[11px] text-emerald-400 hover:underline"><i class="fa-brands fa-whatsapp mr-1"></i>${s['Nomor WhatsApp'] || '-'}</a>
+                        <div class="font-semibold text-white">${String(s['Nama PIC'] || '-')}</div>
+                        ${cleanWa ? `<a href="https://wa.me/${cleanWa}" target="_blank" class="text-[11px] text-emerald-400 hover:underline"><i class="fa-brands fa-whatsapp mr-1"></i>${rawWa}</a>` : '<span class="text-slate-500 text-[11px]">-</span>'}
                     </td>
-                    <td class="p-3 font-medium text-indigo-300">${s['Nama Marketing'] || '-'}</td>
+                    <td class="p-3 font-medium text-indigo-300">${String(s['Nama Marketing'] || '-')}</td>
                     <td class="p-3 text-center no-print">
                         <div class="flex justify-center gap-1">
-                            <button onclick="window.editSekolah('${s.ID}')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-400 rounded"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button onclick="window.promptDeleteSekolah('${s.ID}')" class="p-1.5 bg-slate-800 hover:bg-rose-900/50 text-rose-400 rounded"><i class="fa-solid fa-trash-can"></i></button>
+                            <button onclick="window.editSekolah('${String(s.ID || '')}')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-400 rounded"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="window.promptDeleteSekolah('${String(s.ID || '')}')" class="p-1.5 bg-slate-800 hover:bg-rose-900/50 text-rose-400 rounded"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </td>
                 `;
@@ -2238,12 +2308,12 @@
             if (!tbody) return;
             tbody.innerHTML = '';
 
-            const dateFilter = document.getElementById('filter-act-date')?.value || '';
-            const mktFilter = appState.filterMarketing || 'ALL';
+            const dateFilter = String(document.getElementById('filter-act-date')?.value || '');
+            const mktFilter = String(appState.filterMarketing || 'ALL');
 
             const filtered = appState.activity.filter(a => {
-                const matchesDate = !dateFilter || a['Tanggal Kunjungan'] === dateFilter;
-                const matchesMkt = mktFilter === 'ALL' || a['Nama Marketing'] === mktFilter;
+                const matchesDate = !dateFilter || String(a['Tanggal Kunjungan'] || '') === dateFilter;
+                const matchesMkt = mktFilter === 'ALL' || String(a['Nama Marketing'] || '') === mktFilter;
                 return matchesDate && matchesMkt;
             });
 
@@ -2256,20 +2326,20 @@
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-800/40 transition';
                 tr.innerHTML = `
-                    <td class="p-3 font-semibold text-white whitespace-nowrap">${a['Tanggal Kunjungan']}</td>
-                    <td class="p-3 text-indigo-300 font-medium">${a['Nama Marketing']}</td>
-                    <td class="p-3 font-bold text-white">${a['Nama Sekolah']}</td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">${a['Media Marketing']}</span></td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300">${a.Aktivitas}</span></td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-${a.Status === 'Hot'?'rose':(a.Status==='Warm'?'amber':'blue')}-500/20 text-${a.Status === 'Hot'?'rose':(a.Status==='Warm'?'amber':'blue')}-300">${a.Status}</span></td>
-                    <td class="p-3 text-slate-300 max-w-xs leading-snug">${a['Hasil Kunjungan'] || '-'}</td>
-                    <td class="p-3 text-slate-400 text-[11px] max-w-xs truncate"><i class="fa-solid fa-location-dot text-rose-400 mr-1"></i>${a['Lokasi GPS'] || '-'}</td>
+                    <td class="p-3 font-semibold text-white whitespace-nowrap">${String(a['Tanggal Kunjungan'] || '-')}</td>
+                    <td class="p-3 text-indigo-300 font-medium">${String(a['Nama Marketing'] || '-')}</td>
+                    <td class="p-3 font-bold text-white">${String(a['Nama Sekolah'] || '-')}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">${String(a['Media Marketing'] || '-')}</span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300">${String(a.Aktivitas || '-')}</span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-${a.Status === 'Hot'?'rose':(a.Status==='Warm'?'amber':'blue')}-500/20 text-${a.Status === 'Hot'?'rose':(a.Status==='Warm'?'amber':'blue')}-300">${String(a.Status || '-')}</span></td>
+                    <td class="p-3 text-slate-300 max-w-xs leading-snug">${String(a['Hasil Kunjungan'] || '-')}</td>
+                    <td class="p-3 text-slate-400 text-[11px] max-w-xs truncate"><i class="fa-solid fa-location-dot text-rose-400 mr-1"></i>${String(a['Lokasi GPS'] || '-')}</td>
                     <td class="p-3">
                         ${a.Foto ? `<img src="${a.Foto}" class="w-10 h-10 object-cover rounded border border-slate-700">` : '<span class="text-slate-500 italic text-[10px]">No Photo</span>'}
                     </td>
                     <td class="p-3 font-bold text-emerald-400">${a['Nominal Deal'] ? window.formatRupiah(a['Nominal Deal']) : '-'}</td>
                     <td class="p-3 text-center no-print">
-                        <button onclick="window.deleteActivity('${a['ID Activity']}')" class="p-1.5 bg-slate-800 hover:bg-rose-900/50 text-rose-400 rounded"><i class="fa-solid fa-trash-can"></i></button>
+                        <button onclick="window.deleteActivity('${String(a['ID Activity'] || '')}')" class="p-1.5 bg-slate-800 hover:bg-rose-900/50 text-rose-400 rounded"><i class="fa-solid fa-trash-can"></i></button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -2393,8 +2463,8 @@
         };
 
         window.getMediaIcon = function(mediaStr) {
-            if (!mediaStr || mediaStr === '-') return '📍';
-            const lower = mediaStr.toLowerCase();
+            if (!mediaStr) return '📍';
+            const lower = String(mediaStr).toLowerCase();
             if (lower.includes('telepon') || lower.includes('phone')) return '📞';
             if (lower.includes('whatsapp') || lower.includes('wa')) return '💬';
             return '📍';
@@ -2403,11 +2473,12 @@
         window.getComputedPipeline = function() {
             let map = {};
             appState.sekolah.forEach(s => {
-                const key = (s['Nama Sekolah'] || '').trim().toUpperCase();
+                const key = String(s['Nama Sekolah'] || '').trim().toUpperCase();
+                if (!key) return;
                 map[key] = {
-                    id: s.ID,
-                    school: s['Nama Sekolah'],
-                    mkt: s['Nama Marketing'] || '-',
+                    id: String(s.ID || ''),
+                    school: String(s['Nama Sekolah'] || ''),
+                    mkt: String(s['Nama Marketing'] || '-'),
                     stage: 'Prospect',
                     status: 'Warm',
                     media: '-',
@@ -2423,14 +2494,14 @@
             });
 
             sortedActs.forEach(a => {
-                const key = (a['Nama Sekolah'] || '').trim().toUpperCase();
+                const key = String(a['Nama Sekolah'] || '').trim().toUpperCase();
                 if (map[key]) {
-                    map[key].stage = a['Tahapan Marketing'] || a.Aktivitas || 'Prospect';
-                    map[key].status = a.Status || 'Warm';
-                    map[key].media = a['Media Marketing'] || 'Canvassing';
-                    map[key].date = a['Tanggal Kunjungan'] || '-';
+                    map[key].stage = String(a['Tahapan Marketing'] || a.Aktivitas || 'Prospect');
+                    map[key].status = String(a.Status || 'Warm');
+                    map[key].media = String(a['Media Marketing'] || 'Canvassing');
+                    map[key].date = String(a['Tanggal Kunjungan'] || '-');
                     map[key].nominal = Number(a['Nominal Deal']) || 0;
-                    if (a['Nama Marketing']) map[key].mkt = a['Nama Marketing'];
+                    if (a['Nama Marketing']) map[key].mkt = String(a['Nama Marketing']);
                 }
             });
 
@@ -2463,9 +2534,9 @@
             ];
 
             const userRole = appState.currentUser?.role;
-            const userNama = appState.currentUser?.nama || '';
+            const userNama = String(appState.currentUser?.nama || '');
             const isMarketingRole = userRole === 'Marketing';
-            const headerFilterMkt = appState.filterMarketing || 'ALL';
+            const headerFilterMkt = String(appState.filterMarketing || 'ALL');
             const computedItems = window.getComputedPipeline();
 
             stages.forEach(stg => {
@@ -2474,8 +2545,9 @@
 
                 const items = computedItems.filter(p => {
                     if (p.stage !== stg.id) return false;
-                    if (isMarketingRole) return p.mkt && p.mkt.toLowerCase() === userNama.toLowerCase();
-                    else if (headerFilterMkt !== 'ALL') return p.mkt && p.mkt.toLowerCase() === headerFilterMkt.toLowerCase();
+                    const pMkt = String(p.mkt || '');
+                    if (isMarketingRole) return pMkt.toLowerCase() === userNama.toLowerCase();
+                    else if (headerFilterMkt !== 'ALL') return pMkt.toLowerCase() === headerFilterMkt.toLowerCase();
                     return true;
                 });
 
@@ -2741,22 +2813,25 @@
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-800/40 transition';
 
-                const mktAchieved = appState.activity.filter(a => a['Nama Marketing'] === m.Nama && (a.Aktivitas||'').toLowerCase()==='deal')
-                    .reduce((acc, curr) => acc + (Number(curr['Nominal Deal'])||0), 0);
+                const mktName = String(m.Nama || '');
+                const mktAchieved = appState.activity.filter(a => String(a['Nama Marketing'] || '') === mktName && String(a.Aktivitas || '').toLowerCase() === 'deal')
+                    .reduce((acc, curr) => acc + (Number(curr['Nominal Deal']) || 0), 0);
+
+                const rawWa = m['Nomor WhatsApp'] != null ? String(m['Nomor WhatsApp']) : '';
 
                 tr.innerHTML = `
-                    <td class="p-3 font-mono text-[11px] text-slate-400">${m['ID Marketing'] || '-'}</td>
-                    <td class="p-3 font-bold text-white">${m.Username || '-'}</td>
-                    <td class="p-3 font-semibold text-indigo-300">${m.Nama}</td>
-                    <td class="p-3 text-slate-300">${m['Nomor WhatsApp'] || '-'}</td>
-                    <td class="p-3 text-slate-400">${m.Area || '-'}</td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-${m.Role==='Owner'?'purple':(m.Role==='HR'?'amber':'indigo')}-500/20 text-${m.Role==='Owner'?'purple':(m.Role==='HR'?'amber':'indigo')}-300">${m.Role || 'Marketing'}</span></td>
+                    <td class="p-3 font-mono text-[11px] text-slate-400">${String(m['ID Marketing'] || '-')}</td>
+                    <td class="p-3 font-bold text-white">${String(m.Username || '-')}</td>
+                    <td class="p-3 font-semibold text-indigo-300">${mktName || '-'}</td>
+                    <td class="p-3 text-slate-300">${rawWa || '-'}</td>
+                    <td class="p-3 text-slate-400">${String(m.Area || '-')}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-${m.Role==='Owner'?'purple':(m.Role==='HR'?'amber':'indigo')}-500/20 text-${m.Role==='Owner'?'purple':(m.Role==='HR'?'amber':'indigo')}-300">${String(m.Role || 'Marketing')}</span></td>
                     <td class="p-3 font-medium text-slate-300">${window.formatRupiah(m['Target Deal Bulanan'] || 500000000)}</td>
                     <td class="p-3 font-bold text-emerald-400">${window.formatRupiah(mktAchieved)}</td>
                     <td class="p-3 text-center">
                         <div class="flex justify-center gap-1">
-                            <button onclick="window.editMarketing('${m['ID Marketing']}')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-400 rounded"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button onclick="window.promptDeleteMarketing('${m['ID Marketing']}')" class="p-1.5 bg-slate-800 hover:bg-rose-900/50 text-rose-400 rounded"><i class="fa-solid fa-trash-can"></i></button>
+                            <button onclick="window.editMarketing('${String(m['ID Marketing'] || '')}')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-400 rounded"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="window.promptDeleteMarketing('${String(m['ID Marketing'] || '')}')" class="p-1.5 bg-slate-800 hover:bg-rose-900/50 text-rose-400 rounded"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </td>
                 `;
