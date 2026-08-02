@@ -71,16 +71,6 @@
             border: 1px dashed var(--border-color);
         }
 
-        .kanban-card {
-            cursor: grab;
-            transition: all 0.2s ease;
-        }
-
-        .kanban-card:active {
-            cursor: grabbing;
-            transform: scale(0.98);
-        }
-
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -99,19 +89,9 @@
         }
 
         @media print {
-            .no-print {
-                display: none !important;
-            }
-            body {
-                background: white !important;
-                color: black !important;
-            }
-            .glass-panel {
-                background: white !important;
-                border: 1px solid #ccc !important;
-                color: black !important;
-                box-shadow: none !important;
-            }
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .glass-panel { background: white !important; border: 1px solid #ccc !important; color: black !important; box-shadow: none !important; }
         }
 
         body.light-mode .text-white { color: #0f172a !important; }
@@ -124,20 +104,14 @@
         body.light-mode .bg-slate-900,
         body.light-mode .bg-slate-900\/90,
         body.light-mode .bg-slate-900\/80,
-        body.light-mode .bg-slate-900\/60 {
-            background-color: #ffffff !important;
-        }
+        body.light-mode .bg-slate-900\/60 { background-color: #ffffff !important; }
 
         body.light-mode .bg-slate-800,
         body.light-mode .bg-slate-800\/80,
-        body.light-mode .bg-slate-800\/60 {
-            background-color: #f8fafc !important;
-        }
+        body.light-mode .bg-slate-800\/60 { background-color: #f8fafc !important; }
 
         body.light-mode .border-slate-700,
-        body.light-mode .border-slate-800 {
-            border-color: #cbd5e1 !important;
-        }
+        body.light-mode .border-slate-800 { border-color: #cbd5e1 !important; }
 
         body.light-mode input,
         body.light-mode select,
@@ -165,9 +139,12 @@
             <p class="text-xs text-slate-400 mb-4">Masukkan Web App URL dari Google Apps Script untuk menghubungkan Vercel dengan Google Sheets secara real-time.</p>
             <input type="text" id="input-gas-url" placeholder="https://script.google.com/macros/s/.../exec"
                 class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white mb-4 focus:outline-none focus:border-indigo-500">
-            <button onclick="window.saveGasUrlConfig()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg transition flex items-center justify-center gap-2" id="btn-save-gas">
-                Simpan & Hubungkan Database
-            </button>
+            <div class="flex gap-2">
+                <button onclick="document.getElementById('config-modal').classList.add('hidden')" class="w-1/3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-lg transition">Batal</button>
+                <button onclick="window.saveGasUrlConfig()" class="w-2/3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg transition flex items-center justify-center gap-2" id="btn-save-gas">
+                    Simpan & Hubungkan
+                </button>
+            </div>
         </div>
     </div>
 
@@ -187,7 +164,7 @@
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Username</label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-3 top-3 text-slate-400 text-sm"></i>
-                        <input type="text" id="login-username" placeholder="Masukkan username" required
+                        <input type="text" id="login-username" placeholder="owner / hr / mkt1" value="mkt1" required
                             class="w-full bg-slate-900/80 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
                     </div>
                 </div>
@@ -196,7 +173,7 @@
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
                     <div class="relative">
                         <i class="fa-solid fa-lock absolute left-3 top-3 text-slate-400 text-sm"></i>
-                        <input type="password" id="login-password" placeholder="Masukkan password" required
+                        <input type="password" id="login-password" placeholder="mkt123 / own123" value="mkt123" required
                             class="w-full bg-slate-900/80 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
                     </div>
                 </div>
@@ -206,7 +183,6 @@
                 </button>
             </form>
 
-            <!-- Bagian Bawah Login Dirapikan & Simetris Tanpa Kredensial Teks -->
             <div class="mt-6 pt-4 border-t border-slate-800 flex justify-center items-center text-[11px] text-slate-500">
                 <button onclick="window.openConfigModal()" class="text-indigo-400 hover:underline"><i class="fa-solid fa-gear mr-1"></i>Set Web App URL</button>
             </div>
@@ -324,12 +300,32 @@
         <!-- Main Content Area -->
         <main class="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
 
+            <!-- VIEW 0: 403 ACCESS DENIED BANNER -->
+            <section id="view-403" class="hidden space-y-4">
+                <div class="glass-panel p-8 text-center border border-rose-500/30 max-w-2xl mx-auto space-y-4 my-12 shadow-2xl">
+                    <div class="w-16 h-16 bg-rose-500/20 text-rose-400 rounded-full flex items-center justify-center mx-auto text-3xl">
+                        <i class="fa-solid fa-user-lock"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-white">403 - Akses Ditolak (Access Denied)</h2>
+                        <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                            Anda masuk sebagai <span class="font-bold text-indigo-300" id="access-denied-role">Marketing</span>. Halaman atau menu ini bersifat terbatas dan hanya dapat diakses oleh akun <span class="font-bold text-amber-400">Owner</span> atau <span class="font-bold text-amber-400">HR Manager</span>.
+                        </p>
+                    </div>
+                    <div class="pt-3">
+                        <button onclick="window.switchTab('sekolah')" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition shadow">
+                            <i class="fa-solid fa-arrow-left mr-1.5"></i> Kembali ke Menu Utama
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             <!-- VIEW 1: DASHBOARD KPI -->
             <section id="view-dashboard" class="space-y-6">
                 <div class="flex flex-wrap items-center justify-between gap-4 no-print">
                     <div>
-                        <h2 class="text-lg font-bold text-white">Dashboard KPI Performa (Single Source of Truth)</h2>
-                        <p class="text-xs text-slate-400">Semua target & metrik membaca konfigurasi global Pengaturan Dashboard KPI</p>
+                        <h2 class="text-lg font-bold text-white">Dashboard KPI Performa</h2>
+                        <p class="text-xs text-slate-400">Ringkasan pencapaian target & grafik performa marketing</p>
                     </div>
                     <button onclick="window.exportDashboardPdf()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow">
                         <i class="fa-solid fa-file-pdf text-rose-400"></i> Cetak PDF
@@ -395,10 +391,11 @@
                         <input type="text" id="search-sekolah" onkeyup="window.renderTableSekolah()" placeholder="Cari nama sekolah / PIC..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
                         <select id="filter-jenjang" onchange="window.renderTableSekolah()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
                             <option value="">Semua Jenjang</option>
+                            <option value="TK">TK</option>
+                            <option value="SD">SD / MI</option>
                             <option value="SMP">SMP / MTs</option>
                             <option value="SMA">SMA / MA</option>
                             <option value="SMK">SMK</option>
-                            <option value="SD">SD / MI</option>
                         </select>
                         <select id="filter-wilayah" onchange="window.renderTableSekolah()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
                             <option value="">Semua Wilayah</option>
@@ -531,8 +528,8 @@
                 </div>
             </section>
 
-            <!-- VIEW 5: NOTIFICATIONS -->
-            <section id="view-notifications" class="hidden space-y-4">
+            <!-- VIEW 5: NOTIFICATIONS & TARGET MINIMAL MARKETING -->
+            <section id="view-notifications" class="hidden space-y-6">
                 <div class="glass-panel p-5">
                     <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
                         <div>
@@ -542,6 +539,121 @@
                         <button onclick="window.exportNotificationsPdf()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow"><i class="fa-solid fa-file-pdf text-rose-400"></i> Cetak PDF</button>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="notifications-container"></div>
+                </div>
+
+                <!-- TARGET MINIMAL TIM MARKETING SECTION -->
+                <div class="glass-panel p-6 space-y-6">
+                    <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center text-lg shadow-lg shadow-orange-500/20 shrink-0">
+                            <i class="fa-solid fa-bullseye"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-extrabold text-white tracking-wide">🎯 TARGET MINIMAL TIM MARKETING</h3>
+                            <p class="text-xs text-slate-400">Standard acuan kerja harian & bulanan untuk tim marketing</p>
+                        </div>
+                    </div>
+
+                    <!-- 4 Target Cards Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                        <!-- 01. DATABASE (Biru) -->
+                        <div class="glass-panel p-5 border-t-4 border-blue-500 hover:border-blue-400 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group">
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[11px] font-extrabold tracking-wider text-blue-400 uppercase">01. DATABASE</span>
+                                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 group-hover:bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg transition-colors">
+                                        <i class="fa-solid fa-database"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-black text-white tracking-tight">100 Sekolah</div>
+                                    <div class="text-[11px] font-medium text-slate-400 mt-1">Target Minimal</div>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-relaxed border-t border-slate-800/80 pt-3">
+                                    Jumlah data sekolah baru yang berhasil ditambahkan ke Database.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- 02. CANVASSING (Hijau) -->
+                        <div class="glass-panel p-5 border-t-4 border-emerald-500 hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group">
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[11px] font-extrabold tracking-wider text-emerald-400 uppercase">02. CANVASSING</span>
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 group-hover:bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg transition-colors">
+                                        <i class="fa-solid fa-person-walking"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-bold text-emerald-400 space-y-1">
+                                        <div class="flex items-center gap-1.5"><i class="fa-solid fa-circle text-[5px]"></i> Minimal 3 Sekolah Baru / Hari</div>
+                                        <div class="flex items-center gap-1.5"><i class="fa-solid fa-circle text-[5px]"></i> Minimal 60 Sekolah Baru / Bulan</div>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-relaxed border-t border-slate-800/80 pt-3">
+                                    Jumlah sekolah baru yang berhasil dikunjungi.
+                                </p>
+                                <div class="bg-emerald-950/40 border border-emerald-500/20 rounded-lg p-2.5 space-y-1 text-[11px] text-emerald-200/90">
+                                    <div class="font-semibold text-emerald-400 mb-1 flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Ketentuan:</div>
+                                    <div class="flex items-start gap-1.5"><i class="fa-solid fa-check text-emerald-400 mt-0.5 shrink-0 text-[10px]"></i> <span>Sekolah yang dikunjungi harus merupakan sekolah baru.</span></div>
+                                    <div class="flex items-start gap-1.5"><i class="fa-solid fa-check text-emerald-400 mt-0.5 shrink-0 text-[10px]"></i> <span>Setiap sekolah hanya dihitung 1 kali sebagai aktivitas Canvassing.</span></div>
+                                    <div class="flex items-start gap-1.5"><i class="fa-solid fa-check text-emerald-400 mt-0.5 shrink-0 text-[10px]"></i> <span>Jika mengunjungi sekolah yang sama lebih dari satu kali, tetap dihitung 1 sekolah.</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 03. PRESENTASI (Ungu) -->
+                        <div class="glass-panel p-5 border-t-4 border-purple-500 hover:border-purple-400 hover:shadow-xl hover:shadow-purple-500/10 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group">
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[11px] font-extrabold tracking-wider text-purple-400 uppercase">03. PRESENTASI</span>
+                                    <div class="w-10 h-10 rounded-xl bg-purple-500/10 group-hover:bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg transition-colors">
+                                        <i class="fa-solid fa-chalkboard-user"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-black text-white tracking-tight">30 Sekolah</div>
+                                    <div class="text-[11px] font-medium text-slate-400 mt-1">Target Minimal</div>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-relaxed border-t border-slate-800/80 pt-3">
+                                    Jumlah sekolah yang telah dilakukan presentasi.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- 04. DEAL (Orange) -->
+                        <div class="glass-panel p-5 border-t-4 border-amber-500 hover:border-amber-400 hover:shadow-xl hover:shadow-amber-500/10 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group">
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[11px] font-extrabold tracking-wider text-amber-400 uppercase">04. DEAL</span>
+                                    <div class="w-10 h-10 rounded-xl bg-amber-500/10 group-hover:bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg transition-colors">
+                                        <i class="fa-solid fa-handshake"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-black text-white tracking-tight">20 Sekolah</div>
+                                    <div class="text-[11px] font-medium text-slate-400 mt-1">Target Minimal</div>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-relaxed border-t border-slate-800/80 pt-3">
+                                    Jumlah sekolah yang berhasil Closing / Deal.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel Motivasi -->
+                    <div class="p-5 rounded-xl bg-gradient-to-r from-amber-500/15 via-purple-500/15 to-indigo-500/15 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-lg">
+                        <div class="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center text-2xl shrink-0 border border-amber-500/30">
+                            <i class="fa-solid fa-star text-amber-400"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <h4 class="text-sm font-extrabold text-amber-300 tracking-wide flex items-center gap-1.5">
+                                ⭐ Fokus. Konsisten. Disiplin.
+                            </h4>
+                            <p class="text-xs text-slate-200 leading-relaxed">
+                                Target bukan untuk membebani, tetapi sebagai standar agar setiap Marketing berkembang, bekerja lebih terarah, dan mencapai hasil terbaik.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -577,6 +689,28 @@
                             <div>
                                 <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Perusahaan</label>
                                 <input type="text" id="setting-company-name" value="PT Annual Book Creative" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">🖼 Logo Perusahaan</label>
+                                <div class="flex items-center gap-4 bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                                    <div class="w-14 h-14 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0 relative shadow">
+                                        <img id="setting-logo-preview" src="" alt="Preview Logo" class="w-full h-full object-cover hidden">
+                                        <i id="setting-logo-placeholder-icon" class="fa-solid fa-image text-slate-500 text-xl"></i>
+                                    </div>
+                                    <div class="space-y-2 flex-1">
+                                        <div class="flex flex-wrap gap-2">
+                                            <input type="file" id="setting-logo-file" accept="image/*" onchange="window.handleLogoUpload(event)" class="hidden">
+                                            <button type="button" onclick="document.getElementById('setting-logo-file').click()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg transition flex items-center gap-1.5 shadow">
+                                                <i class="fa-solid fa-upload"></i> Upload Logo
+                                            </button>
+                                            <button type="button" id="btn-remove-logo" onclick="window.removeCompanyLogo()" class="px-3 py-1.5 bg-rose-600/80 hover:bg-rose-600 text-white font-bold text-xs rounded-lg transition hidden flex items-center gap-1.5 shadow">
+                                                <i class="fa-solid fa-trash"></i> Hapus
+                                            </button>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400">Format: PNG, JPG, WEBP, SVG (Maksimal 2MB)</p>
+                                        <input type="hidden" id="setting-logo-base64">
+                                    </div>
+                                </div>
                             </div>
                             <button id="btn-save-gen-settings" onclick="window.saveGeneralSettings()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg shadow transition flex items-center gap-2">
                                 <i class="fa-solid fa-floppy-disk"></i> <span>Simpan Pengaturan Profil</span>
@@ -1111,6 +1245,30 @@
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number || 0);
         };
 
+        window.showToast = function(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            let iconClass = 'fa-circle-info text-blue-400';
+            let borderClass = 'border-blue-500/30';
+            if (type === 'success') { iconClass = 'fa-circle-check text-emerald-400'; borderClass = 'border-emerald-500/30'; }
+            else if (type === 'error') { iconClass = 'fa-circle-xmark text-rose-400'; borderClass = 'border-rose-500/30'; }
+            else if (type === 'warning') { iconClass = 'fa-triangle-exclamation text-amber-400'; borderClass = 'border-amber-500/30'; }
+
+            toast.className = `glass-panel px-4 py-3 rounded-xl border ${borderClass} text-xs font-semibold text-white flex items-center gap-3 shadow-2xl transition-all duration-300 transform translate-x-10 opacity-0`;
+            toast.innerHTML = `<i class="fa-solid ${iconClass} text-base"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-x-10', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-x-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        };
+
         const ALL_MENUS = [
             { id: 'dashboard', name: 'Dashboard KPI' },
             { id: 'sekolah', name: 'Data Sekolah' },
@@ -1121,14 +1279,17 @@
             { id: 'settings', name: 'Pengaturan Admin' }
         ];
 
+        const MENU_PERMISSIONS = {
+            'Marketing': ['sekolah', 'daily', 'pipeline', 'notifications'],
+            'HR': ['dashboard', 'sekolah', 'daily', 'pipeline', 'notifications', 'gps', 'settings'],
+            'Owner': ['dashboard', 'sekolah', 'daily', 'pipeline', 'notifications', 'gps', 'settings']
+        };
+
         window.parsePermissions = function(menuString, role) {
             if (menuString && typeof menuString === 'string' && menuString.trim() !== '') {
                 return menuString.split(',').map(s => s.trim()).filter(Boolean);
             }
-            if (role === 'Owner' || role === 'HR' || role === 'Admin') {
-                return ALL_MENUS.map(m => m.id);
-            }
-            return ['dashboard', 'sekolah', 'daily', 'pipeline', 'notifications', 'gps'];
+            return MENU_PERMISSIONS[role] || MENU_PERMISSIONS['Marketing'];
         };
 
         let appState = {
@@ -1154,7 +1315,7 @@
                 ratioPresDeal: 66.7,
                 targetRevenue: 500000000,
                 formulaRevenue: '(Revenue Aktual / Target Revenue) * 100',
-                marketingPermissions: ['dashboard', 'sekolah', 'daily', 'pipeline', 'notifications', 'gps'],
+                marketingPermissions: ['sekolah', 'daily', 'pipeline', 'notifications'],
                 kpiCards: [
                     { id: 'db', title: 'Total Database', icon: 'fa-database', color: 'blue', active: true, order: 1, subtext: '{pct}% dari target ({target})' },
                     { id: 'canvass', title: 'Total Canvassing', icon: 'fa-shoe-prints', color: 'indigo', active: true, order: 2, subtext: '{pct}% dari target ({target})' },
@@ -1179,11 +1340,11 @@
             const days = Number(appState.settings.workingDays) || 5;
             const weeks = Number(appState.settings.weeksMonth) || 4;
             
-            const canvassMonthly = harian * days * weeks; // 60
+            const canvassMonthly = harian * days * weeks;
             const rCanvassPres = Number(appState.settings.ratioCanvassPres) || 50;
-            const presentasiMonthly = Math.round(canvassMonthly * (rCanvassPres / 100)); // 30
+            const presentasiMonthly = Math.round(canvassMonthly * (rCanvassPres / 100));
             const rPresDeal = Number(appState.settings.ratioPresDeal) || 66.7;
-            const dealPeriod = Math.round(presentasiMonthly * (rPresDeal / 100)); // 20
+            const dealPeriod = Math.round(presentasiMonthly * (rPresDeal / 100));
 
             const rawRev = appState.settings.targetRevenue;
             let targetRevNum = 500000000;
@@ -1351,6 +1512,8 @@
                     document.getElementById('user-display-name').innerText = appState.currentUser.nama;
                     document.getElementById('user-role-badge').innerText = appState.currentUser.role;
                     window.applyNavigationPermissions(appState.currentUser.permissions);
+                    const defaultTab = (appState.currentUser.role === 'Marketing') ? 'sekolah' : 'dashboard';
+                    window.switchTab(defaultTab);
                 } catch(e) { sessionStorage.removeItem('bts_active_session_user'); }
             }
 
@@ -1455,6 +1618,9 @@
                 window.saveStateToLocal();
                 window.showToast('Selamat datang, ' + appState.currentUser.nama + ' (' + appState.currentUser.role + ')!', 'success');
                 window.refreshAllViews();
+                
+                const defaultTab = (assignedRole === 'Marketing') ? 'sekolah' : 'dashboard';
+                window.switchTab(defaultTab);
             } catch(err) {
                 window.showToast('Terjadi kesalahan saat login: ' + err.message, 'error');
             } finally {
@@ -1476,8 +1642,16 @@
         };
 
         window.saveGasUrlConfig = async function() {
-            const url = document.getElementById('input-gas-url').value.trim();
+            let url = document.getElementById('input-gas-url').value.trim();
             if (!url) { window.showToast('URL Google Apps Script tidak boleh kosong!', 'warning'); return; }
+
+            // Otomatis ubah /dev menjadi /exec jika pengguna salah menyalin URL dev
+            if (url.endsWith('/dev')) {
+                url = url.replace(/\/dev$/, '/exec');
+                document.getElementById('input-gas-url').value = url;
+                window.showToast('ℹ️ URL "/dev" otomatis diubah ke "/exec"', 'info');
+            }
+
             window.setButtonLoading('btn-save-gas', true, 'Menghubungkan...');
             try {
                 appState.gasUrl = url;
@@ -1502,22 +1676,57 @@
             if (!appState.gasUrl) return;
             const spinner = document.getElementById('sync-spinner');
             if (spinner) spinner.classList.add('fa-spin');
+
+            let cleanUrl = appState.gasUrl.trim();
+            if (cleanUrl.endsWith('/dev')) {
+                cleanUrl = cleanUrl.replace(/\/dev$/, '/exec');
+                appState.gasUrl = cleanUrl;
+                localStorage.setItem('bts_gas_url', cleanUrl);
+            }
+
+            const separator = cleanUrl.includes('?') ? '&' : '?';
+            const targetUrl = `${cleanUrl}${separator}action=getInitialData&_t=${Date.now()}`;
+
             try {
-                const response = await fetch(`${appState.gasUrl}?action=getInitialData`);
-                if (!response.ok) throw new Error('Network error');
-                const result = await response.json();
+                const response = await fetch(targetUrl, {
+                    method: 'GET',
+                    redirect: 'follow',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const text = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch (parseErr) {
+                    if (text.includes('google-login') || text.includes('Accounts') || text.includes('<!DOCTYPE html>')) {
+                        throw new Error('Akses Google Ditolak. Ubah "Who has access" ke "Anyone" di Google Apps Script!');
+                    }
+                    throw new Error('Respon bukan JSON valid');
+                }
+
                 if (result && result.success && result.data) {
                     appState.sekolah = result.data.sekolah || appState.sekolah;
                     appState.activity = result.data.activity || appState.activity;
                     appState.pipeline = result.data.pipeline || appState.pipeline;
                     appState.marketing = result.data.marketing || appState.marketing;
                     if (result.data.settings) appState.settings = { ...appState.settings, ...result.data.settings };
-                    window.saveStateToLocal(); window.refreshAllViews();
+                    window.saveStateToLocal(); 
+                    window.refreshAllViews();
                     if (showToastMsg) window.showToast('Data berhasil disinkronkan dari Google Sheets!', 'success');
+                } else {
+                    throw new Error(result.message || 'Gagal memuat data');
                 }
             } catch (err) {
-                if (showToastMsg) window.showToast('Gagal terhubung ke Google Sheets API.', 'error');
-            } finally { if (spinner) spinner.classList.remove('fa-spin'); }
+                console.error('GAS Sync Error:', err);
+                if (showToastMsg) window.showToast(`Gagal terhubung: ${err.message}`, 'error');
+            } finally { 
+                if (spinner) spinner.classList.remove('fa-spin'); 
+            }
         };
 
         window.apiCall = async function(action, payload) {
@@ -1527,28 +1736,54 @@
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action, payload: { ...payload, userRole: appState.currentUser?.role, sessionToken: appState.currentUser?.sessionToken } })
+                    body: JSON.stringify({ action, payload: { ...payload, userRole: appState.currentUser?.role, userNama: appState.currentUser?.nama, sessionToken: appState.currentUser?.sessionToken } })
                 });
                 return { success: true };
             } catch (err) { return { success: false, message: err.message }; }
         };
 
         window.applyNavigationPermissions = function(userPermissions) {
+            const userRole = appState.currentUser?.role || 'Marketing';
+            const perms = userPermissions || window.parsePermissions(null, userRole);
+
             ALL_MENUS.forEach(m => {
                 const tabBtn = document.getElementById('tab-' + m.id);
                 if (tabBtn) {
-                    if (userPermissions.includes(m.id)) tabBtn.classList.remove('hidden');
-                    else tabBtn.classList.add('hidden');
+                    if (perms.includes(m.id)) {
+                        tabBtn.classList.remove('hidden');
+                    } else {
+                        tabBtn.classList.add('hidden');
+                    }
                 }
             });
         };
 
         window.switchTab = function(tabId) {
+            const userRole = appState.currentUser?.role || 'Marketing';
+            const userPerms = appState.currentUser?.permissions || window.parsePermissions(null, userRole);
+            const isAllowed = userPerms.includes(tabId);
+
+            if (!isAllowed) {
+                document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-lg');
+                    btn.classList.add('text-slate-400');
+                });
+                const view403 = document.getElementById('view-403');
+                if (view403) {
+                    view403.classList.remove('hidden');
+                    const roleLabel = document.getElementById('access-denied-role');
+                    if (roleLabel) roleLabel.innerText = (appState.currentUser?.nama || '') + ' (' + (userRole || 'Marketing') + ')';
+                }
+                return;
+            }
+
             document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-lg');
                 btn.classList.add('text-slate-400');
             });
+
             const targetSec = document.getElementById('view-' + tabId);
             if (targetSec) targetSec.classList.remove('hidden');
             const activeBtn = document.getElementById('tab-' + tabId);
@@ -1556,47 +1791,110 @@
                 activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-lg');
                 activeBtn.classList.remove('text-slate-400');
             }
-            if (tabId === 'gps') setTimeout(window.renderGpsMap, 200);
+            if (tabId === 'gps') {
+                setTimeout(() => {
+                    window.renderGpsMap();
+                    if (mapInstance) mapInstance.invalidateSize();
+                }, 200);
+            }
             if (tabId === 'settings') window.renderKpiConfigSection();
         };
 
         window.applyRoleRestrictions = function() {
-            const userRole = appState.currentUser?.role;
-            const isOwnerOrHR = (userRole === 'Owner' || userRole === 'HR');
-            const isMarketingRole = userRole === 'Marketing';
+            const userRole = appState.currentUser?.role || 'Marketing';
+            const userNama = appState.currentUser?.nama || '';
+            const isMarketingRole = (userRole === 'Marketing');
 
             const mktFilterSelect = document.getElementById('filter-marketing-dashboard');
             if (mktFilterSelect) {
                 if (isMarketingRole) {
                     mktFilterSelect.classList.add('hidden');
-                    appState.filterMarketing = appState.currentUser?.nama || '';
+                    appState.filterMarketing = userNama;
                 } else {
                     mktFilterSelect.classList.remove('hidden');
                 }
             }
 
-            const btnAddSekolah = document.getElementById('btn-add-sekolah');
-            if (btnAddSekolah) {
-                if (isOwnerOrHR) btnAddSekolah.classList.add('hidden');
-                else btnAddSekolah.classList.remove('hidden');
+            if (appState.currentUser) {
+                window.applyNavigationPermissions(appState.currentUser.permissions || window.parsePermissions(null, userRole));
+            }
+        };
+
+        window.populateDropdowns = function() {
+            const mktSelect = document.getElementById('filter-marketing-dashboard');
+            if (mktSelect) {
+                mktSelect.innerHTML = '<option value="ALL">Semua Marketing</option>';
+                const mktList = appState.marketing.filter(m => m.Role && m.Role.toLowerCase() === 'marketing');
+                mktList.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.Nama;
+                    opt.innerText = m.Nama;
+                    mktSelect.appendChild(opt);
+                });
+                mktSelect.value = appState.filterMarketing;
             }
 
-            const btnAddActivity = document.getElementById('btn-add-activity');
-            if (btnAddActivity) {
-                if (isOwnerOrHR) btnAddActivity.classList.add('hidden');
-                else btnAddActivity.classList.remove('hidden');
+            const gpsMktSelect = document.getElementById('gps-filter-mkt');
+            if (gpsMktSelect) {
+                gpsMktSelect.innerHTML = '<option value="ALL">Semua Marketing</option>';
+                const mktList = appState.marketing.filter(m => m.Role && m.Role.toLowerCase() === 'marketing');
+                mktList.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.Nama;
+                    opt.innerText = m.Nama;
+                    gpsMktSelect.appendChild(opt);
+                });
             }
 
-            const thAksi = document.getElementById('th-sekolah-aksi');
-            if (thAksi) {
-                if (isOwnerOrHR) thAksi.classList.add('hidden');
-                else thAksi.classList.remove('hidden');
+            const wilayahSelect = document.getElementById('filter-wilayah');
+            if (wilayahSelect) {
+                const existingVal = wilayahSelect.value;
+                wilayahSelect.innerHTML = '<option value="">Semua Wilayah</option>';
+                const regions = [...new Set(appState.sekolah.map(s => s.Wilayah).filter(Boolean))];
+                regions.forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r;
+                    opt.innerText = r;
+                    wilayahSelect.appendChild(opt);
+                });
+                wilayahSelect.value = existingVal;
+            }
+
+            const actSekolahSelect = document.getElementById('act-sekolah');
+            if (actSekolahSelect) {
+                actSekolahSelect.innerHTML = '<option value="">-- Pilih Sekolah --</option>';
+                const isMkt = appState.currentUser?.role === 'Marketing';
+                const list = isMkt ? appState.sekolah.filter(s => s['Nama Marketing'] === appState.currentUser?.nama) : appState.sekolah;
+                list.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s['Nama Sekolah'];
+                    opt.innerText = `${s['Nama Sekolah']} (${s.Wilayah || '-'})`;
+                    actSekolahSelect.appendChild(opt);
+                });
+            }
+        };
+
+        window.updateHeaderCompanyLogo = function() {
+            const logoImg = document.getElementById('app-company-logo');
+            const logoIcon = document.getElementById('app-company-icon');
+            if (logoImg && logoIcon) {
+                if (appState.settings.logoUrl) {
+                    logoImg.src = appState.settings.logoUrl;
+                    logoImg.classList.remove('hidden');
+                    logoIcon.classList.add('hidden');
+                } else {
+                    logoImg.src = '';
+                    logoImg.classList.add('hidden');
+                    logoIcon.classList.remove('hidden');
+                }
             }
         };
 
         window.refreshAllViews = function() {
             if (appState.settings.companyName) document.getElementById('app-company-name').innerText = appState.settings.companyName;
+            window.updateHeaderCompanyLogo();
             window.applyRoleRestrictions();
+            window.populateDropdowns();
             window.renderDashboardKPIs();
             window.renderCharts();
             window.renderWidgets();
@@ -1606,7 +1904,6 @@
             window.renderNotifications();
             window.renderMarketingTable();
             window.renderKpiConfigSection();
-            window.populateDropdowns();
         };
 
         window.renderDashboardKPIs = function() {
@@ -1620,520 +1917,468 @@
                 const d = new Date(a['Tanggal Kunjungan']);
                 const matchesYear = d.getFullYear().toString() === yr;
                 const matchesMonth = mo === '0' || (d.getMonth() + 1).toString() === mo;
-                const matchesMkt = mktFilter === 'ALL' || (a['Nama Marketing'] && a['Nama Marketing'].toLowerCase() === mktFilter.toLowerCase());
+                const matchesMkt = mktFilter === 'ALL' || a['Nama Marketing'] === mktFilter;
                 return matchesYear && matchesMonth && matchesMkt;
             });
 
-            const filteredPipeline = appState.pipeline.filter(p => {
-                const school = appState.sekolah.find(s => s['Nama Sekolah'] === p['Nama Sekolah']);
-                const mktName = p['Nama Marketing'] || (school ? school['Nama Marketing'] : '');
-                const matchesMkt = mktFilter === 'ALL' || (mktName && mktName.toLowerCase() === mktFilter.toLowerCase());
-                return matchesMkt;
-            });
+            const filteredSekolah = appState.sekolah.filter(s => mktFilter === 'ALL' || s['Nama Marketing'] === mktFilter);
 
-            const matchedSekolahList = appState.sekolah.filter(s => mktFilter === 'ALL' || (s['Nama Marketing'] && s['Nama Marketing'].toLowerCase() === mktFilter.toLowerCase()));
-            const totalDb = matchedSekolahList.length;
+            const countDb = filteredSekolah.length;
+            const countCanvass = filteredActivities.filter(a => (a['Media Marketing'] || '').toLowerCase() === 'canvassing').length;
+            const countPresentasi = filteredActivities.filter(a => (a.Aktivitas || '').toLowerCase() === 'presentasi').length;
+            const countDeal = filteredActivities.filter(a => (a.Aktivitas || '').toLowerCase() === 'deal').length;
 
-            const totalCanvassing = filteredActivities.filter(a => !a['Media Marketing'] || a['Media Marketing'] === 'Canvassing').length;
-            const totalPresentasi = filteredActivities.filter(a => a.Aktivitas === 'Presentasi' || a['Tahapan Marketing'] === 'Presentasi').length;
-            const totalDeal = filteredPipeline.filter(p => p.Aktivitas === 'Deal').length;
-            
-            let totalRevenueDeal = filteredPipeline
-                .filter(p => p.Aktivitas === 'Deal')
-                .reduce((sum, p) => sum + (Number(p['Nominal Deal']) || 0), 0);
+            const revenueActual = filteredActivities.filter(a => (a.Aktivitas || '').toLowerCase() === 'deal')
+                .reduce((acc, curr) => acc + (Number(curr['Nominal Deal']) || 0), 0);
 
-            const conversionRate = totalPresentasi > 0 ? ((totalDeal / totalPresentasi) * 100).toFixed(1) : '0';
-            const progressRevenuePct = Math.min(100, Math.round((totalRevenueDeal / (globalTargets.targetRevenue || 1)) * 100));
-
-            const cardsConfig = appState.settings.kpiCards || [];
-            const activeCards = cardsConfig.filter(c => c.active).sort((a, b) => (a.order || 0) - (b.order || 0));
+            const countNoDealActual = filteredActivities.filter(a => (a.Aktivitas || '').toLowerCase() === 'belum deal').length;
+            const conversionRate = countPresentasi > 0 ? ((countDeal / countPresentasi) * 100).toFixed(1) : 0;
+            const progressRevenuePct = globalTargets.targetRevenue > 0 ? ((revenueActual / globalTargets.targetRevenue) * 100).toFixed(1) : 0;
 
             const container = document.getElementById('kpi-cards-container');
             if (!container) return;
+            container.innerHTML = '';
 
-            container.innerHTML = activeCards.map(card => {
-                const theme = COLOR_THEMES[card.color] || COLOR_THEMES.blue;
-                let val = '0';
-                let subtextVal = '';
+            const cardDataMap = {
+                db: { val: countDb, target: globalTargets.targetDb, unit: 'Sekolah', color: 'blue', icon: 'fa-school', pct: Math.min(100, Math.round((countDb / globalTargets.targetDb)*100)) },
+                canvass: { val: countCanvass, target: globalTargets.targetCanvass, unit: 'Sesi', color: 'indigo', icon: 'fa-shoe-prints', pct: Math.min(100, Math.round((countCanvass / globalTargets.targetCanvass)*100)) },
+                presentasi: { val: countPresentasi, target: globalTargets.targetPresentasi, unit: 'Sekolah', color: 'purple', icon: 'fa-chalkboard-user', pct: Math.min(100, Math.round((countPresentasi / globalTargets.targetPresentasi)*100)) },
+                deal: { val: countDeal, target: globalTargets.targetDeal, unit: 'Sekolah', color: 'emerald', icon: 'fa-handshake', pct: Math.min(100, Math.round((countDeal / globalTargets.targetDeal)*100)) },
+                nodeal: { val: countNoDealActual, target: globalTargets.belumDealBenchmark, unit: 'Sekolah', color: 'rose', icon: 'fa-circle-xmark', pct: 0 },
+                conversion: { val: conversionRate + '%', target: '66.7%', unit: 'Rate', color: 'amber', icon: 'fa-percent', pct: conversionRate },
+                target_revenue: { val: window.formatRupiah(globalTargets.targetRevenue), target: '-', unit: 'Rp', color: 'teal', icon: 'fa-sack-dollar', pct: 100 },
+                progress_target: { val: window.formatRupiah(revenueActual), target: window.formatRupiah(globalTargets.targetRevenue), unit: 'Rp', color: 'emerald', icon: 'fa-chart-line', pct: progressRevenuePct }
+            };
 
-                if (card.id === 'db') {
-                    val = totalDb;
-                    const pct = Math.round((totalDb / (globalTargets.targetDb || 1)) * 100);
-                    subtextVal = `${pct}% dari target (${globalTargets.targetDb})`;
-                } else if (card.id === 'canvass') {
-                    val = totalCanvassing;
-                    const pct = Math.round((totalCanvassing / (globalTargets.targetCanvass || 1)) * 100);
-                    subtextVal = `${pct}% dari target (${globalTargets.targetCanvass})`;
-                } else if (card.id === 'presentasi') {
-                    val = totalPresentasi;
-                    const pct = Math.round((totalPresentasi / (globalTargets.targetPresentasi || 1)) * 100);
-                    subtextVal = `${pct}% dari target (${globalTargets.targetPresentasi})`;
-                } else if (card.id === 'deal') {
-                    val = totalDeal;
-                    const pct = Math.round((totalDeal / (globalTargets.targetDeal || 1)) * 100);
-                    subtextVal = `${pct}% dari target (${globalTargets.targetDeal})`;
-                } else if (card.id === 'nodeal') {
-                    val = Math.max(0, globalTargets.targetPresentasi - totalDeal);
-                    subtextVal = `Target Presentasi (${globalTargets.targetPresentasi}) - Deal Aktual`;
-                } else if (card.id === 'conversion') {
-                    val = conversionRate + '%';
-                    subtextVal = 'Deal ÷ Presentasi × 100%';
-                } else if (card.id === 'target_revenue') {
-                    val = window.formatRupiah(globalTargets.targetRevenue);
-                    subtextVal = `Target Deal (${globalTargets.targetDeal}) × Nilai Deal`;
-                } else if (card.id === 'progress_target') {
-                    val = progressRevenuePct + '%';
-                    subtextVal = `${progressRevenuePct}% (${window.formatRupiah(totalRevenueDeal)})`;
-                }
+            const cards = appState.settings.kpiCards || [];
+            cards.forEach(c => {
+                if (!c.active) return;
+                const d = cardDataMap[c.id];
+                if (!d) return;
 
-                return `
-                    <div class="glass-panel p-4 relative overflow-hidden ${theme.border}">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">${card.title}</p>
-                                <h3 class="text-xl sm:text-2xl font-extrabold text-white mt-1">${val}</h3>
-                            </div>
-                            <div class="p-2.5 rounded-lg ${theme.bg}">
-                                <i class="fa-solid ${card.icon} text-lg"></i>
-                            </div>
+                const cardEl = document.createElement('div');
+                cardEl.className = `glass-panel p-4 border-t-4 border-${c.color}-500 flex flex-col justify-between`;
+                cardEl.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">${c.title}</span>
+                        <div class="w-8 h-8 rounded-lg bg-${c.color}-500/20 text-${c.color}-400 flex items-center justify-center text-sm">
+                            <i class="fa-solid ${c.icon}"></i>
                         </div>
-                        <div class="mt-3 text-xs text-slate-400">
-                            <span class="${theme.badge} font-semibold">${subtextVal}</span>
+                    </div>
+                    <div>
+                        <div class="text-xl font-black text-white tracking-tight">${d.val}</div>
+                        <div class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                            <span>Target: ${d.target}</span>
+                            ${d.pct > 0 ? `<span class="text-${c.color}-400 font-bold ml-auto">(${d.pct}%)</span>` : ''}
                         </div>
                     </div>
                 `;
-            }).join('');
-        };
-
-        const COLOR_THEMES = {
-            blue: { border: 'border-l-4 border-blue-500', bg: 'bg-blue-500/10 text-blue-400', badge: 'text-blue-400' },
-            indigo: { border: 'border-l-4 border-indigo-500', bg: 'bg-indigo-500/10 text-indigo-400', badge: 'text-indigo-400' },
-            purple: { border: 'border-l-4 border-purple-500', bg: 'bg-purple-500/10 text-purple-400', badge: 'text-purple-400' },
-            emerald: { border: 'border-l-4 border-emerald-500', bg: 'bg-emerald-500/10 text-emerald-400', badge: 'text-emerald-400' },
-            rose: { border: 'border-l-4 border-rose-500', bg: 'bg-rose-500/10 text-rose-400', badge: 'text-rose-400' },
-            amber: { border: 'border-l-4 border-amber-500', bg: 'bg-amber-500/10 text-amber-400', badge: 'text-amber-400' },
-            cyan: { border: 'border-l-4 border-cyan-500', bg: 'bg-cyan-500/10 text-cyan-400', badge: 'text-cyan-400' },
-            teal: { border: 'border-l-4 border-teal-500', bg: 'bg-teal-500/10 text-teal-400', badge: 'text-teal-400' }
+                container.appendChild(cardEl);
+            });
         };
 
         window.renderCharts = function() {
-            const isLight = document.body.classList.contains('light-mode');
-            const textColor = isLight ? '#1e293b' : '#94a3b8';
-            const gridColor = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.05)';
-
-            const ctx1 = document.getElementById('chartClosing')?.getContext('2d');
-            if (!ctx1) return;
-            const monthlyRevenue = [0,0,0,0,0,0,0,0,0,0,0,0];
+            const yr = appState.filterYear;
             const mktFilter = appState.filterMarketing || 'ALL';
+            const isLight = document.body.classList.contains('light-mode');
+            const textColor = isLight ? '#0f172a' : '#94a3b8';
+            const gridColor = isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)';
 
-            appState.pipeline.forEach(p => {
-                const school = appState.sekolah.find(s => s['Nama Sekolah'] === p['Nama Sekolah']);
-                const mktName = p['Nama Marketing'] || (school ? school['Nama Marketing'] : '');
-                if (p.Aktivitas === 'Deal' && p['Tanggal Follow Up']) {
-                    const d = new Date(p['Tanggal Follow Up']);
-                    const matchesMkt = mktFilter === 'ALL' || (mktName && mktName.toLowerCase() === mktFilter.toLowerCase());
-                    if (d.getFullYear().toString() === appState.filterYear && matchesMkt) {
-                        monthlyRevenue[d.getMonth()] += (Number(p['Nominal Deal']) || 0);
+            const monthlyRevenue = Array(12).fill(0);
+            appState.activity.forEach(a => {
+                if ((a.Aktivitas || '').toLowerCase() === 'deal' && a['Tanggal Kunjungan']) {
+                    const d = new Date(a['Tanggal Kunjungan']);
+                    if (d.getFullYear().toString() === yr && (mktFilter === 'ALL' || a['Nama Marketing'] === mktFilter)) {
+                        monthlyRevenue[d.getMonth()] += Number(a['Nominal Deal']) || 0;
                     }
                 }
             });
 
-            if (chartClosingInstance) chartClosingInstance.destroy();
-            chartClosingInstance = new Chart(ctx1, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'],
-                    datasets: [{
-                        label: 'Revenue Deal (Rp)',
-                        data: monthlyRevenue,
-                        borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.15)',
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 3
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { ticks: { color: textColor }, grid: { color: gridColor } }, x: { ticks: { color: textColor }, grid: { display: false } } }
-                }
-            });
+            const ctxClosing = document.getElementById('chartClosing')?.getContext('2d');
+            if (ctxClosing) {
+                if (chartClosingInstance) chartClosingInstance.destroy();
+                chartClosingInstance = new Chart(ctxClosing, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],
+                        datasets: [{
+                            label: 'Revenue Deal (Rp)',
+                            data: monthlyRevenue,
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: textColor }, grid: { color: gridColor } },
+                            y: { ticks: { color: textColor, callback: v => 'Rp ' + (v/1000000) + 'M' }, grid: { color: gridColor } }
+                        }
+                    }
+                });
+            }
 
-            const ctx2 = document.getElementById('chartActivity')?.getContext('2d');
-            if (!ctx2) return;
             const stages = ['Prospect', 'Follow Up', 'Presentasi', 'Negosiasi', 'Deal', 'Belum Deal'];
             const stageCounts = stages.map(stg => {
-                const computed = window.getComputedPipeline();
-                return computed.filter(p => {
-                    const matchesMkt = mktFilter === 'ALL' || (p.mkt && p.mkt.toLowerCase() === mktFilter.toLowerCase());
-                    return p.stage === stg && matchesMkt;
+                return appState.activity.filter(a => {
+                    if (!a['Tanggal Kunjungan']) return false;
+                    const d = new Date(a['Tanggal Kunjungan']);
+                    const matchesYr = d.getFullYear().toString() === yr;
+                    const matchesMo = appState.filterMonth === '0' || (d.getMonth() + 1).toString() === appState.filterMonth;
+                    const matchesMkt = mktFilter === 'ALL' || a['Nama Marketing'] === mktFilter;
+                    return matchesYr && matchesMo && matchesMkt && (a.Aktivitas || '').toLowerCase() === stg.toLowerCase();
                 }).length;
             });
 
-            if (chartActivityInstance) chartActivityInstance.destroy();
-            chartActivityInstance = new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: stages,
-                    datasets: [{ label: 'Jumlah Prospek', data: stageCounts, backgroundColor: ['#3b82f6', '#f59e0b', '#a855f7', '#06b6d4', '#10b981', '#f43f5e'], borderRadius: 6 }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { ticks: { color: textColor }, grid: { color: gridColor } }, x: { ticks: { color: textColor }, grid: { display: false } } }
-                }
-            });
+            const ctxAct = document.getElementById('chartActivity')?.getContext('2d');
+            if (ctxAct) {
+                if (chartActivityInstance) chartActivityInstance.destroy();
+                chartActivityInstance = new Chart(ctxAct, {
+                    type: 'bar',
+                    data: {
+                        labels: stages,
+                        datasets: [{
+                            label: 'Jumlah Kunjungan',
+                            data: stageCounts,
+                            backgroundColor: ['#3b82f6', '#f59e0b', '#a855f7', '#06b6d4', '#10b981', '#f43f5e'],
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: textColor }, grid: { color: gridColor } },
+                            y: { ticks: { color: textColor, stepSize: 1 }, grid: { color: gridColor } }
+                        }
+                    }
+                });
+            }
         };
 
         window.renderWidgets = function() {
-            const remEl = document.getElementById('widget-reminder-list');
-            const mktFilter = appState.filterMarketing || 'ALL';
-            const computedPipe = window.getComputedPipeline();
-            const followUps = computedPipe.filter(p => (p.stage === 'Follow Up' || p.stage === 'Negosiasi') && (mktFilter === 'ALL' || (p.mkt && p.mkt.toLowerCase() === mktFilter.toLowerCase())));
-            
-            if (followUps.length === 0) {
-                remEl.innerHTML = '<p class="text-xs text-slate-500 italic">Tidak ada agenda follow up.</p>';
-            } else {
-                remEl.innerHTML = followUps.map(p => `
-                    <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800 flex justify-between items-center">
-                        <div>
-                            <h4 class="text-xs font-bold text-white">${p.school}</h4>
-                            <p class="text-[10px] text-slate-400">Marketing: ${p.mkt}</p>
-                        </div>
-                        <span class="text-[10px] px-2 py-0.5 bg-amber-500/20 text-amber-300 font-bold rounded">${p.date || 'Hari Ini'}</span>
-                    </div>
-                `).join('');
+            const remContainer = document.getElementById('widget-reminder-list');
+            if (remContainer) {
+                remContainer.innerHTML = '';
+                const reminders = appState.pipeline.filter(p => p['Tanggal Follow Up']).slice(0, 5);
+                if (reminders.length === 0) remContainer.innerHTML = '<p class="text-xs text-slate-500 italic py-2">Tidak ada reminder follow up.</p>';
+                reminders.forEach(r => {
+                    const item = document.createElement('div');
+                    item.className = 'p-2 bg-slate-900/60 rounded-lg border border-slate-800 text-xs flex justify-between items-center';
+                    item.innerHTML = `<div><div class="font-bold text-white">${r['Nama Sekolah']}</div><div class="text-[10px] text-slate-400">${r['Nama Marketing']} • ${r.Aktivitas}</div></div><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300">${r['Tanggal Follow Up']}</span>`;
+                    remContainer.appendChild(item);
+                });
             }
 
-            const todayStr = new Date().toISOString().split('T')[0];
-            const schedEl = document.getElementById('widget-today-schedule');
-            const todayActs = appState.activity.filter(a => a['Tanggal Kunjungan'] === todayStr && (mktFilter === 'ALL' || (a['Nama Marketing'] && a['Nama Marketing'].toLowerCase() === mktFilter.toLowerCase())));
-
-            if (todayActs.length === 0) {
-                schedEl.innerHTML = '<p class="text-xs text-slate-500 italic">Belum ada kunjungan tercatat hari ini.</p>';
-            } else {
-                schedEl.innerHTML = todayActs.map(a => `
-                    <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800 flex justify-between items-center">
-                        <div>
-                            <h4 class="text-xs font-bold text-white">${a['Nama Sekolah']}</h4>
-                            <p class="text-[10px] text-indigo-400">${a['Tahapan Marketing'] || a.Aktivitas} (${a.Status})</p>
-                        </div>
-                        <span class="text-[10px] text-slate-400 font-medium">${a['Nama Marketing']}</span>
-                    </div>
-                `).join('');
+            const schedContainer = document.getElementById('widget-today-schedule');
+            if (schedContainer) {
+                schedContainer.innerHTML = '';
+                const todayStr = new Date().toISOString().split('T')[0];
+                const todays = appState.activity.filter(a => a['Tanggal Kunjungan'] === todayStr).slice(0, 5);
+                if (todays.length === 0) schedContainer.innerHTML = '<p class="text-xs text-slate-500 italic py-2">Belum ada agenda kunjungan hari ini.</p>';
+                todays.forEach(t => {
+                    const item = document.createElement('div');
+                    item.className = 'p-2 bg-slate-900/60 rounded-lg border border-slate-800 text-xs flex justify-between items-center';
+                    item.innerHTML = `<div><div class="font-bold text-white">${t['Nama Sekolah']}</div><div class="text-[10px] text-slate-400">${t['Nama Marketing']} • ${t['Media Marketing']}</div></div><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300">${t.Aktivitas}</span>`;
+                    schedContainer.appendChild(item);
+                });
             }
 
-            const pipeEl = document.getElementById('widget-new-pipeline');
-            const recentPipes = [...computedPipe]
-                .filter(p => mktFilter === 'ALL' || (p.mkt && p.mkt.toLowerCase() === mktFilter.toLowerCase()))
-                .reverse().slice(0, 4);
-
-            pipeEl.innerHTML = recentPipes.map(p => `
-                <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800 flex justify-between items-center">
-                    <div>
-                        <h4 class="text-xs font-bold text-white">${p.school}</h4>
-                        <span class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-bold">${p.stage}</span>
-                    </div>
-                    <span class="text-xs font-extrabold text-emerald-400">${p.nominal > 0 ? window.formatRupiah(p.nominal) : '-'}</span>
-                </div>
-            `).join('');
+            const pipeContainer = document.getElementById('widget-new-pipeline');
+            if (pipeContainer) {
+                pipeContainer.innerHTML = '';
+                const latest = [...appState.pipeline].reverse().slice(0, 5);
+                if (latest.length === 0) pipeContainer.innerHTML = '<p class="text-xs text-slate-500 italic py-2">Belum ada pipeline.</p>';
+                latest.forEach(lp => {
+                    const item = document.createElement('div');
+                    item.className = 'p-2 bg-slate-900/60 rounded-lg border border-slate-800 text-xs flex justify-between items-center';
+                    item.innerHTML = `<div><div class="font-bold text-white">${lp['Nama Sekolah']}</div><div class="text-[10px] text-slate-400">${lp['Nama Marketing']}</div></div><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300">${lp.Aktivitas}</span>`;
+                    pipeContainer.appendChild(item);
+                });
+            }
         };
 
         window.renderTableSekolah = function() {
             const tbody = document.getElementById('tbody-sekolah');
-            const search = document.getElementById('search-sekolah').value.toLowerCase();
-            const jenjang = document.getElementById('filter-jenjang').value;
-            const wilayah = document.getElementById('filter-wilayah').value;
-            const userRole = appState.currentUser?.role;
-            const userNama = appState.currentUser?.nama || '';
-            const isMarketingRole = userRole === 'Marketing';
-            const isOwnerOrHR = (userRole === 'Owner' || userRole === 'HR');
-            const headerFilterMkt = appState.filterMarketing || 'ALL';
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const searchVal = (document.getElementById('search-sekolah')?.value || '').toLowerCase();
+            const jenjangVal = document.getElementById('filter-jenjang')?.value || '';
+            const wilayahVal = document.getElementById('filter-wilayah')?.value || '';
+            const mktFilter = appState.filterMarketing || 'ALL';
 
             const filtered = appState.sekolah.filter(s => {
-                if (isMarketingRole) {
-                    if (!s['Nama Marketing'] || s['Nama Marketing'].toLowerCase() !== userNama.toLowerCase()) return false;
-                } else if (headerFilterMkt !== 'ALL') {
-                    if (!s['Nama Marketing'] || s['Nama Marketing'].toLowerCase() !== headerFilterMkt.toLowerCase()) return false;
-                }
-                const matchSearch = s['Nama Sekolah'].toLowerCase().includes(search) || (s['Nama PIC'] && s['Nama PIC'].toLowerCase().includes(search));
-                return matchSearch && (!jenjang || s.Jenjang === jenjang) && (!wilayah || s.Wilayah === wilayah);
+                const matchesSearch = (s['Nama Sekolah'] || '').toLowerCase().includes(searchVal) || (s['Nama PIC'] || '').toLowerCase().includes(searchVal);
+                const matchesJenjang = !jenjangVal || s.Jenjang === jenjangVal;
+                const matchesWilayah = !wilayahVal || s.Wilayah === wilayahVal;
+                const matchesMkt = mktFilter === 'ALL' || s['Nama Marketing'] === mktFilter;
+                return matchesSearch && matchesJenjang && matchesWilayah && matchesMkt;
             });
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${isOwnerOrHR ? '7' : '8'}" class="p-4 text-center text-slate-500 text-xs">Data sekolah tidak ditemukan.</td></tr>`;
+                tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-500 italic text-xs">Data sekolah tidak ditemukan.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = filtered.map(s => `
-                <tr class="hover:bg-slate-800/50 transition">
+            filtered.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
                     <td class="p-3 font-mono text-[11px] text-slate-400">${s.ID}</td>
                     <td class="p-3 font-bold text-white">${s['Nama Sekolah']}</td>
-                    <td class="p-3"><span class="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px] font-bold">${s.Jenjang}</span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">${s.Jenjang || '-'}</span></td>
                     <td class="p-3 text-slate-400 max-w-xs truncate">${s.Alamat || '-'}</td>
-                    <td class="p-3 text-slate-300">${s.Wilayah}</td>
+                    <td class="p-3 text-slate-300">${s.Wilayah || '-'}</td>
                     <td class="p-3">
-                        <div class="font-semibold text-white">${s['Nama PIC']}</div>
-                        <a href="https://wa.me/${s['Nomor WhatsApp']}" target="_blank" class="text-[11px] text-emerald-400 hover:underline"><i class="fa-brands fa-whatsapp mr-1"></i>${s['Nomor WhatsApp']}</a>
+                        <div class="font-semibold text-white">${s['Nama PIC'] || '-'}</div>
+                        <a href="https://wa.me/${(s['Nomor WhatsApp']||'').replace(/[^0-9]/g,'')}" target="_blank" class="text-[11px] text-emerald-400 hover:underline"><i class="fa-brands fa-whatsapp mr-1"></i>${s['Nomor WhatsApp'] || '-'}</a>
                     </td>
-                    <td class="p-3 text-indigo-300 font-medium">${s['Nama Marketing']}</td>
-                    ${isOwnerOrHR ? '' : `
-                    <td class="p-3 text-center no-print space-x-1">
-                        <button onclick="window.editSekolah('${s.ID}')" class="p-1.5 bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white rounded transition" title="Edit Sekolah"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="window.confirmDeleteSekolah('${s.ID}')" class="p-1.5 bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white rounded transition" title="Hapus Sekolah"><i class="fa-solid fa-trash"></i></button>
+                    <td class="p-3 font-medium text-indigo-300">${s['Nama Marketing'] || '-'}</td>
+                    <td class="p-3 text-center no-print">
+                        <div class="flex justify-center gap-1">
+                            <button onclick="window.editSekolah('${s.ID}')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-400 rounded"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="window.promptDeleteSekolah('${s.ID}')" class="p-1.5 bg-slate-800 hover:bg-rose-900/50 text-rose-400 rounded"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
                     </td>
-                    `}
-                </tr>
-            `).join('');
+                `;
+                tbody.appendChild(tr);
+            });
         };
 
+        let activeSekolahDeleteId = null;
         window.openModalSekolah = function() {
             document.getElementById('form-sekolah').reset();
             document.getElementById('sekolah-id').value = '';
-            let rawNama = appState.currentUser?.nama || 'Budi Santoso';
-            document.getElementById('sekolah-mkt').value = window.toTitleCaseString(rawNama);
             document.getElementById('modal-sekolah-title').innerText = 'Tambah Data Sekolah';
+            document.getElementById('sekolah-mkt').value = appState.currentUser?.nama || 'Budi Santoso';
             document.getElementById('modal-sekolah').classList.remove('hidden');
         };
 
         window.closeModalSekolah = function() { document.getElementById('modal-sekolah').classList.add('hidden'); };
 
-        window.handleSaveSekolah = async function(e) {
-            e.preventDefault();
-            const id = document.getElementById('sekolah-id').value;
-            const upperNamaSekolah = document.getElementById('sekolah-nama').value.trim().toUpperCase();
-            const formattedWilayah = window.toTitleCaseString(document.getElementById('sekolah-wilayah').value.trim());
-            const currentMkt = window.toTitleCaseString(document.getElementById('sekolah-mkt').value || appState.currentUser?.nama);
-
-            const existingSchool = appState.sekolah.find(s => 
-                s['Nama Sekolah'].trim().toUpperCase() === upperNamaSekolah &&
-                s.Wilayah.trim().toUpperCase() === formattedWilayah.toUpperCase() &&
-                s.ID !== id
-            );
-
-            if (existingSchool && existingSchool['Nama Marketing'].toLowerCase() !== currentMkt.toLowerCase()) {
-                window.showToast('Sekolah ini sedang dalam penanganan Marketing lain dan tidak dapat ditambahkan.', 'error');
-                return;
-            }
-
-            window.setButtonLoading('btn-save-sekolah', true, 'Menyimpan...');
-
-            try {
-                const obj = {
-                    ID: id || 'SCH-' + Math.floor(1000 + Math.random() * 9000),
-                    'Nama Sekolah': upperNamaSekolah,
-                    Jenjang: document.getElementById('sekolah-jenjang').value,
-                    Wilayah: formattedWilayah,
-                    Alamat: window.toTitleCaseString(document.getElementById('sekolah-alamat').value.trim()),
-                    'Nama PIC': window.toTitleCaseString(document.getElementById('sekolah-pic').value.trim()),
-                    'Nomor WhatsApp': document.getElementById('sekolah-wa').value.replace(/[^0-9]/g, ''),
-                    'Nama Marketing': currentMkt
-                };
-
-                if (id) {
-                    const idx = appState.sekolah.findIndex(s => s.ID === id);
-                    if (idx > -1) appState.sekolah[idx] = obj;
-                } else {
-                    appState.sekolah.push(obj);
-                }
-
-                window.saveStateToLocal();
-                window.closeModalSekolah();
-                window.refreshAllViews();
-                window.showToast('Data Sekolah berhasil disimpan!', 'success');
-
-                await window.apiCall('saveSekolah', obj);
-                window.fetchSyncFromGAS(false);
-            } catch(err) {
-                window.showToast('Gagal menyimpan data sekolah: ' + err.message, 'error');
-            } finally { window.setButtonLoading('btn-save-sekolah', false); }
-        };
-
         window.editSekolah = function(id) {
-            const s = appState.sekolah.find(item => item.ID === id);
-            if (!s) return;
-            document.getElementById('sekolah-id').value = s.ID;
-            document.getElementById('sekolah-nama').value = s['Nama Sekolah'] || '';
-            document.getElementById('sekolah-jenjang').value = s.Jenjang || 'SMA';
-            document.getElementById('sekolah-wilayah').value = s.Wilayah || '';
-            document.getElementById('sekolah-alamat').value = s.Alamat || '';
-            document.getElementById('sekolah-pic').value = s['Nama PIC'] || '';
-            document.getElementById('sekolah-wa').value = s['Nomor WhatsApp'] || '';
-            document.getElementById('sekolah-mkt').value = s['Nama Marketing'] || appState.currentUser?.nama;
+            const item = appState.sekolah.find(s => s.ID === id);
+            if (!item) return;
+            document.getElementById('sekolah-id').value = item.ID;
+            document.getElementById('sekolah-nama').value = item['Nama Sekolah'] || '';
+            document.getElementById('sekolah-jenjang').value = item.Jenjang || 'SMA';
+            document.getElementById('sekolah-wilayah').value = item.Wilayah || '';
+            document.getElementById('sekolah-alamat').value = item.Alamat || '';
+            document.getElementById('sekolah-pic').value = item['Nama PIC'] || '';
+            document.getElementById('sekolah-wa').value = item['Nomor WhatsApp'] || '';
+            document.getElementById('sekolah-mkt').value = item['Nama Marketing'] || appState.currentUser?.nama;
             document.getElementById('modal-sekolah-title').innerText = 'Edit Data Sekolah';
             document.getElementById('modal-sekolah').classList.remove('hidden');
         };
 
-        let targetDeleteSekolahId = null;
-        window.confirmDeleteSekolah = function(id) {
-            targetDeleteSekolahId = id;
+        window.handleSaveSekolah = async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('sekolah-id').value || 'SCH-' + Date.now().toString().slice(-4);
+            const newItem = {
+                ID: id,
+                'Nama Sekolah': document.getElementById('sekolah-nama').value.trim(),
+                Jenjang: document.getElementById('sekolah-jenjang').value,
+                Wilayah: document.getElementById('sekolah-wilayah').value.trim(),
+                Alamat: document.getElementById('sekolah-alamat').value.trim(),
+                'Nama PIC': document.getElementById('sekolah-pic').value.trim(),
+                'Nomor WhatsApp': document.getElementById('sekolah-wa').value.trim(),
+                'Nama Marketing': document.getElementById('sekolah-mkt').value
+            };
+
+            // Validasi Duplikasi Data Sekolah
+            const existingSchool = appState.sekolah.find(s => 
+                s['Nama Sekolah'].trim().toLowerCase() === newItem['Nama Sekolah'].toLowerCase() && 
+                s.ID !== id
+            );
+
+            if (existingSchool && existingSchool['Nama Marketing'] && existingSchool['Nama Marketing'].trim().toLowerCase() !== newItem['Nama Marketing'].trim().toLowerCase()) {
+                window.showToast('⚠️ Sekolah Dalam Penanganan Marketing Lain.', 'warning');
+                return;
+            }
+
+            const idx = appState.sekolah.findIndex(s => s.ID === id);
+            if (idx >= 0) appState.sekolah[idx] = newItem;
+            else appState.sekolah.push(newItem);
+
+            window.saveStateToLocal();
+            window.closeModalSekolah();
+            window.refreshAllViews();
+            window.showToast('Data sekolah berhasil disimpan!', 'success');
+            window.apiCall('saveSekolah', newItem);
+        };
+
+        window.promptDeleteSekolah = function(id) {
+            activeSekolahDeleteId = id;
             document.getElementById('modal-confirm-delete-sekolah').classList.remove('hidden');
         };
 
-        window.closeConfirmDeleteSekolahModal = function() {
-            targetDeleteSekolahId = null;
-            document.getElementById('modal-confirm-delete-sekolah').classList.add('hidden');
-        };
+        window.closeConfirmDeleteSekolahModal = function() { document.getElementById('modal-confirm-delete-sekolah').classList.add('hidden'); };
 
-        window.executeDeleteSekolah = async function() {
-            if (!targetDeleteSekolahId) return;
-            const id = targetDeleteSekolahId;
-            window.setButtonLoading('btn-exec-delete-sekolah', true, 'Menghapus...');
-            try {
-                window.closeConfirmDeleteSekolahModal();
-                appState.sekolah = appState.sekolah.filter(s => s.ID !== id);
-                window.saveStateToLocal();
-                window.refreshAllViews();
-                window.showToast('Data sekolah berhasil dihapus.', 'success');
-                await window.apiCall('deleteSekolah', { id });
-                window.fetchSyncFromGAS(false);
-            } catch(err) { window.showToast('Gagal menghapus data sekolah.', 'error'); } 
-            finally { window.setButtonLoading('btn-exec-delete-sekolah', false); }
+        window.executeDeleteSekolah = function() {
+            if (!activeSekolahDeleteId) return;
+            appState.sekolah = appState.sekolah.filter(s => s.ID !== activeSekolahDeleteId);
+            window.saveStateToLocal();
+            window.closeConfirmDeleteSekolahModal();
+            window.refreshAllViews();
+            window.showToast('Sekolah berhasil dihapus!', 'info');
+            window.apiCall('deleteSekolah', { ID: activeSekolahDeleteId });
+            activeSekolahDeleteId = null;
         };
 
         window.renderDailyActivityTable = function() {
             const tbody = document.getElementById('tbody-daily');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
             const dateFilter = document.getElementById('filter-act-date')?.value || '';
-            const userRole = appState.currentUser?.role;
-            const userNama = appState.currentUser?.nama || '';
-            const isMarketingRole = userRole === 'Marketing';
-            const isOwnerOrHR = (userRole === 'Owner' || userRole === 'HR');
-            const headerFilterMkt = appState.filterMarketing || 'ALL';
+            const mktFilter = appState.filterMarketing || 'ALL';
 
             const filtered = appState.activity.filter(a => {
-                if (isMarketingRole) {
-                    if (!a['Nama Marketing'] || a['Nama Marketing'].toLowerCase() !== userNama.toLowerCase()) return false;
-                } else if (headerFilterMkt !== 'ALL' && a['Nama Marketing'] && a['Nama Marketing'].toLowerCase() !== headerFilterMkt.toLowerCase()) return false;
-                return !dateFilter || a['Tanggal Kunjungan'] === dateFilter;
+                const matchesDate = !dateFilter || a['Tanggal Kunjungan'] === dateFilter;
+                const matchesMkt = mktFilter === 'ALL' || a['Nama Marketing'] === mktFilter;
+                return matchesDate && matchesMkt;
             });
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${isOwnerOrHR ? '10' : '11'}" class="p-4 text-center text-slate-500 text-xs">Belum ada aktivitas tercatat.</td></tr>`;
+                tbody.innerHTML = '<tr><td colspan="11" class="p-4 text-center text-slate-500 italic text-xs">Belum ada log aktivitas harian.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = filtered.map(a => `
-                <tr class="hover:bg-slate-800/50 transition">
-                    <td class="p-3 text-slate-300 font-mono text-[11px]">${a['Tanggal Kunjungan']}</td>
-                    <td class="p-3 text-indigo-300 font-semibold">${a['Nama Marketing']}</td>
+            filtered.forEach(a => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold text-white whitespace-nowrap">${a['Tanggal Kunjungan']}</td>
+                    <td class="p-3 text-indigo-300 font-medium">${a['Nama Marketing']}</td>
                     <td class="p-3 font-bold text-white">${a['Nama Sekolah']}</td>
-                    <td class="p-3"><span class="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px] font-bold">${a['Media Marketing'] || 'Canvassing'}</span></td>
-                    <td class="p-3"><span class="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded font-bold text-[10px]">${a['Tahapan Marketing'] || a.Aktivitas || 'Prospect'}</span></td>
-                    <td class="p-3"><span class="px-2 py-0.5 ${a.Status === 'Hot' ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300'} rounded font-bold text-[10px]">${a.Status}</span></td>
-                    <td class="p-3 font-medium text-slate-200 max-w-xs truncate">${a['Hasil Kunjungan'] || '-'}</td>
-                    <td class="p-3 text-slate-400 text-[11px]"><i class="fa-solid fa-location-dot text-rose-400 mr-1"></i>${a['Lokasi GPS'] || '-'}</td>
-                    <td class="p-3">${a.Foto ? `<img src="${a.Foto}" class="w-8 h-8 object-cover rounded border border-slate-700">` : `<span class="text-slate-600 text-[10px]">-</span>`}</td>
-                    <td class="p-3 font-extrabold text-emerald-400">${a['Nominal Deal'] > 0 ? window.formatRupiah(a['Nominal Deal']) : '-'}</td>
-                    ${isOwnerOrHR ? '' : `
-                    <td class="p-3 text-center no-print">
-                        <button onclick="window.deleteActivity('${a['ID Activity']}')" class="p-1.5 bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white rounded transition" title="Hapus Log"><i class="fa-solid fa-trash"></i></button>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">${a['Media Marketing']}</span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300">${a.Aktivitas}</span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-${a.Status === 'Hot'?'rose':(a.Status==='Warm'?'amber':'blue')}-500/20 text-${a.Status === 'Hot'?'rose':(a.Status==='Warm'?'amber':'blue')}-300">${a.Status}</span></td>
+                    <td class="p-3 text-slate-300 max-w-xs leading-snug">${a['Hasil Kunjungan'] || '-'}</td>
+                    <td class="p-3 text-slate-400 text-[11px] max-w-xs truncate"><i class="fa-solid fa-location-dot text-rose-400 mr-1"></i>${a['Lokasi GPS'] || '-'}</td>
+                    <td class="p-3">
+                        ${a.Foto ? `<img src="${a.Foto}" class="w-10 h-10 object-cover rounded border border-slate-700">` : '<span class="text-slate-500 italic text-[10px]">No Photo</span>'}
                     </td>
-                    `}
-                </tr>
-            `).join('');
+                    <td class="p-3 font-bold text-emerald-400">${a['Nominal Deal'] ? window.formatRupiah(a['Nominal Deal']) : '-'}</td>
+                    <td class="p-3 text-center no-print">
+                        <button onclick="window.deleteActivity('${a['ID Activity']}')" class="p-1.5 bg-slate-800 hover:bg-rose-900/50 text-rose-400 rounded"><i class="fa-solid fa-trash-can"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
         };
 
         window.openModalActivity = function() {
             document.getElementById('form-activity').reset();
+            document.getElementById('act-mkt').value = appState.currentUser?.nama || 'Budi Santoso';
             document.getElementById('act-date').value = new Date().toISOString().split('T')[0];
-            let rawNama = appState.currentUser?.nama || 'Budi Santoso';
-            document.getElementById('act-mkt').value = window.toTitleCaseString(rawNama);
+            document.getElementById('photo-preview-container').classList.add('hidden');
+            document.getElementById('photo-status-text').innerText = 'Belum ada foto diambil';
+            document.getElementById('act-foto-base64').value = '';
             window.toggleNominalDealInput('Prospect');
             document.getElementById('modal-activity').classList.remove('hidden');
         };
 
         window.closeModalActivity = function() { document.getElementById('modal-activity').classList.add('hidden'); };
 
-        window.toggleNominalDealInput = function(val) {
+        window.toggleNominalDealInput = function(stage) {
             const wrapper = document.getElementById('wrapper-nominal-deal');
-            if (val === 'Deal') wrapper.classList.remove('hidden');
-            else wrapper.classList.add('hidden');
+            if (wrapper) {
+                if (stage === 'Deal') wrapper.classList.remove('hidden');
+                else wrapper.classList.add('hidden');
+            }
         };
 
-        window.handlePhotoCapture = function(event) {
-            const file = event.target.files[0];
+        window.getCurrentGpsLocation = function() {
+            if (!navigator.geolocation) { window.showToast('Geolocation tidak didukung pada browser ini.', 'error'); return; }
+            const addrInput = document.getElementById('act-gps-address');
+            addrInput.value = 'Mendeteksi posisi GPS...';
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    document.getElementById('act-coords').value = `${lat}, ${lng}`;
+                    addrInput.value = `Koordinat GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                },
+                err => {
+                    addrInput.value = 'Jl. M.H. Thamrin No. 1, Jakarta Pusat';
+                    window.showToast('Gagal mendapat GPS presisi, menggunakan fallback lokasi.', 'warning');
+                }
+            );
+        };
+
+        window.handlePhotoCapture = function(e) {
+            const file = e.target.files[0];
             if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                window.showToast('Harap pilih file berupa gambar!', 'warning');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                window.showToast('Ukuran gambar maksimal 5MB!', 'warning');
+                return;
+            }
             const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64Photo = e.target.result;
-                document.getElementById('act-foto-base64').value = base64Photo;
-                document.getElementById('photo-preview-img').src = base64Photo;
-                document.getElementById('photo-preview-container').classList.remove('hidden');
-                document.getElementById('photo-status-text').innerText = 'Foto berhasil diambil!';
+            reader.onload = function(evt) {
+                const base64 = evt.target.result;
+                const previewImg = document.getElementById('photo-preview-img');
+                const previewContainer = document.getElementById('photo-preview-container');
+                const statusText = document.getElementById('photo-status-text');
+                const fotoInput = document.getElementById('act-foto-base64');
+
+                if (previewImg) previewImg.src = base64;
+                if (previewContainer) previewContainer.classList.remove('hidden');
+                if (statusText) statusText.innerText = 'Foto berhasil diambil';
+                if (fotoInput) fotoInput.value = base64;
             };
             reader.readAsDataURL(file);
         };
 
-        window.getCurrentGpsLocation = function() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(pos => {
-                    const lat = pos.coords.latitude, lng = pos.coords.longitude;
-                    document.getElementById('act-coords').value = `${lat}, ${lng}`;
-                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data && data.display_name) document.getElementById('act-gps-address').value = data.display_name;
-                            else document.getElementById('act-gps-address').value = `Lokasi Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
-                            window.showToast('Lokasi GPS & Alamat berhasil terdeteksi!', 'success');
-                        }).catch(() => {
-                            document.getElementById('act-gps-address').value = `Lokasi Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
-                            window.showToast('Koordinat GPS berhasil terdeteksi!', 'success');
-                        });
-                }, () => window.showToast('Gagal terhubung ke GPS.', 'warning'));
-            } else window.showToast('Browser Anda tidak mendukung fitur GPS.', 'error');
-        };
-
         window.handleSaveActivity = async function(e) {
             e.preventDefault();
-            const dateVal = document.getElementById('act-date').value;
-            const sekolahVal = document.getElementById('act-sekolah').value;
-            const mediaVal = document.getElementById('act-media').value;
-            const jenisVal = document.getElementById('act-jenis').value;
-            const statusVal = document.getElementById('act-status').value;
-            const progressVal = document.getElementById('act-progress').value.trim();
-            const addressVal = document.getElementById('act-gps-address').value.trim();
-            const fotoVal = document.getElementById('act-foto-base64').value;
-            const mktName = window.toTitleCaseString(document.getElementById('act-mkt').value || appState.currentUser?.nama);
+            const date = document.getElementById('act-date').value;
+            const mkt = document.getElementById('act-mkt').value;
+            const sekolah = document.getElementById('act-sekolah').value;
+            const media = document.getElementById('act-media').value;
+            const jenis = document.getElementById('act-jenis').value;
+            const status = document.getElementById('act-status').value;
+            const progress = document.getElementById('act-progress').value.trim();
+            const gpsAddress = document.getElementById('act-gps-address').value.trim();
+            const coords = document.getElementById('act-coords').value;
+            const foto = document.getElementById('act-foto-base64').value;
+            const nominalRaw = document.getElementById('act-nominal').value;
+            const nominal = jenis === 'Deal' ? (Number(nominalRaw.replace(/[^0-9]/g, '')) || 0) : 0;
 
-            if (!dateVal || !sekolahVal || !mediaVal || !jenisVal || !statusVal || !progressVal || !addressVal || !fotoVal) {
-                window.showToast('Mohon lengkapi seluruh field wajib (*)!', 'error');
-                return;
-            }
+            const newItem = {
+                'ID Activity': 'ACT-' + Date.now().toString().slice(-4),
+                'Tanggal Kunjungan': date,
+                'Nama Marketing': mkt,
+                'Nama Sekolah': sekolah,
+                'Media Marketing': media,
+                Aktivitas: jenis,
+                'Tahapan Marketing': jenis,
+                Status: status,
+                'Hasil Kunjungan': progress,
+                'Lokasi GPS': gpsAddress,
+                Coords: coords,
+                Foto: foto,
+                'Nominal Deal': nominal
+            };
 
-            window.setButtonLoading('btn-save-activity', true, 'Menyimpan...');
-
-            try {
-                const rawNominal = document.getElementById('act-nominal').value;
-                const numericNominal = Number(rawNominal.replace(/[^0-9]/g, '')) || 0;
-
-                const actObj = {
-                    'ID Activity': 'ACT-' + Math.floor(10000 + Math.random() * 90000),
-                    'Tanggal Kunjungan': dateVal,
-                    'Nama Marketing': mktName,
-                    'Nama Sekolah': sekolahVal,
-                    'Media Marketing': mediaVal,
-                    Aktivitas: jenisVal,
-                    'Tahapan Marketing': jenisVal,
-                    Status: statusVal,
-                    'Hasil Kunjungan': progressVal,
-                    'Lokasi GPS': addressVal,
-                    Coords: document.getElementById('act-coords').value,
-                    Foto: fotoVal,
-                    'Nominal Deal': numericNominal
-                };
-
-                appState.activity.push(actObj);
-
-                window.saveStateToLocal();
-                window.closeModalActivity();
-                window.refreshAllViews();
-                window.showToast('Activity berhasil disimpan!', 'success');
-
-                await window.apiCall('saveDailyActivity', actObj);
-                window.fetchSyncFromGAS(false);
-            } catch(err) { window.showToast('Gagal menyimpan aktivitas: ' + err.message, 'error'); } 
-            finally { window.setButtonLoading('btn-save-activity', false); }
+            appState.activity.unshift(newItem);
+            window.saveStateToLocal();
+            window.closeModalActivity();
+            window.refreshAllViews();
+            window.showToast('Aktivitas harian berhasil disimpan!', 'success');
+            window.apiCall('saveActivity', newItem);
         };
 
         window.deleteActivity = async function(actId) {
@@ -2147,55 +2392,67 @@
             } catch(err) { window.showToast('Gagal menghapus aktivitas.', 'error'); }
         };
 
+        window.getMediaIcon = function(mediaStr) {
+            if (!mediaStr || mediaStr === '-') return '📍';
+            const lower = mediaStr.toLowerCase();
+            if (lower.includes('telepon') || lower.includes('phone')) return '📞';
+            if (lower.includes('whatsapp') || lower.includes('wa')) return '💬';
+            return '📍';
+        };
+
         window.getComputedPipeline = function() {
             let map = {};
             appState.sekolah.forEach(s => {
                 const key = (s['Nama Sekolah'] || '').trim().toUpperCase();
                 map[key] = {
+                    id: s.ID,
                     school: s['Nama Sekolah'],
-                    mkt: s['Nama Marketing'],
+                    mkt: s['Nama Marketing'] || '-',
                     stage: 'Prospect',
                     status: 'Warm',
-                    chance: 20,
-                    date: '',
+                    media: '-',
+                    date: 'Baru Ditambahkan',
                     nominal: 0
                 };
             });
 
-            const sortedActs = [...appState.activity].sort((a, b) => new Date(a['Tanggal Kunjungan']) - new Date(b['Tanggal Kunjungan']));
+            const sortedActs = [...appState.activity].sort((a, b) => {
+                const dA = new Date(a['Tanggal Kunjungan'] || 0);
+                const dB = new Date(b['Tanggal Kunjungan'] || 0);
+                return dA - dB;
+            });
+
             sortedActs.forEach(a => {
                 const key = (a['Nama Sekolah'] || '').trim().toUpperCase();
-                if (!map[key]) {
-                    map[key] = {
-                        school: a['Nama Sekolah'],
-                        mkt: a['Nama Marketing'],
-                        stage: 'Prospect',
-                        status: 'Warm',
-                        chance: 20,
-                        date: '',
-                        nominal: 0
-                    };
+                if (map[key]) {
+                    map[key].stage = a['Tahapan Marketing'] || a.Aktivitas || 'Prospect';
+                    map[key].status = a.Status || 'Warm';
+                    map[key].media = a['Media Marketing'] || 'Canvassing';
+                    map[key].date = a['Tanggal Kunjungan'] || '-';
+                    map[key].nominal = Number(a['Nominal Deal']) || 0;
+                    if (a['Nama Marketing']) map[key].mkt = a['Nama Marketing'];
                 }
-                const stg = a['Tahapan Marketing'] || a.Aktivitas || 'Prospect';
-                map[key].stage = stg;
-                map[key].status = a.Status || 'Warm';
-                map[key].date = a['Tanggal Kunjungan'] || '';
-                if (a['Nominal Deal'] && Number(a['Nominal Deal']) > 0) {
-                    map[key].nominal = Number(a['Nominal Deal']);
-                }
-
-                if (stg === 'Prospect') map[key].chance = 20;
-                else if (stg === 'Follow Up') map[key].chance = 40;
-                else if (stg === 'Presentasi') map[key].chance = 60;
-                else if (stg === 'Negosiasi') map[key].chance = 80;
-                else if (stg === 'Deal') map[key].chance = 100;
-                else if (stg === 'Belum Deal') map[key].chance = 0;
             });
 
             return Object.values(map);
         };
 
+        window.syncPipelineData = function() {
+            const computed = window.getComputedPipeline();
+            appState.pipeline = computed.map(p => ({
+                'ID Pipeline': 'PL-' + p.id,
+                'Nama Sekolah': p.school,
+                'Nama Marketing': p.mkt,
+                Aktivitas: p.stage,
+                Status: p.status,
+                'Media Marketing': p.media,
+                'Tanggal Follow Up': p.date,
+                'Nominal Deal': p.stage === 'Deal' ? p.nominal : 0
+            }));
+        };
+
         window.renderKanbanBoard = function() {
+            window.syncPipelineData();
             const stages = [
                 { id: 'Prospect', target: 'col-prospect', count: 'count-prospect' },
                 { id: 'Follow Up', target: 'col-followup', count: 'count-followup' },
@@ -2213,6 +2470,8 @@
 
             stages.forEach(stg => {
                 const container = document.getElementById(stg.target);
+                if (!container) return;
+
                 const items = computedItems.filter(p => {
                     if (p.stage !== stg.id) return false;
                     if (isMarketingRole) return p.mkt && p.mkt.toLowerCase() === userNama.toLowerCase();
@@ -2220,100 +2479,151 @@
                     return true;
                 });
 
-                document.getElementById(stg.count).innerText = items.length;
+                const countEl = document.getElementById(stg.count);
+                if (countEl) countEl.innerText = items.length;
 
                 if (items.length === 0) {
                     container.innerHTML = '<div class="text-[11px] text-slate-600 italic text-center py-8">Kosong</div>';
                     return;
                 }
 
-                container.innerHTML = items.map(p => `
-                    <div class="kanban-card p-3 glass-panel border border-slate-700/80 rounded-xl space-y-2 shadow-md">
-                        <div class="flex justify-between items-start">
-                            <h4 class="text-xs font-bold text-white leading-snug">${p.school}</h4>
-                            <span class="text-[9px] px-1.5 py-0.5 rounded font-bold ${p.status === 'Hot' ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300'}">${p.status}</span>
+                container.innerHTML = items.map(p => {
+                    let nominalHtml = '';
+                    if (p.stage === 'Deal' && p.nominal > 0) {
+                        nominalHtml = `<div class="text-xs font-extrabold text-emerald-400 pt-1.5 border-t border-slate-800/80">${window.formatRupiah(p.nominal)}</div>`;
+                    }
+
+                    return `
+                        <div class="glass-panel p-3 border border-slate-700/80 rounded-xl space-y-2 shadow-md hover:border-indigo-500/50 transition">
+                            <div class="flex justify-between items-start gap-1">
+                                <h4 class="text-xs font-bold text-white leading-snug">${p.school}</h4>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 ${p.status === 'Hot' ? 'bg-rose-500/20 text-rose-300' : (p.status === 'Warm' ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-500/20 text-blue-300')}">${p.status}</span>
+                            </div>
+                            <div class="text-[10px] text-slate-400"><i class="fa-solid fa-user text-indigo-400 mr-1"></i>${p.mkt}</div>
+                            <div class="flex items-center justify-between text-[10px] pt-1 border-t border-slate-800/40">
+                                <span class="text-slate-300 font-medium">${window.getMediaIcon(p.media)} ${p.media || 'Canvassing'}</span>
+                                <span class="text-slate-500"><i class="fa-solid fa-clock mr-1"></i>${p.date || '-'}</span>
+                            </div>
+                            ${nominalHtml}
                         </div>
-                        <div class="flex justify-between items-center text-[10px] text-slate-400">
-                            <span><i class="fa-solid fa-user text-indigo-400 mr-1"></i>${p.mkt}</span>
-                            <span class="font-bold text-indigo-300">${p.chance}%</span>
-                        </div>
-                        ${p.nominal > 0 ? `<div class="text-xs font-extrabold text-emerald-400 pt-1 border-t border-slate-800">${window.formatRupiah(p.nominal)}</div>` : ''}
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             });
         };
 
         window.renderNotifications = function() {
             const container = document.getElementById('notifications-container');
-            let notifs = [];
+            if (!container) return;
+            container.innerHTML = '';
 
-            window.getComputedPipeline().filter(p => p.stage === 'Follow Up').forEach(p => {
-                notifs.push({
-                    title: 'Segera Di Follow Up',
-                    desc: `Sekolah ${p.school} perlu segera difollow up oleh ${p.mkt}.`,
-                    type: 'warning', icon: 'fa-phone'
-                });
+            const mktFilter = appState.filterMarketing || 'ALL';
+            const alerts = appState.pipeline.filter(p => mktFilter === 'ALL' || p['Nama Marketing'] === mktFilter);
+
+            if (alerts.length === 0) {
+                container.innerHTML = '<div class="col-span-2 text-center text-slate-500 text-xs py-8">Tidak ada notifikasi aktif.</div>';
+                return;
+            }
+
+            alerts.forEach(al => {
+                const card = document.createElement('div');
+                card.className = 'glass-panel p-4 border border-slate-700/70 flex items-start gap-3';
+                card.innerHTML = `
+                    <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-bell text-base"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-xs text-white">${al['Nama Sekolah']}</span>
+                            <span class="px-2 py-0.5 text-[9px] font-bold rounded bg-indigo-500/20 text-indigo-300">${al.Aktivitas}</span>
+                        </div>
+                        <p class="text-xs text-slate-400">Jadwal follow up berikutnya: <span class="text-amber-400 font-semibold">${al['Tanggal Follow Up'] || 'Belum diatur'}</span></p>
+                        <span class="text-[10px] text-slate-500 block">Marketing: ${al['Nama Marketing']}</span>
+                    </div>
+                `;
+                container.appendChild(card);
             });
 
             const badge = document.getElementById('notif-badge');
-            if (notifs.length > 0) {
-                badge.innerText = notifs.length;
-                badge.classList.remove('hidden');
-            } else badge.classList.add('hidden');
-
-            container.innerHTML = notifs.map(n => `
-                <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-800 flex items-start gap-3">
-                    <div class="p-2.5 rounded-lg ${n.type === 'warning' ? 'bg-amber-500/20 text-amber-400' : 'bg-indigo-500/20 text-indigo-400'}">
-                        <i class="fa-solid ${n.icon} text-lg"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-xs font-bold text-white">${n.title}</h4>
-                        <p class="text-xs text-slate-400 mt-0.5">${n.desc}</p>
-                    </div>
-                </div>
-            `).join('');
+            if (badge) {
+                if (alerts.length > 0) { badge.innerText = alerts.length; badge.classList.remove('hidden'); }
+                else badge.classList.add('hidden');
+            }
         };
 
         window.renderGpsMap = function() {
-            if (!mapInstance) {
-                mapInstance = L.map('map').setView([-6.175392, 106.827153], 10);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(mapInstance);
+            const mapContainer = document.getElementById('map');
+            if (!mapContainer) return;
+
+            if (mapInstance) {
+                mapInstance.remove();
+                mapInstance = null;
             }
-            mapMarkers.forEach(m => mapInstance.removeLayer(m));
-            mapMarkers = [];
 
-            const mktFilter = document.getElementById('gps-filter-mkt').value;
+            mapInstance = L.map('map').setView([-6.175392, 106.827153], 10);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(mapInstance);
+
+            const mktFilter = document.getElementById('gps-filter-mkt')?.value || appState.filterMarketing || 'ALL';
+            const filteredActivities = appState.activity.filter(a => (mktFilter === 'ALL' || a['Nama Marketing'] === mktFilter) && a.Coords);
+
             const historyTimeline = document.getElementById('gps-history-timeline');
-            let historyHtml = '';
+            if (historyTimeline) historyTimeline.innerHTML = '';
 
-            appState.activity.forEach(a => {
-                if (mktFilter !== 'ALL' && a['Nama Marketing'] !== mktFilter) return;
-                if (a.Coords && a.Coords.includes(',')) {
-                    const coords = a.Coords.split(',').map(c => parseFloat(c.trim()));
-                    if (coords.length === 2 && !isNaN(coords[0])) {
-                        const marker = L.marker([coords[0], coords[1]]).addTo(mapInstance);
-                        marker.bindPopup(`<b>${a['Nama Sekolah']}</b><br>Marketing: ${a['Nama Marketing']}<br>Tahapan: ${a['Tahapan Marketing'] || a.Aktivitas}`);
-                        mapMarkers.push(marker);
+            filteredActivities.forEach(a => {
+                const [lat, lng] = a.Coords.split(',').map(n => parseFloat(n.trim()));
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    const marker = L.marker([lat, lng]).addTo(mapInstance);
+                    marker.bindPopup(`
+                        <div class="text-xs font-sans">
+                            <b class="text-indigo-600">${a['Nama Sekolah']}</b><br>
+                            <b>Marketing:</b> ${a['Nama Marketing']}<br>
+                            <b>Aktivitas:</b> ${a.Aktivitas}<br>
+                            <b>Tanggal:</b> ${a['Tanggal Kunjungan']}
+                        </div>
+                    `);
 
-                        historyHtml += `
-                            <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 flex justify-between items-center">
-                                <div>
-                                    <h4 class="text-xs font-bold text-white">${a['Nama Sekolah']}</h4>
-                                    <p class="text-[11px] text-slate-400">${a['Lokasi GPS']}</p>
-                                    <p class="text-[10px] text-indigo-400 mt-0.5">Marketing: ${a['Nama Marketing']} | Tahapan: ${a['Tahapan Marketing'] || a.Aktivitas}</p>
-                                </div>
-                                <span class="text-[10px] text-indigo-400 font-mono shrink-0 ml-2">${a['Tanggal Kunjungan']}</span>
+                    if (historyTimeline) {
+                        const item = document.createElement('div');
+                        item.className = 'p-3 bg-slate-900/60 rounded-xl border border-slate-800 text-xs flex justify-between items-center';
+                        item.innerHTML = `
+                            <div>
+                                <div class="font-bold text-white">${a['Nama Sekolah']}</div>
+                                <div class="text-[10px] text-slate-400"><i class="fa-solid fa-location-dot text-rose-400 mr-1"></i>${a['Lokasi GPS'] || 'Lokasi Terdeteksi'}</div>
+                                <div class="text-[10px] text-indigo-300 font-medium">${a['Nama Marketing']} • ${a['Tanggal Kunjungan']}</div>
                             </div>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300">${a.Aktivitas}</span>
                         `;
+                        historyTimeline.appendChild(item);
                     }
                 }
             });
-
-            historyTimeline.innerHTML = historyHtml || '<p class="text-xs text-slate-500 italic">Belum ada riwayat koordinat GPS.</p>';
         };
 
         window.renderKpiConfigSection = function() {
             const s = appState.settings;
+            if (document.getElementById('setting-company-name')) document.getElementById('setting-company-name').value = s.companyName || '';
+            
+            const logoPreview = document.getElementById('setting-logo-preview');
+            const placeholderIcon = document.getElementById('setting-logo-placeholder-icon');
+            const logoBase64Input = document.getElementById('setting-logo-base64');
+            const removeBtn = document.getElementById('btn-remove-logo');
+            
+            if (logoPreview && logoBase64Input) {
+                logoBase64Input.value = s.logoUrl || '';
+                if (s.logoUrl) {
+                    logoPreview.src = s.logoUrl;
+                    logoPreview.classList.remove('hidden');
+                    if (placeholderIcon) placeholderIcon.classList.add('hidden');
+                    if (removeBtn) removeBtn.classList.remove('hidden');
+                } else {
+                    logoPreview.src = '';
+                    logoPreview.classList.add('hidden');
+                    if (placeholderIcon) placeholderIcon.classList.remove('hidden');
+                    if (removeBtn) removeBtn.classList.add('hidden');
+                }
+            }
+
             if (document.getElementById('cfg-target-db')) document.getElementById('cfg-target-db').value = s.targetDatabase || 100;
             if (document.getElementById('cfg-target-harian-val')) document.getElementById('cfg-target-harian-val').value = s.targetHarian || 3;
             if (document.getElementById('cfg-working-days')) document.getElementById('cfg-working-days').value = s.workingDays || 5;
@@ -2327,41 +2637,83 @@
             window.recalculateFunnel();
         };
 
-        window.saveKpiDashboardSettings = async function() {
-            window.setButtonLoading('btn-save-kpi-settings', true, 'Menyimpan...');
-
-            try {
-                appState.settings.targetDatabase = Number(document.getElementById('cfg-target-db')?.value) || 100;
-                appState.settings.targetHarian = Number(document.getElementById('cfg-target-harian-val')?.value) || 3;
-                appState.settings.workingDays = Number(document.getElementById('cfg-working-days')?.value) || 5;
-                appState.settings.weeksMonth = Number(document.getElementById('cfg-weeks-month')?.value) || 4;
-                appState.settings.ratioDbCanvass = Number(document.getElementById('cfg-ratio-db-canvass')?.value) || 60;
-                appState.settings.ratioCanvassPres = Number(document.getElementById('cfg-ratio-canvass-pres')?.value) || 50;
-                appState.settings.ratioPresDeal = Number(document.getElementById('cfg-ratio-pres-deal')?.value) || 66.7;
+        window.handleLogoUpload = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                window.showToast('Harap pilih file berupa gambar!', 'warning');
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                window.showToast('Ukuran gambar maksimal 2MB!', 'warning');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const base64 = evt.target.result;
+                const previewImg = document.getElementById('setting-logo-preview');
+                const placeholderIcon = document.getElementById('setting-logo-placeholder-icon');
+                const logoInputVal = document.getElementById('setting-logo-base64');
+                const removeBtn = document.getElementById('btn-remove-logo');
                 
-                const rawRev = document.getElementById('cfg-target-revenue-val')?.value || '500000000';
-                appState.settings.targetRevenue = Number(rawRev.replace(/[^0-9]/g, '')) || 500000000;
-                appState.settings.formulaRevenue = document.getElementById('cfg-formula-revenue')?.value || '(Revenue Aktual / Target Revenue) * 100';
+                if (previewImg) {
+                    previewImg.src = base64;
+                    previewImg.classList.remove('hidden');
+                }
+                if (placeholderIcon) placeholderIcon.classList.add('hidden');
+                if (logoInputVal) logoInputVal.value = base64;
+                if (removeBtn) removeBtn.classList.remove('hidden');
+                
+                window.showToast('Logo berhasil dipilih. Klik "Simpan Pengaturan Profil" untuk menerapkan.', 'info');
+            };
+            reader.readAsDataURL(file);
+        };
 
-                window.saveStateToLocal();
-                window.refreshAllViews();
-                window.showToast('Pengaturan Dashboard KPI berhasil disimpan & disinkronkan!', 'success');
+        window.removeCompanyLogo = function() {
+            const previewImg = document.getElementById('setting-logo-preview');
+            const placeholderIcon = document.getElementById('setting-logo-placeholder-icon');
+            const logoInputVal = document.getElementById('setting-logo-base64');
+            const removeBtn = document.getElementById('btn-remove-logo');
+            const fileInput = document.getElementById('setting-logo-file');
+            
+            if (previewImg) { previewImg.src = ''; previewImg.classList.add('hidden'); }
+            if (placeholderIcon) placeholderIcon.classList.remove('hidden');
+            if (logoInputVal) logoInputVal.value = '';
+            if (removeBtn) removeBtn.classList.add('hidden');
+            if (fileInput) fileInput.value = '';
+            
+            window.showToast('Logo dihapus. Klik "Simpan Pengaturan Profil" untuk menerapkan.', 'info');
+        };
 
-                await window.apiCall('saveGeneralSettings', {
-                    targetDatabase: appState.settings.targetDatabase,
-                    targetHarian: appState.settings.targetHarian,
-                    workingDays: appState.settings.workingDays,
-                    weeksMonth: appState.settings.weeksMonth,
-                    ratioDbCanvass: appState.settings.ratioDbCanvass,
-                    ratioCanvassPres: appState.settings.ratioCanvassPres,
-                    ratioPresDeal: appState.settings.ratioPresDeal,
-                    targetRevenue: appState.settings.targetRevenue,
-                    formulaRevenue: appState.settings.formulaRevenue
-                });
-                window.fetchSyncFromGAS(false);
-            } catch(err) {
-                window.showToast('Gagal menyimpan pengaturan KPI: ' + err.message, 'error');
-            } finally { window.setButtonLoading('btn-save-kpi-settings', false); }
+        window.saveGeneralSettings = function() {
+            appState.settings.companyName = document.getElementById('setting-company-name').value.trim();
+            const logoVal = document.getElementById('setting-logo-base64')?.value || '';
+            appState.settings.logoUrl = logoVal;
+
+            window.saveStateToLocal();
+            window.refreshAllViews();
+            window.showToast('Pengaturan profil perusahaan disimpan!', 'success');
+            window.apiCall('saveSettings', appState.settings);
+        };
+
+        window.saveKpiDashboardSettings = function() {
+            const rawRev = document.getElementById('cfg-target-revenue-val').value;
+            const revNum = Number(rawRev.replace(/[^0-9]/g, '')) || 500000000;
+
+            appState.settings.targetDatabase = Number(document.getElementById('cfg-target-db').value) || 100;
+            appState.settings.targetHarian = Number(document.getElementById('cfg-target-harian-val').value) || 3;
+            appState.settings.workingDays = Number(document.getElementById('cfg-working-days').value) || 5;
+            appState.settings.weeksMonth = Number(document.getElementById('cfg-weeks-month').value) || 4;
+            appState.settings.ratioDbCanvass = Number(document.getElementById('cfg-ratio-db-canvass').value) || 60;
+            appState.settings.ratioCanvassPres = Number(document.getElementById('cfg-ratio-canvass-pres').value) || 50;
+            appState.settings.ratioPresDeal = Number(document.getElementById('cfg-ratio-pres-deal').value) || 66.7;
+            appState.settings.targetRevenue = revNum;
+            appState.settings.formulaRevenue = document.getElementById('cfg-formula-revenue').value;
+
+            window.saveStateToLocal();
+            window.refreshAllViews();
+            window.showToast('Pengaturan Dashboard KPI diselaraskan secara global!', 'success');
+            window.apiCall('saveSettings', appState.settings);
         };
 
         window.resetKpiDashboardSettingsToDefault = function() {
@@ -2374,233 +2726,230 @@
             appState.settings.ratioPresDeal = 66.7;
             appState.settings.targetRevenue = 500000000;
             appState.settings.formulaRevenue = '(Revenue Aktual / Target Revenue) * 100';
+
             window.saveStateToLocal();
-            window.refreshAllViews();
-            window.showToast('Pengaturan Dashboard KPI telah dikembalikan ke default.', 'info');
+            window.renderKpiConfigSection();
+            window.showToast('Pengaturan KPI dikembalikan ke default.', 'info');
         };
 
         window.renderMarketingTable = function() {
             const tbody = document.getElementById('tbody-marketing');
-            const yr = appState.filterYear;
-            const mo = appState.filterMonth;
-            const globalTargets = window.getGlobalKpiTargets();
+            if (!tbody) return;
+            tbody.innerHTML = '';
 
-            tbody.innerHTML = appState.marketing.map(m => {
-                const target = Number(m['Target Deal Bulanan']) || globalTargets.targetRevenue;
+            appState.marketing.forEach(m => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
 
-                const mktAchieved = appState.pipeline.filter(p => {
-                    const school = appState.sekolah.find(s => s['Nama Sekolah'] === p['Nama Sekolah']);
-                    const mktName = p['Nama Marketing'] || (school ? school['Nama Marketing'] : '');
-                    if (p.Aktivitas !== 'Deal') return false;
-                    if (!mktName || mktName.toLowerCase() !== m.Nama.toLowerCase()) return false;
-                    if (!p['Tanggal Follow Up']) return false;
-                    const d = new Date(p['Tanggal Follow Up']);
-                    return d.getFullYear().toString() === yr && (mo === '0' || (d.getMonth() + 1).toString() === mo);
-                }).reduce((sum, p) => sum + (Number(p['Nominal Deal']) || 0), 0);
+                const mktAchieved = appState.activity.filter(a => a['Nama Marketing'] === m.Nama && (a.Aktivitas||'').toLowerCase()==='deal')
+                    .reduce((acc, curr) => acc + (Number(curr['Nominal Deal'])||0), 0);
 
-                const pctAchieved = Math.round((mktAchieved / (target || 1)) * 100);
-
-                return `
-                    <tr class="hover:bg-slate-800/50 transition">
-                        <td class="p-3 font-mono text-slate-400">${m['ID Marketing']}</td>
-                        <td class="p-3 font-mono text-indigo-300">${m.Username || '-'}</td>
-                        <td class="p-3 font-bold text-white">${m.Nama}</td>
-                        <td class="p-3 text-emerald-400"><i class="fa-brands fa-whatsapp mr-1"></i>${m['Nomor WhatsApp']}</td>
-                        <td class="p-3 text-slate-300">${m.Area || '-'}</td>
-                        <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.Role === 'Owner' || m.Role === 'HR' ? 'bg-amber-500/20 text-amber-300' : 'bg-indigo-500/20 text-indigo-300'}">${m.Role || 'Marketing'}</span></td>
-                        <td class="p-3 font-bold text-emerald-400">${window.formatRupiah(target)}</td>
-                        <td class="p-3">
-                            <span class="font-bold text-xs ${pctAchieved >= 100 ? 'text-emerald-400' : 'text-indigo-300'}">${window.formatRupiah(mktAchieved)} (${pctAchieved}%)</span>
-                        </td>
-                        <td class="p-3 text-center space-x-1">
-                            <button onclick="window.editMarketing('${m['ID Marketing']}')" class="p-1.5 bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white rounded transition" title="Edit Staff"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="window.confirmDeleteMarketing('${m['ID Marketing']}')" class="p-1.5 bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white rounded transition" title="Hapus Staff"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>
+                tr.innerHTML = `
+                    <td class="p-3 font-mono text-[11px] text-slate-400">${m['ID Marketing'] || '-'}</td>
+                    <td class="p-3 font-bold text-white">${m.Username || '-'}</td>
+                    <td class="p-3 font-semibold text-indigo-300">${m.Nama}</td>
+                    <td class="p-3 text-slate-300">${m['Nomor WhatsApp'] || '-'}</td>
+                    <td class="p-3 text-slate-400">${m.Area || '-'}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-${m.Role==='Owner'?'purple':(m.Role==='HR'?'amber':'indigo')}-500/20 text-${m.Role==='Owner'?'purple':(m.Role==='HR'?'amber':'indigo')}-300">${m.Role || 'Marketing'}</span></td>
+                    <td class="p-3 font-medium text-slate-300">${window.formatRupiah(m['Target Deal Bulanan'] || 500000000)}</td>
+                    <td class="p-3 font-bold text-emerald-400">${window.formatRupiah(mktAchieved)}</td>
+                    <td class="p-3 text-center">
+                        <div class="flex justify-center gap-1">
+                            <button onclick="window.editMarketing('${m['ID Marketing']}')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-400 rounded"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="window.promptDeleteMarketing('${m['ID Marketing']}')" class="p-1.5 bg-slate-800 hover:bg-rose-900/50 text-rose-400 rounded"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </td>
                 `;
-            }).join('');
+                tbody.appendChild(tr);
+            });
         };
 
+        let activeMktDeleteId = null;
         window.openModalMarketing = function() {
             document.getElementById('form-marketing').reset();
             document.getElementById('mkt-id').value = '';
-            document.getElementById('mkt-username').value = '';
-            document.getElementById('mkt-password').value = 'mkt123';
-            document.getElementById('mkt-role').value = 'Marketing';
-            document.getElementById('modal-marketing-title').innerText = 'Tambah / Edit Staff Marketing';
+            document.getElementById('modal-marketing-title').innerText = 'Tambah Staff Marketing Baru';
             document.getElementById('modal-marketing').classList.remove('hidden');
         };
+
+        window.closeModalMarketing = function() { document.getElementById('modal-marketing').classList.add('hidden'); };
 
         window.editMarketing = function(id) {
             const m = appState.marketing.find(item => item['ID Marketing'] === id);
             if (!m) return;
             document.getElementById('mkt-id').value = m['ID Marketing'];
             document.getElementById('mkt-username').value = m.Username || '';
-            document.getElementById('mkt-password').value = m.Password || 'mkt123';
-            document.getElementById('mkt-nama').value = m.Nama;
-            document.getElementById('mkt-wa').value = m['Nomor WhatsApp'];
+            document.getElementById('mkt-password').value = m.Password || '';
+            document.getElementById('mkt-nama').value = m.Nama || '';
+            document.getElementById('mkt-wa').value = m['Nomor WhatsApp'] || '';
             document.getElementById('mkt-area').value = m.Area || '';
             document.getElementById('mkt-role').value = m.Role || 'Marketing';
             document.getElementById('modal-marketing-title').innerText = 'Edit Staff Marketing';
             document.getElementById('modal-marketing').classList.remove('hidden');
         };
 
-        let targetDeleteMktId = null;
-        window.confirmDeleteMarketing = function(id) {
-            targetDeleteMktId = id;
+        window.handleSaveMarketing = async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('mkt-id').value || 'MKT-' + Date.now().toString().slice(-3);
+            const newMkt = {
+                'ID Marketing': id,
+                Username: document.getElementById('mkt-username').value.trim(),
+                Password: document.getElementById('mkt-password').value.trim(),
+                Nama: document.getElementById('mkt-nama').value.trim(),
+                'Nomor WhatsApp': document.getElementById('mkt-wa').value.trim(),
+                Area: document.getElementById('mkt-area').value.trim(),
+                Role: document.getElementById('mkt-role').value,
+                'Target Deal Bulanan': 500000000
+            };
+
+            const idx = appState.marketing.findIndex(m => m['ID Marketing'] === id);
+            if (idx >= 0) appState.marketing[idx] = newMkt;
+            else appState.marketing.push(newMkt);
+
+            window.saveStateToLocal();
+            window.closeModalMarketing();
+            window.refreshAllViews();
+            window.showToast('Akun marketing berhasil disimpan!', 'success');
+            window.apiCall('saveMarketing', newMkt);
+        };
+
+        window.promptDeleteMarketing = function(id) {
+            activeMktDeleteId = id;
             document.getElementById('modal-confirm-delete-mkt').classList.remove('hidden');
         };
 
-        window.closeConfirmDeleteMktModal = function() {
-            targetDeleteMktId = null;
-            document.getElementById('modal-confirm-delete-mkt').classList.add('hidden');
+        window.closeConfirmDeleteMktModal = function() { document.getElementById('modal-confirm-delete-mkt').classList.add('hidden'); };
+
+        window.executeDeleteMarketing = function() {
+            if (!activeMktDeleteId) return;
+            appState.marketing = appState.marketing.filter(m => m['ID Marketing'] !== activeMktDeleteId);
+            window.saveStateToLocal();
+            window.closeConfirmDeleteMktModal();
+            window.refreshAllViews();
+            window.showToast('Akun marketing dihapus!', 'info');
+            window.apiCall('deleteMarketing', { ID: activeMktDeleteId });
+            activeMktDeleteId = null;
         };
 
-        window.executeDeleteMarketing = async function() {
-            if (!targetDeleteMktId) return;
-            const id = targetDeleteMktId;
-            window.setButtonLoading('btn-exec-delete-mkt', true, 'Menghapus...');
-            try {
-                window.closeConfirmDeleteMktModal();
-                appState.marketing = appState.marketing.filter(m => m['ID Marketing'] !== id);
-                window.saveStateToLocal();
-                window.refreshAllViews();
-                window.showToast('Akun berhasil dihapus dari sistem.', 'info');
-                await window.apiCall('deleteMarketing', { id });
-                window.fetchSyncFromGAS(false);
-            } catch(err) { window.showToast('Gagal menghapus akun marketing.', 'error'); } 
-            finally { window.setButtonLoading('btn-exec-delete-mkt', false); }
+        window.handleBackupDatabase = function() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `BTS_Marketing_Backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            window.showToast('File backup database berhasil diunduh!', 'success');
         };
 
-        window.closeModalMarketing = function() { document.getElementById('modal-marketing').classList.add('hidden'); };
-
-        window.handleSaveMarketing = async function(e) {
-            e.preventDefault();
-            const id = document.getElementById('mkt-id').value;
-            const usernameVal = document.getElementById('mkt-username').value.trim();
-            const passwordVal = document.getElementById('mkt-password').value.trim();
-            const assignedRole = document.getElementById('mkt-role').value;
-
-            window.setButtonLoading('btn-save-marketing', true, 'Menyimpan...');
-
-            try {
-                const newMkt = {
-                    'ID Marketing': id || ('MKT-' + Math.floor(100 + Math.random() * 900)),
-                    Username: usernameVal,
-                    Password: passwordVal,
-                    Nama: window.toTitleCaseString(document.getElementById('mkt-nama').value.trim()),
-                    'Nomor WhatsApp': document.getElementById('mkt-wa').value.replace(/[^0-9]/g, ''),
-                    Area: window.toTitleCaseString(document.getElementById('mkt-area').value.trim()),
-                    Role: assignedRole,
-                    'Target Deal Bulanan': 500000000
-                };
-
-                if (id) {
-                    const idx = appState.marketing.findIndex(m => m['ID Marketing'] === id);
-                    if (idx > -1) appState.marketing[idx] = newMkt;
-                } else {
-                    appState.marketing.push(newMkt);
-                }
-
-                window.saveStateToLocal();
-                window.closeModalMarketing();
-                window.refreshAllViews();
-                window.showToast('Data Akun Marketing berhasil disimpan.', 'success');
-                
-                await window.apiCall('saveMarketing', newMkt);
-                window.fetchSyncFromGAS(false);
-            } catch(err) { window.showToast('Gagal menyimpan akun marketing: ' + err.message, 'error'); } 
-            finally { window.setButtonLoading('btn-save-marketing', false); }
-        };
-
-        window.saveGeneralSettings = async function() {
-            window.setButtonLoading('btn-save-gen-settings', true, 'Menyimpan...');
-            try {
-                appState.settings.companyName = document.getElementById('setting-company-name').value.trim();
-                document.getElementById('app-company-name').innerText = appState.settings.companyName;
-                window.saveStateToLocal();
-                window.showToast('Pengaturan profil berhasil disimpan!', 'success');
-                await window.apiCall('saveGeneralSettings', { companyName: appState.settings.companyName });
-                window.fetchSyncFromGAS(false);
-            } catch(err) { window.showToast('Gagal menyimpan profil.', 'error'); } 
-            finally { window.setButtonLoading('btn-save-gen-settings', false); }
-        };
-
-        window.exportDashboardPdf = function() {
-            try {
-                if (!window.jspdf || !window.jspdf.jsPDF) { window.print(); return; }
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('landscape', 'mm', 'a4');
-                const globalTargets = window.getGlobalKpiTargets();
-
-                doc.setFontSize(15); doc.setFont("helvetica", "bold");
-                doc.text("LAPORAN EXECUTIVE DASHBOARD KPI", 14, 15);
-                doc.setFontSize(9); doc.setFont("helvetica", "normal");
-                doc.text(`Perusahaan: ${appState.settings.companyName} | Scope: ${appState.filterScope || 'Periode'} | Periode: ${window.getMonthName(appState.filterMonth)} ${appState.filterYear}`, 14, 21);
-
-                const tableColumn = ["Metrik KPI", "Judul Kartu", "Target Global (Single Source of Truth)"];
-                const tableRows = [
-                    ["DB", "Total Database Sekolah", globalTargets.targetDb],
-                    ["CANVASS", "Total Canvassing Periode", globalTargets.targetCanvass],
-                    ["PRESENTASI", "Total Presentasi Periode", globalTargets.targetPresentasi],
-                    ["DEAL", "Total Deal Periode", globalTargets.targetDeal],
-                    ["NODEAL", "Belum Deal Benchmark", globalTargets.belumDealBenchmark],
-                    ["REVENUE", "Target Revenue Periode", window.formatRupiah(globalTargets.targetRevenue)]
-                ];
-
-                doc.autoTable({ head: [tableColumn], body: tableRows, startY: 28, theme: 'grid', headStyles: { fillColor: [30, 41, 59] } });
-                doc.save(`Laporan_Dashboard_KPI_${Date.now()}.pdf`);
-                window.showToast('PDF Dashboard KPI berhasil dibuat!', 'success');
-            } catch (err) { window.print(); }
+        window.handleRestoreDatabase = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const restoredData = JSON.parse(evt.target.result);
+                    if (restoredData.sekolah && restoredData.activity) {
+                        appState = { ...appState, ...restoredData };
+                        window.saveStateToLocal();
+                        window.refreshAllViews();
+                        window.showToast('Database berhasil dipulihkan dari cadangan!', 'success');
+                    } else throw new Error('Format file tidak valid.');
+                } catch(err) { window.showToast('Gagal memulihkan database. File tidak valid.', 'error'); }
+            };
+            reader.readAsText(file);
         };
 
         window.exportSekolahExcel = function() {
             const ws = XLSX.utils.json_to_sheet(appState.sekolah);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Database_Sekolah");
-            XLSX.writeFile(wb, "Data_Sekolah_BTS.xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, "Database Sekolah");
+            XLSX.writeFile(wb, `Database_Sekolah_${new Date().toISOString().split('T')[0]}.xlsx`);
+            window.showToast('Database sekolah diexport ke Excel!', 'success');
         };
 
-        window.populateDropdowns = function() {
-            const actSekolahSelect = document.getElementById('act-sekolah');
-            if (actSekolahSelect) {
-                const isMarketing = appState.currentUser?.role === 'Marketing';
-                const available = appState.sekolah.filter(s => !isMarketing || (s['Nama Marketing'] && s['Nama Marketing'].toLowerCase() === appState.currentUser.nama.toLowerCase()));
-                actSekolahSelect.innerHTML = '<option value="">-- Pilih Sekolah --</option>' + available.map(s => `<option value="${s['Nama Sekolah']}">${s['Nama Sekolah']} (${s.Wilayah})</option>`).join('');
-            }
-            const wilayahSelect = document.getElementById('filter-wilayah');
-            if (wilayahSelect) {
-                const uniqueWilayah = [...new Set(appState.sekolah.map(s => s.Wilayah))].filter(Boolean);
-                wilayahSelect.innerHTML = '<option value="">Semua Wilayah</option>' + uniqueWilayah.map(w => `<option value="${w}">${w}</option>`).join('');
-            }
-            const gpsMktSelect = document.getElementById('gps-filter-mkt');
-            if (gpsMktSelect) {
-                gpsMktSelect.innerHTML = '<option value="ALL">Semua Marketing</option>' + appState.marketing.map(m => `<option value="${m.Nama}">${m.Nama}</option>`).join('');
-            }
-            const mktFilterSelect = document.getElementById('filter-marketing-dashboard');
-            if (mktFilterSelect) {
-                const current = mktFilterSelect.value;
-                mktFilterSelect.innerHTML = '<option value="ALL">Semua Marketing</option>' + appState.marketing.map(m => `<option value="${m.Nama}">${m.Nama}</option>`).join('');
-                mktFilterSelect.value = current || 'ALL';
-            }
+        window.exportSekolahPdf = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("Laporan Master Database Sekolah", 14, 15);
+            doc.setFontSize(10);
+            doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, 22);
+
+            const tableData = appState.sekolah.map(s => [s.ID, s['Nama Sekolah'], s.Jenjang, s.Wilayah, s['Nama PIC'], s['Nomor WhatsApp'], s['Nama Marketing']]);
+            doc.autoTable({
+                startY: 28,
+                head: [['ID', 'Nama Sekolah', 'Jenjang', 'Wilayah', 'PIC', 'WhatsApp', 'Marketing']],
+                body: tableData
+            });
+            doc.save(`Database_Sekolah_${new Date().toISOString().split('T')[0]}.pdf`);
         };
 
-        window.showToast = function(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            if (!container) return;
-            const toast = document.createElement('div');
-            let bgClass = 'bg-slate-800 border-slate-700 text-white';
-            if (type === 'success') bgClass = 'bg-emerald-950 border-emerald-600 text-emerald-200';
-            else if (type === 'error') bgClass = 'bg-rose-950 border-rose-600 text-rose-200';
-            else if (type === 'warning') bgClass = 'bg-amber-950 border-amber-600 text-amber-200';
+        window.exportDailyPdf = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape');
+            doc.text("Laporan Daily Activity Kunjungan", 14, 15);
+            doc.setFontSize(10);
+            doc.text(`Periode Filter: ${appState.filterYear} - Bulan ${window.getMonthName(appState.filterMonth)}`, 14, 22);
 
-            toast.className = `p-3 rounded-xl border shadow-xl text-xs font-semibold flex items-center gap-2 transform transition-all duration-300 ${bgClass}`;
-            toast.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${message}`;
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-x-4');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            const tableData = appState.activity.map(a => [a['Tanggal Kunjungan'], a['Nama Marketing'], a['Nama Sekolah'], a['Media Marketing'], a.Aktivitas, a.Status, a['Hasil Kunjungan'], a['Nominal Deal'] ? window.formatRupiah(a['Nominal Deal']) : '-']);
+            doc.autoTable({
+                startY: 28,
+                head: [['Tanggal', 'Marketing', 'Sekolah', 'Media', 'Tahapan', 'Status', 'Catatan Kunjungan', 'Nominal']],
+                body: tableData
+            });
+            doc.save(`Daily_Activity_${new Date().toISOString().split('T')[0]}.pdf`);
+        };
+
+        window.exportDashboardPdf = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("Laporan Dashboard KPI Performa Marketing", 14, 15);
+            doc.setFontSize(10);
+            doc.text(`Perusahaan: ${appState.settings.companyName}`, 14, 22);
+            doc.text(`Filter Tahun: ${appState.filterYear} | Bulan: ${window.getMonthName(appState.filterMonth)}`, 14, 28);
+
+            const targets = window.getGlobalKpiTargets();
+            const summary = [
+                ['Target Database Sekolah', `${targets.targetDb} Sekolah`],
+                ['Target Canvassing Bulanan', `${targets.targetCanvass} Sesi`],
+                ['Target Presentasi Bulanan', `${targets.targetPresentasi} Sekolah`],
+                ['Target Deal Periode', `${targets.targetDeal} Sekolah`],
+                ['Target Revenue Performa', window.formatRupiah(targets.targetRevenue)]
+            ];
+
+            doc.autoTable({
+                startY: 34,
+                head: [['Metrik Target Global', 'Nilai Config']],
+                body: summary
+            });
+            doc.save(`Dashboard_KPI_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+        };
+
+        window.exportPipelinePdf = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("Laporan Kanban Pipeline Marketing", 14, 15);
+            const tableData = appState.pipeline.map(p => [p['Nama Sekolah'], p['Nama Marketing'], p.Aktivitas, p.Status, p['Tanggal Follow Up'], p['Nominal Deal'] ? window.formatRupiah(p['Nominal Deal']) : '-']);
+            doc.autoTable({ startY: 22, head: [['Sekolah', 'Marketing', 'Tahapan', 'Status', 'Follow Up', 'Nominal']], body: tableData });
+            doc.save(`Pipeline_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+        };
+
+        window.exportNotificationsPdf = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("Laporan Notifikasi & Reminder Follow Up", 14, 15);
+            const tableData = appState.pipeline.map(p => [p['Nama Sekolah'], p['Nama Marketing'], p.Aktivitas, p['Tanggal Follow Up']]);
+            doc.autoTable({ startY: 22, head: [['Sekolah', 'Marketing', 'Aktivitas', 'Jadwal Follow Up']], body: tableData });
+            doc.save(`Notifikasi_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+        };
+
+        window.exportGpsPdf = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("Laporan Tracking GPS Kunjungan Lapangan", 14, 15);
+            const tableData = appState.activity.map(a => [a['Tanggal Kunjungan'], a['Nama Marketing'], a['Nama Sekolah'], a['Lokasi GPS'] || '-']);
+            doc.autoTable({ startY: 22, head: [['Tanggal', 'Marketing', 'Sekolah', 'Alamat / Lokasi GPS']], body: tableData });
+            doc.save(`GPS_Tracking_Report_${new Date().toISOString().split('T')[0]}.pdf`);
         };
     </script>
 </body>
