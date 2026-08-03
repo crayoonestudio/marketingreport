@@ -602,8 +602,8 @@
                             <i class="fa-solid fa-bullseye"></i>
                         </div>
                         <div>
-                            <h3 class="text-base font-extrabold text-white tracking-wide">🎯 TARGET MINIMAL TIM MARKETING</h3>
-                            <p class="text-xs text-slate-400">Standard acuan kerja harian & bulanan untuk tim marketing</p>
+                            <h3 class="text-base font-extrabold text-white tracking-wide">🎯 TARGET MINIMAL PER MARKETING</h3>
+                            <p class="text-xs text-slate-400">Standard acuan kerja harian & bulanan untuk marketing</p>
                         </div>
                     </div>
 
@@ -1259,8 +1259,8 @@
 
                 <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
                     <button type="button" onclick="window.closeModalMarketing()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold">Batal</button>
-                    <button type="submit" id="btn-save-marketing" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5">
-                        <span>Simpan Marketing</span>
+                    <button type="submit" id="btn-save-marketing" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-floppy-disk"></i> <span>Simpan</span>
                     </button>
                 </div>
             </form>
@@ -1414,6 +1414,23 @@
         let mapInstance = null;
         let chartClosingInstance = null;
         let chartActivityInstance = null;
+        let isSyncInProgress = false;
+
+        window.setButtonLoading = function(buttonEl, isLoading, loadingText = 'Memproses...') {
+            if (!buttonEl) return;
+            if (isLoading) {
+                buttonEl.disabled = true;
+                buttonEl.dataset.originalHtml = buttonEl.innerHTML;
+                buttonEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> <span>${loadingText}</span>`;
+                buttonEl.classList.add('opacity-70', 'cursor-not-allowed');
+            } else {
+                buttonEl.disabled = false;
+                if (buttonEl.dataset.originalHtml) {
+                    buttonEl.innerHTML = buttonEl.dataset.originalHtml;
+                }
+                buttonEl.classList.remove('opacity-70', 'cursor-not-allowed');
+            }
+        };
 
         window.showToast = function(message, type = 'info') {
             const container = document.getElementById('toast-container');
@@ -1499,48 +1516,56 @@
 
         window.handleLogin = function(e) {
             if (e) e.preventDefault();
-            const usernameInput = document.getElementById('login-username')?.value.trim().toLowerCase();
-            const passwordInput = document.getElementById('login-password')?.value.trim();
+            const btnSubmit = document.getElementById('btn-login-submit');
+            window.setButtonLoading(btnSubmit, true, 'Memverifikasi...');
 
-            if (!usernameInput || !passwordInput) {
-                window.showToast('Mohon isi Username dan Password!', 'warning');
-                return;
-            }
+            setTimeout(() => {
+                const usernameInput = document.getElementById('login-username')?.value.trim().toLowerCase();
+                const passwordInput = document.getElementById('login-password')?.value.trim();
 
-            const user = appState.marketing.find(m => 
-                String(m.Username || '').toLowerCase() === usernameInput && 
-                String(m.Password || '') === passwordInput
-            );
+                if (!usernameInput || !passwordInput) {
+                    window.showToast('Mohon isi Username dan Password!', 'warning');
+                    window.setButtonLoading(btnSubmit, false);
+                    return;
+                }
 
-            if (!user) {
-                window.showToast('Username atau Password salah!', 'error');
-                return;
-            }
+                const user = appState.marketing.find(m => 
+                    String(m.Username || '').toLowerCase() === usernameInput && 
+                    String(m.Password || '') === passwordInput
+                );
 
-            appState.currentUser = {
-                id: user['ID Marketing'],
-                username: user.Username,
-                nama: user.Nama,
-                role: user.Role || 'Marketing',
-                area: user.Area
-            };
+                if (!user) {
+                    window.showToast('Username atau Password salah!', 'error');
+                    window.setButtonLoading(btnSubmit, false);
+                    return;
+                }
 
-            window.saveStateToLocal();
-            document.getElementById('login-modal')?.classList.add('hidden');
-            document.getElementById('app-container')?.classList.remove('hidden');
+                appState.currentUser = {
+                    id: user['ID Marketing'],
+                    username: user.Username,
+                    nama: user.Nama,
+                    role: user.Role || 'Marketing',
+                    area: user.Area
+                };
 
-            const nameEl = document.getElementById('user-display-name');
-            const roleEl = document.getElementById('user-role-badge');
-            if (nameEl) nameEl.innerText = user.Nama;
-            if (roleEl) roleEl.innerText = user.Role || 'Marketing';
+                window.saveStateToLocal();
+                document.getElementById('login-modal')?.classList.add('hidden');
+                document.getElementById('app-container')?.classList.remove('hidden');
 
-            window.applyRoleRestrictions();
-            window.refreshAllViews();
-            
-            const firstAllowedMenu = MENU_DEFINITIONS.find(m => window.hasMenuPermission(m.key))?.key || 'sekolah';
-            window.switchTab(firstAllowedMenu);
+                const nameEl = document.getElementById('user-display-name');
+                const roleEl = document.getElementById('user-role-badge');
+                if (nameEl) nameEl.innerText = user.Nama;
+                if (roleEl) roleEl.innerText = user.Role || 'Marketing';
 
-            window.showToast(`Selamat datang kembali, ${user.Nama}!`, 'success');
+                window.applyRoleRestrictions();
+                window.refreshAllViews();
+                
+                const firstAllowedMenu = MENU_DEFINITIONS.find(m => window.hasMenuPermission(m.key))?.key || 'sekolah';
+                window.switchTab(firstAllowedMenu);
+
+                window.showToast(`Selamat datang kembali, ${user.Nama}!`, 'success');
+                window.setButtonLoading(btnSubmit, false);
+            }, 300);
         };
 
         window.handleLogout = function() {
@@ -1586,16 +1611,20 @@
         };
 
         window.fetchSyncFromGAS = async function(showToastNotif = false) {
+            if (isSyncInProgress) return;
             if (!appState.gasUrl) {
                 if (showToastNotif) window.showToast('Web App URL belum disetel.', 'warning');
                 return;
             }
+            
+            isSyncInProgress = true;
             const spinner = document.getElementById('sync-spinner');
             if (spinner) spinner.classList.add('fa-spin');
 
             try {
                 const fetchUrl = appState.gasUrl + (appState.gasUrl.includes('?') ? '&' : '?') + 'action=getInitialData';
                 const res = await fetch(fetchUrl, { redirect: 'follow' });
+                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
                 const json = await res.json();
 
                 if (json.success && json.data) {
@@ -1614,6 +1643,7 @@
                 console.error('GAS Sync error:', err);
                 if (showToastNotif) window.showToast('Gagal terhubung ke Google Sheets API.', 'error');
             } finally {
+                isSyncInProgress = false;
                 if (spinner) spinner.classList.remove('fa-spin');
             }
         };
@@ -1669,15 +1699,29 @@
             return months[Number(m)] || "Semua Bulan";
         };
 
-        window.getGlobalKpiTargets = function() {
+        window.getGlobalKpiTargets = function(mktFilterOverride) {
             const s = appState.settings;
+            const mktFilter = mktFilterOverride !== undefined ? mktFilterOverride : (appState.filterMarketing || 'ALL');
+            
+            // Hitung jumlah tim Marketing aktif (Role: 'Marketing')
+            let multiplier = 1;
+            if (mktFilter === 'ALL') {
+                const mktList = (appState.marketing || []).filter(m => m.Role && m.Role.toLowerCase() === 'marketing');
+                multiplier = mktList.length > 0 ? mktList.length : 1;
+            }
+
+            const singleCanvass = (s.targetHarian || 3) * (s.workingDays || 5) * (s.weeksMonth || 4);
+            const singlePres = Math.round(singleCanvass * ((s.ratioCanvassPres || 50) / 100));
+            const singleDeal = Math.round(singlePres * ((s.ratioPresDeal || 66.7) / 100));
+
             return {
-                targetDb: s.targetDatabase || 100,
-                targetCanvass: (s.targetHarian || 3) * (s.workingDays || 5) * (s.weeksMonth || 4),
-                targetPresentasi: Math.round(((s.targetHarian || 3) * (s.workingDays || 5) * (s.weeksMonth || 4)) * ((s.ratioCanvassPres || 50) / 100)),
-                targetDeal: Math.round((Math.round(((s.targetHarian || 3) * (s.workingDays || 5) * (s.weeksMonth || 4)) * ((s.ratioCanvassPres || 50) / 100))) * ((s.ratioPresDeal || 66.7) / 100)),
-                targetRevenue: s.targetRevenue || 500000000,
-                belumDealBenchmark: 10
+                multiplier: multiplier,
+                targetDb: (s.targetDatabase || 100) * multiplier,
+                targetCanvass: singleCanvass * multiplier,
+                targetPresentasi: singlePres * multiplier,
+                targetDeal: singleDeal * multiplier,
+                targetRevenue: (s.targetRevenue || 500000000) * multiplier,
+                belumDealBenchmark: 10 * multiplier
             };
         };
 
@@ -1778,47 +1822,54 @@
 
         window.handleSaveActivity = async function(e) {
             if (e) e.preventDefault();
-            const date = document.getElementById('act-date').value;
-            const mkt = document.getElementById('act-mkt').value;
-            const sekolah = document.getElementById('act-sekolah').value;
-            const media = document.getElementById('act-media').value;
-            const jenis = document.getElementById('act-jenis').value;
-            const status = document.getElementById('act-status').value;
-            const progress = document.getElementById('act-progress').value.trim();
-            const nominalVal = document.getElementById('act-nominal')?.value || '';
-            const nominal = Number(nominalVal.replace(/[^0-9]/g, '')) || 0;
-            const gpsAddr = document.getElementById('act-gps-address').value.trim();
-            const coords = document.getElementById('act-coords').value;
-            const foto = document.getElementById('act-foto-base64').value;
+            const btnSave = document.getElementById('btn-save-activity');
+            window.setButtonLoading(btnSave, true, 'Menyimpan...');
 
-            if (!date || !sekolah || !progress) {
-                window.showToast('Mohon lengkapi data wajib!', 'warning');
-                return;
+            try {
+                const date = document.getElementById('act-date').value;
+                const mkt = document.getElementById('act-mkt').value;
+                const sekolah = document.getElementById('act-sekolah').value;
+                const media = document.getElementById('act-media').value;
+                const jenis = document.getElementById('act-jenis').value;
+                const status = document.getElementById('act-status').value;
+                const progress = document.getElementById('act-progress').value.trim();
+                const nominalVal = document.getElementById('act-nominal')?.value || '';
+                const nominal = Number(nominalVal.replace(/[^0-9]/g, '')) || 0;
+                const gpsAddr = document.getElementById('act-gps-address').value.trim();
+                const coords = document.getElementById('act-coords').value;
+                const foto = document.getElementById('act-foto-base64').value;
+
+                if (!date || !sekolah || !progress) {
+                    window.showToast('Mohon lengkapi data wajib!', 'warning');
+                    return;
+                }
+
+                const newAct = {
+                    'ID Activity': 'ACT-' + Date.now().toString().slice(-5),
+                    'Tanggal Kunjungan': date,
+                    'Nama Marketing': mkt,
+                    'Nama Sekolah': sekolah,
+                    'Media Marketing': media,
+                    'Aktivitas': jenis,
+                    'Tahapan Marketing': jenis,
+                    'Status': status,
+                    'Hasil Kunjungan': progress,
+                    'Lokasi GPS': gpsAddr || 'Lokasi Kunjungan',
+                    'Coords': coords,
+                    'Foto': foto,
+                    'Nominal Deal': nominal
+                };
+
+                appState.activity.push(newAct);
+
+                window.saveStateToLocal();
+                window.closeModalActivity();
+                window.refreshAllViews();
+                window.showToast('Daily activity kunjungan berhasil disimpan!', 'success');
+                window.apiCall('saveActivity', newAct);
+            } finally {
+                window.setButtonLoading(btnSave, false);
             }
-
-            const newAct = {
-                'ID Activity': 'ACT-' + Date.now().toString().slice(-5),
-                'Tanggal Kunjungan': date,
-                'Nama Marketing': mkt,
-                'Nama Sekolah': sekolah,
-                'Media Marketing': media,
-                'Aktivitas': jenis,
-                'Tahapan Marketing': jenis,
-                'Status': status,
-                'Hasil Kunjungan': progress,
-                'Lokasi GPS': gpsAddr || 'Lokasi Kunjungan',
-                'Coords': coords,
-                'Foto': foto,
-                'Nominal Deal': nominal
-            };
-
-            appState.activity.push(newAct);
-
-            window.saveStateToLocal();
-            window.closeModalActivity();
-            window.refreshAllViews();
-            window.showToast('Daily activity kunjungan berhasil disimpan!', 'success');
-            window.apiCall('saveActivity', newAct);
         };
 
         window.deleteActivity = function(id) {
@@ -1846,12 +1897,14 @@
             const today = new Date();
             const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
+            const frag = document.createDocumentFragment();
+
             for (let i = firstDayIndex - 1; i >= 0; i--) {
                 const dayNum = prevMonthDays - i;
                 const cell = document.createElement('div');
                 cell.className = 'min-h-[100px] p-2 bg-slate-900/30 text-slate-600 text-xs flex flex-col justify-between opacity-50';
                 cell.innerHTML = `<span class="font-bold">${dayNum}</span>`;
-                gridEl.appendChild(cell);
+                frag.appendChild(cell);
             }
 
             for (let day = 1; day <= daysInMonth; day++) {
@@ -1884,7 +1937,7 @@
                     </div>
                     <div class="space-y-1 mt-1 overflow-y-auto max-h-[70px] custom-scrollbar">${eventsHtml}</div>
                 `;
-                gridEl.appendChild(cell);
+                frag.appendChild(cell);
             }
 
             const totalCells = firstDayIndex + daysInMonth;
@@ -1893,8 +1946,10 @@
                 const cell = document.createElement('div');
                 cell.className = 'min-h-[100px] p-2 bg-slate-900/30 text-slate-600 text-xs flex flex-col justify-between opacity-50';
                 cell.innerHTML = `<span class="font-bold">${day}</span>`;
-                gridEl.appendChild(cell);
+                frag.appendChild(cell);
             }
+
+            gridEl.appendChild(frag);
         };
 
         window.getComputedPipeline = function() {
@@ -2170,22 +2225,29 @@
                 return;
             }
 
-            const roleSelect = document.getElementById('role-access-select');
-            const targetRole = roleSelect ? roleSelect.value : 'Owner';
+            const btnSave = document.getElementById('btn-save-role-permissions');
+            window.setButtonLoading(btnSave, true, 'Menyimpan...');
 
-            const selectedMenus = Array.from(document.querySelectorAll('input[name="role_menu_perm"]:checked')).map(cb => cb.value);
-            const selectedActions = Array.from(document.querySelectorAll('input[name="role_action_perm"]:checked')).map(cb => cb.value);
+            try {
+                const roleSelect = document.getElementById('role-access-select');
+                const targetRole = roleSelect ? roleSelect.value : 'Owner';
 
-            if (!appState.settings.rolePermissions) appState.settings.rolePermissions = {};
-            appState.settings.rolePermissions[targetRole] = {
-                menus: selectedMenus,
-                actions: selectedActions
-            };
+                const selectedMenus = Array.from(document.querySelectorAll('input[name="role_menu_perm"]:checked')).map(cb => cb.value);
+                const selectedActions = Array.from(document.querySelectorAll('input[name="role_action_perm"]:checked')).map(cb => cb.value);
 
-            window.saveStateToLocal();
-            window.refreshAllViews();
-            window.showToast(`Hak akses untuk Role ${targetRole} berhasil diperbarui!`, 'success');
-            window.apiCall('saveSettings', appState.settings);
+                if (!appState.settings.rolePermissions) appState.settings.rolePermissions = {};
+                appState.settings.rolePermissions[targetRole] = {
+                    menus: selectedMenus,
+                    actions: selectedActions
+                };
+
+                window.saveStateToLocal();
+                window.refreshAllViews();
+                window.showToast(`Hak akses untuk Role ${targetRole} berhasil diperbarui!`, 'success');
+                window.apiCall('saveSettings', appState.settings);
+            } finally {
+                window.setButtonLoading(btnSave, false);
+            }
         };
 
         window.populateDropdowns = function() {
@@ -2279,7 +2341,7 @@
             const yr = appState.filterYear;
             const mo = appState.filterMonth;
             const mktFilter = appState.filterMarketing || 'ALL';
-            const globalTargets = window.getGlobalKpiTargets();
+            const globalTargets = window.getGlobalKpiTargets(mktFilter);
 
             const filteredActivities = appState.activity.filter(a => {
                 if (!a['Tanggal Kunjungan']) return false;
@@ -2501,6 +2563,7 @@
 
             const canEdit = window.hasActionPermission('edit');
             const canDelete = window.hasActionPermission('hapus');
+            const frag = document.createDocumentFragment();
 
             filtered.forEach(s => {
                 const tr = document.createElement('tr');
@@ -2529,8 +2592,9 @@
                         <div class="flex justify-center gap-1">${actionsHtml}</div>
                     </td>
                 `;
-                tbody.appendChild(tr);
+                frag.appendChild(tr);
             });
+            tbody.appendChild(frag);
         };
 
         let activeSekolahDeleteId = null;
@@ -2561,37 +2625,44 @@
 
         window.handleSaveSekolah = async function(e) {
             e.preventDefault();
-            const id = document.getElementById('sekolah-id').value || 'SCH-' + Date.now().toString().slice(-4);
-            const newItem = {
-                ID: id,
-                'Nama Sekolah': document.getElementById('sekolah-nama').value.trim(),
-                Jenjang: document.getElementById('sekolah-jenjang').value,
-                Wilayah: document.getElementById('sekolah-wilayah').value.trim(),
-                Alamat: document.getElementById('sekolah-alamat').value.trim(),
-                'Nama PIC': document.getElementById('sekolah-pic').value.trim(),
-                'Nomor WhatsApp': document.getElementById('sekolah-wa').value.trim(),
-                'Nama Marketing': document.getElementById('sekolah-mkt').value
-            };
+            const btnSave = document.getElementById('btn-save-sekolah');
+            window.setButtonLoading(btnSave, true, 'Menyimpan...');
 
-            const existingSchool = appState.sekolah.find(s => 
-                s['Nama Sekolah'].trim().toLowerCase() === newItem['Nama Sekolah'].toLowerCase() && 
-                s.ID !== id
-            );
+            try {
+                const id = document.getElementById('sekolah-id').value || 'SCH-' + Date.now().toString().slice(-4);
+                const newItem = {
+                    ID: id,
+                    'Nama Sekolah': document.getElementById('sekolah-nama').value.trim(),
+                    Jenjang: document.getElementById('sekolah-jenjang').value,
+                    Wilayah: document.getElementById('sekolah-wilayah').value.trim(),
+                    Alamat: document.getElementById('sekolah-alamat').value.trim(),
+                    'Nama PIC': document.getElementById('sekolah-pic').value.trim(),
+                    'Nomor WhatsApp': document.getElementById('sekolah-wa').value.trim(),
+                    'Nama Marketing': document.getElementById('sekolah-mkt').value
+                };
 
-            if (existingSchool && existingSchool['Nama Marketing'] && existingSchool['Nama Marketing'].trim().toLowerCase() !== newItem['Nama Marketing'].trim().toLowerCase()) {
-                window.showToast('⚠️ Sekolah Dalam Penanganan Marketing Lain.', 'warning');
-                return;
+                const existingSchool = appState.sekolah.find(s => 
+                    s['Nama Sekolah'].trim().toLowerCase() === newItem['Nama Sekolah'].toLowerCase() && 
+                    s.ID !== id
+                );
+
+                if (existingSchool && existingSchool['Nama Marketing'] && existingSchool['Nama Marketing'].trim().toLowerCase() !== newItem['Nama Marketing'].trim().toLowerCase()) {
+                    window.showToast('⚠️ Sekolah Dalam Penanganan Marketing Lain.', 'warning');
+                    return;
+                }
+
+                const idx = appState.sekolah.findIndex(s => s.ID === id);
+                if (idx >= 0) appState.sekolah[idx] = newItem;
+                else appState.sekolah.push(newItem);
+
+                window.saveStateToLocal();
+                window.closeModalSekolah();
+                window.refreshAllViews();
+                window.showToast('Data sekolah berhasil disimpan!', 'success');
+                window.apiCall('saveSekolah', newItem);
+            } finally {
+                window.setButtonLoading(btnSave, false);
             }
-
-            const idx = appState.sekolah.findIndex(s => s.ID === id);
-            if (idx >= 0) appState.sekolah[idx] = newItem;
-            else appState.sekolah.push(newItem);
-
-            window.saveStateToLocal();
-            window.closeModalSekolah();
-            window.refreshAllViews();
-            window.showToast('Data sekolah berhasil disimpan!', 'success');
-            window.apiCall('saveSekolah', newItem);
         };
 
         window.promptDeleteSekolah = function(id) {
@@ -2603,13 +2674,20 @@
 
         window.executeDeleteSekolah = function() {
             if (!activeSekolahDeleteId) return;
-            appState.sekolah = appState.sekolah.filter(s => s.ID !== activeSekolahDeleteId);
-            window.saveStateToLocal();
-            window.closeConfirmDeleteSekolahModal();
-            window.refreshAllViews();
-            window.showToast('Sekolah berhasil dihapus!', 'info');
-            window.apiCall('deleteSekolah', { ID: activeSekolahDeleteId });
-            activeSekolahDeleteId = null;
+            const btnExec = document.getElementById('btn-exec-delete-sekolah');
+            window.setButtonLoading(btnExec, true, 'Menghapus...');
+
+            try {
+                appState.sekolah = appState.sekolah.filter(s => s.ID !== activeSekolahDeleteId);
+                window.saveStateToLocal();
+                window.closeConfirmDeleteSekolahModal();
+                window.refreshAllViews();
+                window.showToast('Sekolah berhasil dihapus!', 'info');
+                window.apiCall('deleteSekolah', { ID: activeSekolahDeleteId });
+                activeSekolahDeleteId = null;
+            } finally {
+                window.setButtonLoading(btnExec, false);
+            }
         };
 
         window.renderDailyActivityTable = function() {
@@ -2632,6 +2710,7 @@
             }
 
             const canDelete = window.hasActionPermission('hapus');
+            const frag = document.createDocumentFragment();
 
             filtered.forEach(a => {
                 const tr = document.createElement('tr');
@@ -2653,8 +2732,9 @@
                         ${canDelete ? `<button onclick="window.deleteActivity('${String(a['ID Activity'] || '')}')" class="p-1.5 bg-slate-800 hover:bg-rose-900/50 text-rose-400 rounded"><i class="fa-solid fa-trash-can"></i></button>` : '<span class="text-slate-500 text-[10px]">-</span>'}
                     </td>
                 `;
-                tbody.appendChild(tr);
+                frag.appendChild(tr);
             });
+            tbody.appendChild(frag);
         };
 
         window.openModalActivity = function() {
@@ -2736,32 +2816,39 @@
 
         window.handleSaveCalendarEvent = function(e) {
             e.preventDefault();
-            const date = document.getElementById('cal-event-date').value;
-            const time = document.getElementById('cal-event-time').value;
-            const title = document.getElementById('cal-event-title').value.trim();
-            const desc = document.getElementById('cal-event-desc').value.trim();
+            const btnSave = document.getElementById('btn-save-cal-event');
+            window.setButtonLoading(btnSave, true, 'Menyimpan...');
 
-            if (!date || !title) {
-                window.showToast('Tanggal dan Judul Wajib diisi!', 'warning');
-                return;
+            try {
+                const date = document.getElementById('cal-event-date').value;
+                const time = document.getElementById('cal-event-time').value;
+                const title = document.getElementById('cal-event-title').value.trim();
+                const desc = document.getElementById('cal-event-desc').value.trim();
+
+                if (!date || !title) {
+                    window.showToast('Tanggal dan Judul Wajib diisi!', 'warning');
+                    return;
+                }
+
+                const newEvent = {
+                    ID: 'EVT-' + Date.now().toString().slice(-5),
+                    Tanggal: date,
+                    Jam: time,
+                    Judul: title,
+                    Keterangan: desc,
+                    CreatedBy: appState.currentUser?.nama || 'Marketing'
+                };
+
+                if (!appState.calendarEvents) appState.calendarEvents = [];
+                appState.calendarEvents.push(newEvent);
+
+                window.saveStateToLocal();
+                window.closeModalCalendarEvent();
+                window.refreshAllViews();
+                window.showToast('Jadwal kalender berhasil disimpan & dimasukkan ke Notifikasi!', 'success');
+            } finally {
+                window.setButtonLoading(btnSave, false);
             }
-
-            const newEvent = {
-                ID: 'EVT-' + Date.now().toString().slice(-5),
-                Tanggal: date,
-                Jam: time,
-                Judul: title,
-                Keterangan: desc,
-                CreatedBy: appState.currentUser?.nama || 'Marketing'
-            };
-
-            if (!appState.calendarEvents) appState.calendarEvents = [];
-            appState.calendarEvents.push(newEvent);
-
-            window.saveStateToLocal();
-            window.closeModalCalendarEvent();
-            window.refreshAllViews();
-            window.showToast('Jadwal kalender berhasil disimpan & dimasukkan ke Notifikasi!', 'success');
         };
 
         window.deleteCalendarEvent = function(id) {
@@ -2786,6 +2873,8 @@
                 return;
             }
 
+            const frag = document.createDocumentFragment();
+
             calEvents.forEach(ev => {
                 const card = document.createElement('div');
                 card.className = 'glass-panel p-4 border border-indigo-500/40 flex items-start gap-3 bg-indigo-950/20';
@@ -2803,7 +2892,7 @@
                         <span class="text-[10px] text-slate-500 block">Dibuat oleh: ${ev.CreatedBy || '-'}</span>
                     </div>
                 `;
-                container.appendChild(card);
+                frag.appendChild(card);
             });
 
             alerts.forEach(al => {
@@ -2822,8 +2911,10 @@
                         <span class="text-[10px] text-slate-500 block">Marketing: ${al['Nama Marketing']}</span>
                     </div>
                 `;
-                container.appendChild(card);
+                frag.appendChild(card);
             });
+
+            container.appendChild(frag);
 
             const totalNotifs = alerts.length + calEvents.length;
             const badge = document.getElementById('notif-badge');
@@ -2970,34 +3061,48 @@
         };
 
         window.saveGeneralSettings = function() {
-            appState.settings.companyName = document.getElementById('setting-company-name').value.trim();
-            const logoVal = document.getElementById('setting-logo-base64')?.value || '';
-            appState.settings.logoUrl = logoVal;
+            const btnSave = document.getElementById('btn-save-gen-settings');
+            window.setButtonLoading(btnSave, true, 'Menyimpan...');
 
-            window.saveStateToLocal();
-            window.refreshAllViews();
-            window.showToast('Pengaturan profil perusahaan disimpan!', 'success');
-            window.apiCall('saveSettings', appState.settings);
+            try {
+                appState.settings.companyName = document.getElementById('setting-company-name').value.trim();
+                const logoVal = document.getElementById('setting-logo-base64')?.value || '';
+                appState.settings.logoUrl = logoVal;
+
+                window.saveStateToLocal();
+                window.refreshAllViews();
+                window.showToast('Pengaturan profil perusahaan disimpan!', 'success');
+                window.apiCall('saveSettings', appState.settings);
+            } finally {
+                window.setButtonLoading(btnSave, false);
+            }
         };
 
         window.saveKpiDashboardSettings = function() {
-            const rawRev = document.getElementById('cfg-target-revenue-val').value;
-            const revNum = Number(rawRev.replace(/[^0-9]/g, '')) || 500000000;
+            const btnSave = document.getElementById('btn-save-kpi-settings');
+            window.setButtonLoading(btnSave, true, 'Menyimpan...');
 
-            appState.settings.targetDatabase = Number(document.getElementById('cfg-target-db').value) || 100;
-            appState.settings.targetHarian = Number(document.getElementById('cfg-target-harian-val').value) || 3;
-            appState.settings.workingDays = Number(document.getElementById('cfg-working-days').value) || 5;
-            appState.settings.weeksMonth = Number(document.getElementById('cfg-weeks-month').value) || 4;
-            appState.settings.ratioDbCanvass = Number(document.getElementById('cfg-ratio-db-canvass').value) || 60;
-            appState.settings.ratioCanvassPres = Number(document.getElementById('cfg-ratio-canvass-pres').value) || 50;
-            appState.settings.ratioPresDeal = Number(document.getElementById('cfg-ratio-pres-deal').value) || 66.7;
-            appState.settings.targetRevenue = revNum;
-            appState.settings.formulaRevenue = document.getElementById('cfg-formula-revenue').value;
+            try {
+                const rawRev = document.getElementById('cfg-target-revenue-val').value;
+                const revNum = Number(rawRev.replace(/[^0-9]/g, '')) || 500000000;
 
-            window.saveStateToLocal();
-            window.refreshAllViews();
-            window.showToast('Pengaturan Dashboard KPI diselaraskan secara global!', 'success');
-            window.apiCall('saveSettings', appState.settings);
+                appState.settings.targetDatabase = Number(document.getElementById('cfg-target-db').value) || 100;
+                appState.settings.targetHarian = Number(document.getElementById('cfg-target-harian-val').value) || 3;
+                appState.settings.workingDays = Number(document.getElementById('cfg-working-days').value) || 5;
+                appState.settings.weeksMonth = Number(document.getElementById('cfg-weeks-month').value) || 4;
+                appState.settings.ratioDbCanvass = Number(document.getElementById('cfg-ratio-db-canvass').value) || 60;
+                appState.settings.ratioCanvassPres = Number(document.getElementById('cfg-ratio-canvass-pres').value) || 50;
+                appState.settings.ratioPresDeal = Number(document.getElementById('cfg-ratio-pres-deal').value) || 66.7;
+                appState.settings.targetRevenue = revNum;
+                appState.settings.formulaRevenue = document.getElementById('cfg-formula-revenue').value;
+
+                window.saveStateToLocal();
+                window.refreshAllViews();
+                window.showToast('Pengaturan Dashboard KPI diselaraskan secara global!', 'success');
+                window.apiCall('saveSettings', appState.settings);
+            } finally {
+                window.setButtonLoading(btnSave, false);
+            }
         };
 
         window.resetKpiDashboardSettingsToDefault = function() {
@@ -3024,13 +3129,33 @@
             const canEdit = window.hasActionPermission('manage_users') || window.hasActionPermission('edit');
             const canDelete = window.hasActionPermission('manage_users') || window.hasActionPermission('hapus');
 
+            const activeYear = appState.filterYear;
+            const activeMonth = appState.filterMonth;
+            const globalTargetRevenue = appState.settings.targetRevenue || 500000000;
+
+            const frag = document.createDocumentFragment();
+
             appState.marketing.forEach(m => {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-800/40 transition';
 
                 const mktName = String(m.Nama || '');
-                const mktAchieved = appState.activity.filter(a => String(a['Nama Marketing'] || '') === mktName && String(a.Aktivitas || '').toLowerCase() === 'deal')
-                    .reduce((acc, curr) => acc + (Number(curr['Nominal Deal']) || 0), 0);
+                const roleName = String(m.Role || 'Marketing');
+
+                // Compute exact period achievements from Deal activities
+                const mktAchieved = appState.activity.filter(a => {
+                    const isMktMatch = String(a['Nama Marketing'] || '') === mktName;
+                    const isDeal = String(a.Aktivitas || '').toLowerCase() === 'deal';
+                    if (!isMktMatch || !isDeal || !a['Tanggal Kunjungan']) return false;
+
+                    const d = new Date(a['Tanggal Kunjungan']);
+                    const matchesYr = d.getFullYear().toString() === activeYear;
+                    const matchesMo = activeMonth === '0' || (d.getMonth() + 1).toString() === activeMonth;
+                    return matchesYr && matchesMo;
+                }).reduce((acc, curr) => acc + (Number(curr['Nominal Deal']) || 0), 0);
+
+                // Target Revenue display rules: Owner & HR show "-", Marketing shows synced KPI target
+                const targetRevenueDisplay = (roleName === 'Owner' || roleName === 'HR') ? '-' : window.formatRupiah(globalTargetRevenue);
 
                 const rawWa = m['Nomor WhatsApp'] != null ? String(m['Nomor WhatsApp']) : '';
 
@@ -3045,15 +3170,17 @@
                     <td class="p-3 font-semibold text-indigo-300">${mktName || '-'}</td>
                     <td class="p-3 text-slate-300">${rawWa || '-'}</td>
                     <td class="p-3 text-slate-400">${String(m.Area || '-')}</td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-${m.Role==='Owner'?'purple':(m.Role==='HR'?'amber':'indigo')}-500/20 text-${m.Role==='Owner'?'purple':(m.Role==='HR'?'amber':'indigo')}-300">${String(m.Role || 'Marketing')}</span></td>
-                    <td class="p-3 font-medium text-slate-300">${window.formatRupiah(m['Target Deal Bulanan'] || 500000000)}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-${roleName==='Owner'?'purple':(roleName==='HR'?'amber':'indigo')}-500/20 text-${roleName==='Owner'?'purple':(roleName==='HR'?'amber':'indigo')}-300">${roleName}</span></td>
+                    <td class="p-3 font-medium text-slate-300">${targetRevenueDisplay}</td>
                     <td class="p-3 font-bold text-emerald-400">${window.formatRupiah(mktAchieved)}</td>
                     <td class="p-3 text-center">
                         <div class="flex justify-center gap-1">${actionsHtml}</div>
                     </td>
                 `;
-                tbody.appendChild(tr);
+                frag.appendChild(tr);
             });
+
+            tbody.appendChild(frag);
         };
 
         let activeMktDeleteId = null;
@@ -3082,27 +3209,36 @@
 
         window.handleSaveMarketing = async function(e) {
             e.preventDefault();
-            const id = document.getElementById('mkt-id').value || 'MKT-' + Date.now().toString().slice(-3);
-            const newMkt = {
-                'ID Marketing': id,
-                Username: document.getElementById('mkt-username').value.trim(),
-                Password: document.getElementById('mkt-password').value.trim(),
-                Nama: document.getElementById('mkt-nama').value.trim(),
-                'Nomor WhatsApp': document.getElementById('mkt-wa').value.trim(),
-                Area: document.getElementById('mkt-area').value.trim(),
-                Role: document.getElementById('mkt-role').value,
-                'Target Deal Bulanan': 500000000
-            };
+            const btnSave = document.getElementById('btn-save-marketing');
+            window.setButtonLoading(btnSave, true, 'Menyimpan...');
 
-            const idx = appState.marketing.findIndex(m => m['ID Marketing'] === id);
-            if (idx >= 0) appState.marketing[idx] = newMkt;
-            else appState.marketing.push(newMkt);
+            try {
+                const id = document.getElementById('mkt-id').value || 'MKT-' + Date.now().toString().slice(-3);
+                const newMkt = {
+                    'ID Marketing': id,
+                    Username: document.getElementById('mkt-username').value.trim(),
+                    Password: document.getElementById('mkt-password').value.trim(),
+                    Nama: document.getElementById('mkt-nama').value.trim(),
+                    'Nomor WhatsApp': document.getElementById('mkt-wa').value.trim(),
+                    Area: document.getElementById('mkt-area').value.trim(),
+                    Role: document.getElementById('mkt-role').value,
+                    'Target Deal Bulanan': appState.settings.targetRevenue || 500000000
+                };
 
-            window.saveStateToLocal();
-            window.closeModalMarketing();
-            window.refreshAllViews();
-            window.showToast('Akun marketing berhasil disimpan!', 'success');
-            window.apiCall('saveMarketing', newMkt);
+                const idx = appState.marketing.findIndex(m => m['ID Marketing'] === id);
+                if (idx >= 0) appState.marketing[idx] = newMkt;
+                else appState.marketing.push(newMkt);
+
+                window.saveStateToLocal();
+                window.closeModalMarketing();
+                window.refreshAllViews();
+                window.showToast('Data berhasil disimpan.', 'success');
+                window.apiCall('saveMarketing', newMkt);
+            } catch (err) {
+                window.showToast('Gagal menyimpan data marketing!', 'error');
+            } finally {
+                window.setButtonLoading(btnSave, false);
+            }
         };
 
         window.promptDeleteMarketing = function(id) {
@@ -3114,13 +3250,20 @@
 
         window.executeDeleteMarketing = function() {
             if (!activeMktDeleteId) return;
-            appState.marketing = appState.marketing.filter(m => m['ID Marketing'] !== activeMktDeleteId);
-            window.saveStateToLocal();
-            window.closeConfirmDeleteMktModal();
-            window.refreshAllViews();
-            window.showToast('Akun marketing dihapus!', 'info');
-            window.apiCall('deleteMarketing', { ID: activeMktDeleteId });
-            activeMktDeleteId = null;
+            const btnExec = document.getElementById('btn-exec-delete-mkt');
+            window.setButtonLoading(btnExec, true, 'Menghapus...');
+
+            try {
+                appState.marketing = appState.marketing.filter(m => m['ID Marketing'] !== activeMktDeleteId);
+                window.saveStateToLocal();
+                window.closeConfirmDeleteMktModal();
+                window.refreshAllViews();
+                window.showToast('Akun marketing dihapus!', 'info');
+                window.apiCall('deleteMarketing', { ID: activeMktDeleteId });
+                activeMktDeleteId = null;
+            } finally {
+                window.setButtonLoading(btnExec, false);
+            }
         };
 
         window.handleBackupDatabase = function() {
@@ -3198,9 +3341,9 @@
             doc.text("Laporan Dashboard KPI Performa Marketing", 14, 15);
             doc.setFontSize(10);
             doc.text(`Perusahaan: ${appState.settings.companyName}`, 14, 22);
-            doc.text(`Filter Tahun: ${appState.filterYear} | Bulan: ${window.getMonthName(appState.filterMonth)}`, 14, 28);
+            doc.text(`Filter Tahun: ${appState.filterYear} | Bulan: ${window.getMonthName(appState.filterMonth)} | Marketing: ${appState.filterMarketing}`, 14, 28);
 
-            const targets = window.getGlobalKpiTargets();
+            const targets = window.getGlobalKpiTargets(appState.filterMarketing);
             const summary = [
                 ['Target Database Sekolah', `${targets.targetDb} Sekolah`],
                 ['Target Canvassing Bulanan', `${targets.targetCanvass} Sesi`],
@@ -3211,7 +3354,7 @@
 
             doc.autoTable({
                 startY: 34,
-                head: [['Metrik Target Global', 'Nilai Config']],
+                head: [['Metrik Target Global' + (targets.multiplier > 1 ? ` (${targets.multiplier} Marketing)` : ''), 'Nilai Config']],
                 body: summary
             });
             doc.save(`Dashboard_KPI_Report_${new Date().toISOString().split('T')[0]}.pdf`);
