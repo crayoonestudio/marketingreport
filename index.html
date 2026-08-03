@@ -1585,13 +1585,44 @@
         };
 
         window.saveGasUrlConfig = function() {
-            let url = document.getElementById('input-gas-url')?.value.trim() || '';
-            if (url.includes('/dev')) url = url.replace('/dev', '/exec');
+            let inputEl = document.getElementById('input-gas-url');
+            let url = inputEl ? inputEl.value.trim() : '';
+
+            // Hapus tanda kutip pembuka/penutup dan spasi jika terikut saat copy-paste
+            url = url.replace(/^["']|["']$/g, '').trim();
+
+            // Ekstraksi otomatis URL script.google.com jika menyalin teks tambahan
+            const match = url.match(/(https:\/\/script\.google\.com\/[^\s"']+)/);
+            if (match) {
+                url = match[1];
+            }
+            
+            if (!url) {
+                window.showToast('Mohon masukkan Web App URL Google Apps Script!', 'warning');
+                return;
+            }
+
+            // Deteksi jika pengguna menempelkan URL Google Sheets biasa
+            if (url.includes('docs.google.com')) {
+                window.showToast('Ini URL Google Sheets! Harap masukkan Web App URL dari menu Deploy -> Web app di Apps Script.', 'warning');
+                return;
+            }
+
+            if (url.includes('/dev')) {
+                url = url.replace('/dev', '/exec');
+            }
+
+            if (!url.startsWith('https://script.google.com/')) {
+                window.showToast('Format Web App URL tidak valid! Harus diawali https://script.google.com/', 'warning');
+                return;
+            }
+
             appState.gasUrl = url;
+            if (inputEl) inputEl.value = url;
             window.saveStateToLocal();
             document.getElementById('config-modal')?.classList.add('hidden');
-            window.showToast('Web App URL berhasil disimpan!', 'success');
-            if (url) window.fetchSyncFromGAS(true);
+            window.showToast('Web App URL berhasil disimpan & terhubung!', 'success');
+            window.fetchSyncFromGAS(true);
         };
 
         window.apiCall = async function(action, payload = {}) {
@@ -1613,7 +1644,7 @@
         window.fetchSyncFromGAS = async function(showToastNotif = false) {
             if (isSyncInProgress) return;
             if (!appState.gasUrl || !appState.gasUrl.startsWith('https://script.google.com/')) {
-                if (showToastNotif) window.showToast('Web App URL belum disetel atau tidak valid.', 'warning');
+                if (showToastNotif) window.showToast('Web App URL belum disetel. Silakan masukkan Web App URL Google Apps Script.', 'warning');
                 return;
             }
             
@@ -1648,8 +1679,6 @@
                 console.warn('GAS Sync warning:', err.message || err);
                 if (showToastNotif) {
                     window.showToast(err.message || 'Gagal terhubung ke Google Sheets API.', 'error');
-                } else {
-                    window.showToast('Gagal terhubung ke Google Sheets (404/Offline). Memakai data lokal.', 'warning');
                 }
             } finally {
                 isSyncInProgress = false;
