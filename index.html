@@ -1612,8 +1612,8 @@
 
         window.fetchSyncFromGAS = async function(showToastNotif = false) {
             if (isSyncInProgress) return;
-            if (!appState.gasUrl) {
-                if (showToastNotif) window.showToast('Web App URL belum disetel.', 'warning');
+            if (!appState.gasUrl || !appState.gasUrl.startsWith('https://script.google.com/')) {
+                if (showToastNotif) window.showToast('Web App URL belum disetel atau tidak valid.', 'warning');
                 return;
             }
             
@@ -1624,7 +1624,12 @@
             try {
                 const fetchUrl = appState.gasUrl + (appState.gasUrl.includes('?') ? '&' : '?') + 'action=getInitialData';
                 const res = await fetch(fetchUrl, { redirect: 'follow' });
-                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+                if (!res.ok) {
+                    if (res.status === 404) {
+                        throw new Error('URL Web App tidak ditemukan (404). Periksa kembali Web App URL Google Apps Script Anda.');
+                    }
+                    throw new Error(`HTTP Error: ${res.status}`);
+                }
                 const json = await res.json();
 
                 if (json.success && json.data) {
@@ -1640,8 +1645,12 @@
                     window.showToast(json.message || 'Gagal sinkronisasi data.', 'error');
                 }
             } catch (err) {
-                console.error('GAS Sync error:', err);
-                if (showToastNotif) window.showToast('Gagal terhubung ke Google Sheets API.', 'error');
+                console.warn('GAS Sync warning:', err.message || err);
+                if (showToastNotif) {
+                    window.showToast(err.message || 'Gagal terhubung ke Google Sheets API.', 'error');
+                } else {
+                    window.showToast('Gagal terhubung ke Google Sheets (404/Offline). Memakai data lokal.', 'warning');
+                }
             } finally {
                 isSyncInProgress = false;
                 if (spinner) spinner.classList.remove('fa-spin');
@@ -1788,7 +1797,7 @@
                 document.getElementById('app-container')?.classList.add('hidden');
             }
 
-            if (appState.gasUrl) {
+            if (appState.gasUrl && appState.gasUrl.startsWith('https://script.google.com/')) {
                 window.fetchSyncFromGAS(false);
             }
         };
