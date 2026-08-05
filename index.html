@@ -2355,20 +2355,92 @@
         };
 
         window.refreshAllViews = function() {
-            if (appState.settings.companyName) document.getElementById('app-company-name').innerText = appState.settings.companyName;
-            window.updateHeaderCompanyLogo();
-            window.applyRoleRestrictions();
-            window.populateDropdowns();
-            window.renderDashboardKPIs();
-            window.renderCharts();
-            window.renderWidgets();
-            window.renderTableSekolah();
-            window.renderDailyActivityTable();
-            window.renderCalendar();
-            window.renderKanbanBoard();
-            window.renderNotifications();
-            window.renderMarketingTable();
-            window.renderKpiConfigSection();
+            if (appState.settings && appState.settings.companyName) {
+                const nameEl = document.getElementById('app-company-name');
+                if (nameEl) nameEl.innerText = appState.settings.companyName;
+            }
+            if (typeof window.updateHeaderCompanyLogo === 'function') window.updateHeaderCompanyLogo();
+            if (typeof window.applyRoleRestrictions === 'function') window.applyRoleRestrictions();
+            if (typeof window.populateDropdowns === 'function') window.populateDropdowns();
+            if (typeof window.renderDashboardKPIs === 'function') window.renderDashboardKPIs();
+            if (typeof window.renderCharts === 'function') window.renderCharts();
+            if (typeof window.renderWidgets === 'function') window.renderWidgets();
+            if (typeof window.renderTableSekolah === 'function') window.renderTableSekolah();
+            if (typeof window.renderDailyActivityTable === 'function') window.renderDailyActivityTable();
+            if (typeof window.renderCalendar === 'function') window.renderCalendar();
+            if (typeof window.renderKanbanBoard === 'function') window.renderKanbanBoard();
+            if (typeof window.renderNotifications === 'function') window.renderNotifications();
+            if (typeof window.renderMarketingTable === 'function') window.renderMarketingTable();
+            if (typeof window.renderKpiConfigSection === 'function') window.renderKpiConfigSection();
+        };
+
+        window.renderNotifications = function() {
+            const container = document.getElementById('notifications-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const mktFilter = appState.filterMarketing || 'ALL';
+            const alerts = (appState.pipeline || []).filter(p => mktFilter === 'ALL' || p['Nama Marketing'] === mktFilter);
+            const calEvents = (appState.calendarEvents || []);
+
+            if (alerts.length === 0 && calEvents.length === 0) {
+                container.innerHTML = '<div class="col-span-2 text-center text-slate-500 text-xs py-8">Tidak ada notifikasi aktif.</div>';
+                return;
+            }
+
+            const frag = document.createDocumentFragment();
+
+            calEvents.forEach(ev => {
+                const card = document.createElement('div');
+                card.className = 'glass-panel p-4 border border-indigo-500/40 flex items-start gap-3 bg-indigo-950/20';
+                card.innerHTML = `
+                    <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-calendar-check text-base"></i>
+                    </div>
+                    <div class="space-y-1 flex-1">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-bold text-xs text-white">${ev.Judul || '-'}</span>
+                            <span class="px-2 py-0.5 text-[9px] font-bold rounded bg-indigo-500/20 text-indigo-300">Jadwal Kalender</span>
+                        </div>
+                        <p class="text-xs text-slate-300"><i class="fa-solid fa-clock text-indigo-400 mr-1"></i>${ev.Tanggal || '-'} jam ${ev.Jam || '-'}</p>
+                        ${ev.Keterangan ? `<p class="text-[11px] text-slate-400 leading-snug">${ev.Keterangan}</p>` : ''}
+                        <span class="text-[10px] text-slate-500 block">Dibuat oleh: ${ev.CreatedBy || '-'}</span>
+                    </div>
+                `;
+                frag.appendChild(card);
+            });
+
+            alerts.forEach(al => {
+                const card = document.createElement('div');
+                card.className = 'glass-panel p-4 border border-slate-700/70 flex items-start gap-3';
+                card.innerHTML = `
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-bell text-base"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-xs text-white">${al['Nama Sekolah'] || '-'}</span>
+                            <span class="px-2 py-0.5 text-[9px] font-bold rounded bg-amber-500/20 text-amber-300">${al.Aktivitas || '-'}</span>
+                        </div>
+                        <p class="text-xs text-slate-400">Jadwal follow up berikutnya: <span class="text-amber-400 font-semibold">${al['Tanggal Follow Up'] || 'Belum diatur'}</span></p>
+                        <span class="text-[10px] text-slate-500 block">Marketing: ${al['Nama Marketing'] || '-'}</span>
+                    </div>
+                `;
+                frag.appendChild(card);
+            });
+
+            container.appendChild(frag);
+
+            const totalNotifs = alerts.length + calEvents.length;
+            const badge = document.getElementById('notif-badge');
+            if (badge) {
+                if (totalNotifs > 0) { 
+                    badge.innerText = totalNotifs; 
+                    badge.classList.remove('hidden'); 
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
         };
 
         window.renderDashboardKPIs = function() {
@@ -2722,6 +2794,102 @@
             } finally {
                 window.setButtonLoading(btnExec, false);
             }
+        };
+
+        window.renderDailyActivityTable = function() {
+            const tbody = document.getElementById('tbody-daily');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const dateFilter = String(document.getElementById('filter-act-date')?.value || '');
+            const mktFilter = String(appState.filterMarketing || 'ALL');
+
+            const filtered = appState.activity.filter(a => {
+                const matchesDate = !dateFilter || String(a['Tanggal Kunjungan'] || '') === dateFilter;
+                const matchesMkt = mktFilter === 'ALL' || String(a['Nama Marketing'] || '') === mktFilter;
+                return matchesDate && matchesMkt;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" class="p-4 text-center text-slate-500 italic text-xs">Belum ada log aktivitas harian.</td></tr>';
+                return;
+            }
+
+            const canDelete = window.hasActionPermission('hapus');
+            const frag = document.createDocumentFragment();
+
+            filtered.forEach(a => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold text-white whitespace-nowrap">${String(a['Tanggal Kunjungan'] || '-')}</td>
+                    <td class="p-3 text-indigo-300 font-medium">${String(a['Nama Marketing'] || '-')}</td>
+                    <td class="p-3 font-bold text-white">${String(a['Nama Sekolah'] || '-')}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">${String(a['Media Marketing'] || '-')}</span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300">${String(a.Aktivitas || '-')}</span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-${a.Status === 'Hot'?'rose':(a.Status==='Warm'?'amber':'blue')}-500/20 text-${a.Status === 'Hot'?'rose':(a.Status==='Warm'?'amber':'blue')}-300">${String(a.Status || '-')}</span></td>
+                    <td class="p-3 text-slate-300 max-w-xs leading-snug">${String(a['Hasil Kunjungan'] || '-')}</td>
+                    <td class="p-3 text-slate-400 text-[11px] max-w-xs truncate"><i class="fa-solid fa-location-dot text-rose-400 mr-1"></i>${String(a['Lokasi GPS'] || '-')}</td>
+                    <td class="p-3">
+                        ${a.Foto ? `<img src="${a.Foto}" class="w-10 h-10 object-cover rounded border border-slate-700">` : '<span class="text-slate-500 italic text-[10px]">No Photo</span>'}
+                    </td>
+                    <td class="p-3 font-bold text-emerald-400">${a['Nominal Deal'] ? window.formatRupiah(a['Nominal Deal']) : '-'}</td>
+                    <td class="p-3 text-center no-print">
+                        ${canDelete ? `<button onclick="window.deleteActivity('${String(a['ID Activity'] || '')}')" class="p-1.5 bg-slate-800 hover:bg-rose-900/50 text-rose-400 rounded"><i class="fa-solid fa-trash-can"></i></button>` : '<span class="text-slate-500 text-[10px]">-</span>'}
+                    </td>
+                `;
+                frag.appendChild(tr);
+            });
+            tbody.appendChild(frag);
+        };
+
+        window.openModalActivity = function() {
+            document.getElementById('form-activity')?.reset();
+            const mktInput = document.getElementById('act-mkt');
+            if (mktInput) mktInput.value = appState.currentUser?.nama || 'Budi Santoso';
+            const dateInput = document.getElementById('act-date');
+            if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+            document.getElementById('photo-preview-container')?.classList.add('hidden');
+            const statusTxt = document.getElementById('photo-status-text');
+            if (statusTxt) statusTxt.innerText = 'Belum ada foto diambil';
+            const fotoBase64 = document.getElementById('act-foto-base64');
+            if (fotoBase64) fotoBase64.value = '';
+            window.toggleNominalDealInput('Prospect');
+            document.getElementById('modal-activity')?.classList.remove('hidden');
+        };
+
+        window.closeModalActivity = function() { 
+            document.getElementById('modal-activity')?.classList.add('hidden'); 
+        };
+
+        window.toggleNominalDealInput = function(stage) {
+            const wrapper = document.getElementById('wrapper-nominal-deal');
+            if (wrapper) {
+                if (stage === 'Deal') wrapper.classList.remove('hidden');
+                else wrapper.classList.add('hidden');
+            }
+        };
+
+        window.getCurrentGpsLocation = function() {
+            if (!navigator.geolocation) { 
+                window.showToast('Geolocation tidak didukung pada browser ini.', 'error'); 
+                return; 
+            }
+            const addrInput = document.getElementById('act-gps-address');
+            if (addrInput) addrInput.value = 'Mendeteksi posisi GPS...';
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    const coordsEl = document.getElementById('act-coords');
+                    if (coordsEl) coordsEl.value = `${lat}, ${lng}`;
+                    if (addrInput) addrInput.value = `Koordinat GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                },
+                err => {
+                    if (addrInput) addrInput.value = 'Jl. M.H. Thamrin No. 1, Jakarta Pusat';
+                    window.showToast('Gagal mendapat GPS presisi, menggunakan fallback lokasi.', 'warning');
+                }
+            );
         };
 
         window.renderGpsMap = function() {
