@@ -1352,7 +1352,7 @@
         ];
 
         let appState = {
-            gasUrl: '',
+            gasUrl: 'https://script.google.com/macros/s/AKfycbwYDNOLwc2qCd2KbVWiHxP-M7XmPDfnZ63ZPh0YudWsXkGYxWbL46DZVnQFFlfRnJc/exec',
             currentUser: null,
             filterYear: '2026',
             filterMonth: '0',
@@ -2892,124 +2892,94 @@
             );
         };
 
-        window.renderGpsMap = function() {
-            const mapContainer = document.getElementById('map');
-            if (!mapContainer) return;
-
-            if (mapInstance) {
-                mapInstance.remove();
-                mapInstance = null;
+        window.prevCalendarMonth = function() {
+            activeCalendarMonth--;
+            if (activeCalendarMonth < 0) {
+                activeCalendarMonth = 11;
+                activeCalendarYear--;
             }
-
-            mapInstance = L.map('map').setView([-6.175392, 106.827153], 10);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(mapInstance);
-
-            const mktFilter = document.getElementById('gps-filter-mkt')?.value || appState.filterMarketing || 'ALL';
-            const filteredActivities = appState.activity.filter(a => (mktFilter === 'ALL' || a['Nama Marketing'] === mktFilter) && a.Coords);
-
-            const historyTimeline = document.getElementById('gps-history-timeline');
-            if (historyTimeline) historyTimeline.innerHTML = '';
-
-            filteredActivities.forEach(a => {
-                const [lat, lng] = a.Coords.split(',').map(n => parseFloat(n.trim()));
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    const marker = L.marker([lat, lng]).addTo(mapInstance);
-                    marker.bindPopup(`
-                        <div class="text-xs font-sans">
-                            <b class="text-indigo-600">${a['Nama Sekolah']}</b><br>
-                            <b>Marketing:</b> ${a['Nama Marketing']}<br>
-                            <b>Aktivitas:</b> ${a.Aktivitas}<br>
-                            <b>Tanggal:</b> ${a['Tanggal Kunjungan']}
-                        </div>
-                    `);
-
-                    if (historyTimeline) {
-                        const item = document.createElement('div');
-                        item.className = 'p-3 bg-slate-900/60 rounded-xl border border-slate-800 text-xs flex justify-between items-center';
-                        item.innerHTML = `
-                            <div>
-                                <div class="font-bold text-white">${a['Nama Sekolah']}</div>
-                                <div class="text-[10px] text-slate-400"><i class="fa-solid fa-location-dot text-rose-400 mr-1"></i>${a['Lokasi GPS'] || 'Lokasi Terdeteksi'}</div>
-                                <div class="text-[10px] text-indigo-300 font-medium">${a['Nama Marketing']} • ${a['Tanggal Kunjungan']}</div>
-                            </div>
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300">${a.Aktivitas}</span>
-                        `;
-                        historyTimeline.appendChild(item);
-                    }
-                }
-            });
+            window.renderCalendar();
         };
 
-        window.renderKpiConfigSection = function() {
-            const s = appState.settings;
-            if (document.getElementById('setting-company-name')) document.getElementById('setting-company-name').value = s.companyName || '';
-            
-            const logoPreview = document.getElementById('setting-logo-preview');
-            const placeholderIcon = document.getElementById('setting-logo-placeholder-icon');
-            const logoBase64Input = document.getElementById('setting-logo-base64');
-            const removeBtn = document.getElementById('btn-remove-logo');
-            
-            if (logoPreview && logoBase64Input) {
-                logoBase64Input.value = s.logoUrl || '';
-                if (s.logoUrl) {
-                    logoPreview.src = s.logoUrl;
-                    logoPreview.classList.remove('hidden');
-                    if (placeholderIcon) placeholderIcon.classList.add('hidden');
-                    if (removeBtn) removeBtn.classList.remove('hidden');
-                } else {
-                    logoPreview.src = '';
-                    logoPreview.classList.add('hidden');
-                    if (placeholderIcon) placeholderIcon.classList.remove('hidden');
-                    if (removeBtn) removeBtn.classList.add('hidden');
-                }
+        window.nextCalendarMonth = function() {
+            activeCalendarMonth++;
+            if (activeCalendarMonth > 11) {
+                activeCalendarMonth = 0;
+                activeCalendarYear++;
             }
-
-            if (document.getElementById('cfg-target-db')) document.getElementById('cfg-target-db').value = s.targetDatabase || 100;
-            if (document.getElementById('cfg-target-harian-val')) document.getElementById('cfg-target-harian-val').value = s.targetHarian || 3;
-            if (document.getElementById('cfg-working-days')) document.getElementById('cfg-working-days').value = s.workingDays || 5;
-            if (document.getElementById('cfg-weeks-month')) document.getElementById('cfg-weeks-month').value = s.weeksMonth || 4;
-            if (document.getElementById('cfg-ratio-db-canvass')) document.getElementById('cfg-ratio-db-canvass').value = s.ratioDbCanvass || 60;
-            if (document.getElementById('cfg-ratio-canvass-pres')) document.getElementById('cfg-ratio-canvass-pres').value = s.ratioCanvassPres || 50;
-            if (document.getElementById('cfg-ratio-pres-deal')) document.getElementById('cfg-ratio-pres-deal').value = s.ratioPresDeal || 66.7;
-            if (document.getElementById('cfg-target-revenue-val')) document.getElementById('cfg-target-revenue-val').value = window.formatRupiah(s.targetRevenue || 500000000);
-            if (document.getElementById('cfg-formula-revenue')) document.getElementById('cfg-formula-revenue').value = s.formulaRevenue || '(Revenue Aktual / Target Revenue) * 100';
-
-            window.recalculateFunnel();
-            window.renderRolePermissionsUI();
+            window.renderCalendar();
         };
 
-        window.handleLogoUpload = function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            if (!file.type.startsWith('image/')) {
-                window.showToast('Harap pilih file berupa gambar!', 'warning');
-                return;
-            }
-            if (file.size > 2 * 1024 * 1024) {
-                window.showToast('Ukuran gambar maksimal 2MB!', 'warning');
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                const base64 = evt.target.result;
-                const previewImg = document.getElementById('setting-logo-preview');
-                const placeholderIcon = document.getElementById('setting-logo-placeholder-icon');
-                const logoInputVal = document.getElementById('setting-logo-base64');
-                const removeBtn = document.getElementById('btn-remove-logo');
-                
-                if (previewImg) {
-                    previewImg.src = base64;
-                    previewImg.classList.remove('hidden');
+        window.todayCalendarMonth = function() {
+            const today = new Date();
+            activeCalendarYear = today.getFullYear();
+            activeCalendarMonth = today.getMonth();
+            window.renderCalendar();
+        };
+
+        window.openModalCalendarEvent = function(dateStr = '') {
+            const form = document.getElementById('form-calendar-event');
+            if (form) form.reset();
+            const idEl = document.getElementById('cal-event-id');
+            if (idEl) idEl.value = '';
+            const dateEl = document.getElementById('cal-event-date');
+            if (dateEl) dateEl.value = dateStr || new Date().toISOString().split('T')[0];
+            const timeEl = document.getElementById('cal-event-time');
+            if (timeEl) timeEl.value = '09:00';
+            const titleModalEl = document.getElementById('modal-calendar-title');
+            if (titleModalEl) titleModalEl.innerText = 'Tambah Jadwal Baru';
+            const modalEl = document.getElementById('modal-calendar-event');
+            if (modalEl) modalEl.classList.remove('hidden');
+        };
+
+        window.closeModalCalendarEvent = function() {
+            const modalEl = document.getElementById('modal-calendar-event');
+            if (modalEl) modalEl.classList.add('hidden');
+        };
+
+        window.handleSaveCalendarEvent = function(e) {
+            if (e) e.preventDefault();
+            const btnSave = document.getElementById('btn-save-cal-event');
+            window.setButtonLoading(btnSave, true, 'Menyimpan...');
+
+            try {
+                const date = document.getElementById('cal-event-date')?.value || '';
+                const time = document.getElementById('cal-event-time')?.value || '09:00';
+                const title = document.getElementById('cal-event-title')?.value.trim() || '';
+                const desc = document.getElementById('cal-event-desc')?.value.trim() || '';
+
+                if (!date || !title) {
+                    window.showToast('Tanggal dan Judul Wajib diisi!', 'warning');
+                    return;
                 }
-                if (placeholderIcon) placeholderIcon.classList.add('hidden');
-                if (logoInputVal) logoInputVal.value = base64;
-                if (removeBtn) removeBtn.classList.remove('hidden');
-                
-                window.showToast('Logo berhasil dipilih. Klik "Simpan Pengaturan Profil" untuk menerapkan.', 'info');
-            };
-            reader.readAsDataURL(file);
+
+                const newEvent = {
+                    ID: 'EVT-' + Date.now().toString().slice(-5),
+                    Tanggal: date,
+                    Jam: time,
+                    Judul: title,
+                    Keterangan: desc,
+                    CreatedBy: appState.currentUser?.nama || 'Marketing'
+                };
+
+                if (!appState.calendarEvents) appState.calendarEvents = [];
+                appState.calendarEvents.push(newEvent);
+
+                window.saveStateToLocal();
+                window.closeModalCalendarEvent();
+                window.refreshAllViews();
+                window.showToast('Jadwal kalender berhasil disimpan & dimasukkan ke Notifikasi!', 'success');
+            } finally {
+                window.setButtonLoading(btnSave, false);
+            }
+        };
+
+        window.deleteCalendarEvent = function(id) {
+            if (!appState.calendarEvents) return;
+            appState.calendarEvents = appState.calendarEvents.filter(e => e.ID !== id);
+            window.saveStateToLocal();
+            window.refreshAllViews();
+            window.showToast('Jadwal kalender dihapus.', 'info');
         };
 
         window.removeCompanyLogo = function() {
