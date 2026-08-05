@@ -132,6 +132,22 @@
     <!-- Toast Notifications Container -->
     <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
 
+    <!-- GAS URL Modal Configuration -->
+    <div id="config-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md hidden">
+        <div class="glass-panel p-8 w-full max-w-md border border-slate-700/50">
+            <h3 class="text-lg font-bold text-white mb-2"><i class="fa-solid fa-link text-indigo-400 mr-2"></i>Koneksi Google Apps Script</h3>
+            <p class="text-xs text-slate-400 mb-4">Masukkan Web App URL dari Google Apps Script untuk menghubungkan Vercel dengan Google Sheets secara real-time.</p>
+            <input type="text" id="input-gas-url" placeholder="https://script.google.com/macros/s/.../exec"
+                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white mb-4 focus:outline-none focus:border-indigo-500">
+            <div class="flex gap-2">
+                <button onclick="document.getElementById('config-modal').classList.add('hidden')" class="w-1/3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-lg transition">Batal</button>
+                <button onclick="window.saveGasUrlConfig()" class="w-2/3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg transition flex items-center justify-center gap-2" id="btn-save-gas">
+                    Simpan & Hubungkan
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL LOGIN SYSTEM -->
     <div id="login-modal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/90 backdrop-blur-md">
         <div class="glass-panel p-8 w-full max-w-md shadow-2xl relative border border-slate-700/50">
@@ -148,7 +164,7 @@
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Username</label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-3 top-3 text-slate-400 text-sm"></i>
-                        <input type="text" id="login-username" placeholder="Username" value="" required
+                        <input type="text" id="login-username" placeholder="owner / hr / mkt1" value="" required
                             class="w-full bg-slate-900/80 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition placeholder-transparent">
                     </div>
                 </div>
@@ -157,7 +173,7 @@
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
                     <div class="relative">
                         <i class="fa-solid fa-lock absolute left-3 top-3 text-slate-400 text-sm"></i>
-                        <input type="password" id="login-password" placeholder="Password" value="" required
+                        <input type="password" id="login-password" placeholder="mkt123 / own123" value="" required
                             class="w-full bg-slate-900/80 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition placeholder-transparent">
                     </div>
                 </div>
@@ -166,6 +182,10 @@
                     <span>Masuk ke Sistem</span> <i class="fa-solid fa-right-to-bracket ml-1"></i>
                 </button>
             </form>
+
+            <div class="mt-6 pt-4 border-t border-slate-800 flex justify-center items-center text-[11px] text-slate-500">
+                <button onclick="window.openConfigModal()" class="text-indigo-400 hover:underline"><i class="fa-solid fa-gear mr-1"></i>Set Web App URL</button>
+            </div>
         </div>
     </div>
 
@@ -221,9 +241,9 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <button onclick="window.copyShareableUrl()" title="Salin Link Multi Perangkat" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5">
+                <button onclick="window.copyShareableUrl()" title="Salin Link Auto-Sync Multi Perangkat" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5">
                     <i class="fa-solid fa-share-nodes text-indigo-400"></i>
-                    <span class="hidden lg:inline">Bagikan Link HP/PC</span>
+                    <span class="hidden lg:inline">Bagikan Link Sync HP/PC</span>
                 </button>
 
                 <!-- Tanggal Real-Time Badge (WIB) -->
@@ -480,6 +500,7 @@
                     <!-- Grid Kalender Bulanan -->
                     <div class="overflow-x-auto rounded-xl border border-slate-800">
                         <div class="min-w-[700px]">
+                            <!-- Day Names Header -->
                             <div class="grid grid-cols-7 bg-slate-900/90 border-b border-slate-800 text-center py-2 text-xs font-extrabold text-slate-400">
                                 <div class="text-rose-400">Minggu</div>
                                 <div>Senin</div>
@@ -489,7 +510,10 @@
                                 <div>Jumat</div>
                                 <div class="text-indigo-400">Sabtu</div>
                             </div>
-                            <div id="calendar-days-grid" class="grid grid-cols-7 divide-x divide-y divide-slate-800/60 bg-slate-950/40"></div>
+                            <!-- Calendar Days Container -->
+                            <div id="calendar-days-grid" class="grid grid-cols-7 divide-x divide-y divide-slate-800/60 bg-slate-950/40">
+                                <!-- Generated dynamically via JS -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -585,6 +609,7 @@
 
                     <!-- 4 Target Cards Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                        <!-- 01. DATABASE (Biru) -->
                         <div class="glass-panel p-5 border-t-4 border-blue-500 hover:border-blue-400 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group">
                             <div class="space-y-3">
                                 <div class="flex items-center justify-between">
@@ -603,6 +628,7 @@
                             </div>
                         </div>
 
+                        <!-- 02. CANVASSING (Hijau) -->
                         <div class="glass-panel p-5 border-t-4 border-emerald-500 hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group">
                             <div class="space-y-3">
                                 <div class="flex items-center justify-between">
@@ -629,6 +655,7 @@
                             </div>
                         </div>
 
+                        <!-- 03. PRESENTASI (Ungu) -->
                         <div class="glass-panel p-5 border-t-4 border-purple-500 hover:border-purple-400 hover:shadow-xl hover:shadow-purple-500/10 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group">
                             <div class="space-y-3">
                                 <div class="flex items-center justify-between">
@@ -647,6 +674,7 @@
                             </div>
                         </div>
 
+                        <!-- 04. DEAL (Orange) -->
                         <div class="glass-panel p-5 border-t-4 border-amber-500 hover:border-amber-400 hover:shadow-xl hover:shadow-amber-500/10 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group">
                             <div class="space-y-3">
                                 <div class="flex items-center justify-between">
@@ -666,6 +694,7 @@
                         </div>
                     </div>
 
+                    <!-- Panel Motivasi -->
                     <div class="p-5 rounded-xl bg-gradient-to-r from-amber-500/15 via-purple-500/15 to-indigo-500/15 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-lg">
                         <div class="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center text-2xl shrink-0 border border-amber-500/30">
                             <i class="fa-solid fa-star text-amber-400"></i>
@@ -780,6 +809,7 @@
 
                         <!-- 4 Sales Funnel Cards -->
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Card 1: Database -->
                             <div class="glass-panel p-4 space-y-3 border-t-4 border-blue-500">
                                 <div class="text-center pb-2 border-b border-slate-800">
                                     <div class="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-2 text-lg">
@@ -794,6 +824,7 @@
                                 </div>
                             </div>
 
+                            <!-- Card 2: Canvassing -->
                             <div class="glass-panel p-4 space-y-3 border-t-4 border-emerald-500">
                                 <div class="text-center pb-2 border-b border-slate-800">
                                     <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-2 text-lg">
@@ -821,6 +852,7 @@
                                 </div>
                             </div>
 
+                            <!-- Card 3: Presentasi -->
                             <div class="glass-panel p-4 space-y-3 border-t-4 border-amber-500">
                                 <div class="text-center pb-2 border-b border-slate-800">
                                     <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-2 text-lg">
@@ -835,6 +867,7 @@
                                 </div>
                             </div>
 
+                            <!-- Card 4: Deal -->
                             <div class="glass-panel p-4 space-y-3 border-t-4 border-teal-500">
                                 <div class="text-center pb-2 border-b border-slate-800">
                                     <div class="w-12 h-12 bg-teal-500/20 text-teal-400 rounded-full flex items-center justify-center mx-auto mb-2 text-lg">
@@ -852,6 +885,7 @@
 
                         <!-- 3 Bottom Panels: Ringkasan, Rasio Konversi, Target Revenue -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Panel 1 -->
                             <div class="glass-panel p-4 space-y-3">
                                 <h4 class="text-xs font-bold text-white uppercase border-b border-slate-800 pb-2">Ringkasan KPI Target</h4>
                                 <div class="space-y-2 text-xs">
@@ -874,6 +908,7 @@
                                 </div>
                             </div>
 
+                            <!-- Panel 2 -->
                             <div class="glass-panel p-4 space-y-3">
                                 <h4 class="text-xs font-bold text-white uppercase border-b border-slate-800 pb-2">Rasio Konversi (%)</h4>
                                 <div class="space-y-3">
@@ -892,6 +927,7 @@
                                 </div>
                             </div>
 
+                            <!-- Panel 3 -->
                             <div class="glass-panel p-4 space-y-3">
                                 <h4 class="text-xs font-bold text-white uppercase border-b border-slate-800 pb-2">Target Revenue & Rumus</h4>
                                 <div class="space-y-3">
@@ -935,18 +971,24 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Hak Akses Menu -->
                             <div class="glass-panel p-5 space-y-4 border-t-4 border-indigo-500">
                                 <h4 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
                                     <i class="fa-solid fa-bars"></i> Hak Akses Menu
                                 </h4>
-                                <div id="role-menu-checkboxes" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300"></div>
+                                <div id="role-menu-checkboxes" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300">
+                                    <!-- Checkboxes populated via JS -->
+                                </div>
                             </div>
 
+                            <!-- Hak Akses Aksi -->
                             <div class="glass-panel p-5 space-y-4 border-t-4 border-purple-500">
                                 <h4 class="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
                                     <i class="fa-solid fa-hand-pointer"></i> Hak Akses Aksi
                                 </h4>
-                                <div id="role-action-checkboxes" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300"></div>
+                                <div id="role-action-checkboxes" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300">
+                                    <!-- Checkboxes populated via JS -->
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1286,11 +1328,6 @@
     </div>
 
     <script>
-        // CENTRALIZED GOOGLE APPS SCRIPT CONFIGURATION
-        const CONFIG = {
-            APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzFqAFRBBkAZtbMR1yuHAdagYhPvmKm2mrWl3VEnpZJAdAwtVR8d0FjvurLBksWt2x18Q/exec"
-        };
-
         const MENU_DEFINITIONS = [
             { key: 'dashboard', label: 'Dashboard KPI' },
             { key: 'sekolah', label: 'Data Sekolah' },
@@ -1315,6 +1352,7 @@
         ];
 
         let appState = {
+            gasUrl: '',
             currentUser: null,
             filterYear: '2026',
             filterMonth: '0',
@@ -1476,72 +1514,6 @@
             return rolePerms.includes(actionKey);
         };
 
-        window.apiCall = async function(action, payload = {}) {
-            const targetUrl = CONFIG.APPS_SCRIPT_URL;
-            if (!targetUrl || targetUrl.includes('AKfycbwqVb7C_2YJ1aI1VfXWl0s81-Uo7V_y7m1Q-K32w')) {
-                return null;
-            }
-            try {
-                const res = await fetch(targetUrl, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action, payload })
-                });
-                const json = await res.json();
-                // Trigger instant dataset re-sync after write operation
-                window.fetchSyncFromGAS(false);
-                return json;
-            } catch (e) {
-                console.warn('GAS API Call warning:', e);
-                return null;
-            }
-        };
-
-        window.fetchSyncFromGAS = async function(showToastNotif = false) {
-            if (isSyncInProgress) return;
-            const targetUrl = CONFIG.APPS_SCRIPT_URL;
-            
-            if (!targetUrl || targetUrl.includes('AKfycbwqVb7C_2YJ1aI1VfXWl0s81-Uo7V_y7m1Q-K32w')) {
-                if (showToastNotif) window.showToast('Harap atur URL Google Apps Script pada CONFIG.APPS_SCRIPT_URL', 'warning');
-                return;
-            }
-            
-            isSyncInProgress = true;
-            const spinner = document.getElementById('sync-spinner');
-            if (spinner) spinner.classList.add('fa-spin');
-
-            try {
-                const fetchUrl = targetUrl + (targetUrl.includes('?') ? '&' : '?') + 'action=getInitialData';
-                const res = await fetch(fetchUrl, { redirect: 'follow' });
-                if (!res.ok) {
-                    throw new Error(`HTTP Error: ${res.status}`);
-                }
-                const json = await res.json();
-
-                if (json.success && json.data) {
-                    if (json.data.sekolah) appState.sekolah = json.data.sekolah;
-                    if (json.data.activity) appState.activity = json.data.activity;
-                    if (json.data.marketing) appState.marketing = json.data.marketing;
-                    if (json.data.settings) appState.settings = { ...appState.settings, ...json.data.settings };
-
-                    window.saveStateToLocal();
-                    window.refreshAllViews();
-                    if (showToastNotif) window.showToast('Data berhasil disinkronkan dari Google Sheets!', 'success');
-                } else if (showToastNotif) {
-                    window.showToast(json.message || 'Gagal sinkronisasi data.', 'error');
-                }
-            } catch (err) {
-                console.warn('GAS Sync warning:', err.message || err);
-                if (showToastNotif) {
-                    window.showToast('Gagal terhubung ke Google Sheets API.', 'error');
-                }
-            } finally {
-                isSyncInProgress = false;
-                if (spinner) spinner.classList.remove('fa-spin');
-            }
-        };
-
         window.handleLogin = function(e) {
             if (e) e.preventDefault();
             const btnSubmit = document.getElementById('btn-login-submit');
@@ -1606,6 +1578,111 @@
             window.showToast('Anda telah keluar dari sistem.', 'info');
         };
 
+        window.openConfigModal = function() {
+            const urlInput = document.getElementById('input-gas-url');
+            if (urlInput) urlInput.value = appState.gasUrl || '';
+            document.getElementById('config-modal')?.classList.remove('hidden');
+        };
+
+        window.saveGasUrlConfig = function() {
+            let inputEl = document.getElementById('input-gas-url');
+            let url = inputEl ? inputEl.value.trim() : '';
+
+            url = url.replace(/^["']|["']$/g, '').trim();
+
+            const match = url.match(/(https:\/\/script\.google\.com\/[^\s"']+)/);
+            if (match) {
+                url = match[1];
+            }
+            
+            if (!url) {
+                window.showToast('Mohon masukkan Web App URL Google Apps Script!', 'warning');
+                return;
+            }
+
+            if (url.includes('docs.google.com')) {
+                window.showToast('Ini URL Google Sheets! Harap masukkan Web App URL dari menu Deploy -> Web app di Apps Script.', 'warning');
+                return;
+            }
+
+            if (url.includes('/dev')) {
+                url = url.replace('/dev', '/exec');
+            }
+
+            if (!url.startsWith('https://script.google.com/')) {
+                window.showToast('Format Web App URL tidak valid! Harus diawali https://script.google.com/', 'warning');
+                return;
+            }
+
+            appState.gasUrl = url;
+            if (inputEl) inputEl.value = url;
+            window.saveStateToLocal();
+            document.getElementById('config-modal')?.classList.add('hidden');
+            window.showToast('Web App URL berhasil disimpan & terhubung!', 'success');
+            window.fetchSyncFromGAS(true);
+        };
+
+        window.apiCall = async function(action, payload = {}) {
+            if (!appState.gasUrl) return null;
+            try {
+                const res = await fetch(appState.gasUrl, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action, payload })
+                });
+                return await res.json();
+            } catch (e) {
+                console.warn('GAS API Call warning:', e);
+                return null;
+            }
+        };
+
+        window.fetchSyncFromGAS = async function(showToastNotif = false) {
+            if (isSyncInProgress) return;
+            if (!appState.gasUrl || !appState.gasUrl.startsWith('https://script.google.com/')) {
+                if (showToastNotif) window.showToast('Web App URL belum disetel. Silakan masukkan Web App URL Google Apps Script.', 'warning');
+                return;
+            }
+            
+            isSyncInProgress = true;
+            const spinner = document.getElementById('sync-spinner');
+            if (spinner) spinner.classList.add('fa-spin');
+
+            try {
+                const fetchUrl = appState.gasUrl + (appState.gasUrl.includes('?') ? '&' : '?') + 'action=getInitialData';
+                const res = await fetch(fetchUrl, { redirect: 'follow' });
+                if (!res.ok) {
+                    if (res.status === 404) {
+                        throw new Error('URL Web App tidak ditemukan (404). Periksa kembali Web App URL Google Apps Script Anda.');
+                    }
+                    throw new Error(`HTTP Error: ${res.status}`);
+                }
+                const json = await res.json();
+
+                if (json.success && json.data) {
+                    if (json.data.sekolah) appState.sekolah = json.data.sekolah;
+                    if (json.data.activity) appState.activity = json.data.activity;
+                    if (json.data.marketing) appState.marketing = json.data.marketing;
+                    if (json.data.settings) appState.settings = { ...appState.settings, ...json.data.settings };
+
+                    window.saveStateToLocal();
+                    window.refreshAllViews();
+                    if (showToastNotif) window.showToast('Data berhasil disinkronkan dengan Google Sheets!', 'success');
+                } else if (showToastNotif) {
+                    window.showToast(json.message || 'Gagal sinkronisasi data.', 'error');
+                }
+            } catch (err) {
+                console.warn('GAS Sync warning:', err.message || err);
+                if (showToastNotif) {
+                    window.showToast(err.message || 'Gagal terhubung ke Google Sheets API.', 'error');
+                }
+            } finally {
+                isSyncInProgress = false;
+                if (spinner) spinner.classList.remove('fa-spin');
+            }
+        };
+
         window.setFilterYear = function(yr) {
             appState.filterYear = yr;
             document.getElementById('btn-year-2026')?.classList.toggle('bg-indigo-600', yr === '2026');
@@ -1634,7 +1711,7 @@
             dummy.select();
             document.execCommand('copy');
             document.body.removeChild(dummy);
-            window.showToast('Link aplikasi berhasil disalin!', 'success');
+            window.showToast('Link aplikasi berhasil disalin ke clipboard!', 'success');
         };
 
         window.toggleThemeMode = function() {
@@ -1745,22 +1822,9 @@
                 document.getElementById('app-container')?.classList.add('hidden');
             }
 
-            // Initial fetch from Google Apps Script Backend
-            window.fetchSyncFromGAS(false);
-
-            // Periodic auto-sync every 15 seconds for seamless multi-device real-time sync
-            setInterval(() => {
-                if (!document.hidden && appState.currentUser) {
-                    window.fetchSyncFromGAS(false);
-                }
-            }, 15000);
-
-            // Sync on window focus
-            window.addEventListener('focus', () => {
-                if (appState.currentUser) {
-                    window.fetchSyncFromGAS(false);
-                }
-            });
+            if (appState.gasUrl && appState.gasUrl.startsWith('https://script.google.com/')) {
+                window.fetchSyncFromGAS(false);
+            }
         };
 
         window.handlePhotoCapture = function(e) {
@@ -2660,240 +2724,6 @@
             }
         };
 
-        window.renderDailyActivityTable = function() {
-            const tbody = document.getElementById('tbody-daily');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            const dateFilter = String(document.getElementById('filter-act-date')?.value || '');
-            const mktFilter = String(appState.filterMarketing || 'ALL');
-
-            const filtered = appState.activity.filter(a => {
-                const matchesDate = !dateFilter || String(a['Tanggal Kunjungan'] || '') === dateFilter;
-                const matchesMkt = mktFilter === 'ALL' || String(a['Nama Marketing'] || '') === mktFilter;
-                return matchesDate && matchesMkt;
-            });
-
-            if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="11" class="p-4 text-center text-slate-500 italic text-xs">Belum ada log aktivitas harian.</td></tr>';
-                return;
-            }
-
-            const canDelete = window.hasActionPermission('hapus');
-            const frag = document.createDocumentFragment();
-
-            filtered.forEach(a => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-800/40 transition';
-                tr.innerHTML = `
-                    <td class="p-3 font-semibold text-white whitespace-nowrap">${String(a['Tanggal Kunjungan'] || '-')}</td>
-                    <td class="p-3 text-indigo-300 font-medium">${String(a['Nama Marketing'] || '-')}</td>
-                    <td class="p-3 font-bold text-white">${String(a['Nama Sekolah'] || '-')}</td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">${String(a['Media Marketing'] || '-')}</span></td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300">${String(a.Aktivitas || '-')}</span></td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-${a.Status === 'Hot'?'rose':(a.Status==='Warm'?'amber':'blue')}-500/20 text-${a.Status === 'Hot'?'rose':(a.Status==='Warm'?'amber':'blue')}-300">${String(a.Status || '-')}</span></td>
-                    <td class="p-3 text-slate-300 max-w-xs leading-snug">${String(a['Hasil Kunjungan'] || '-')}</td>
-                    <td class="p-3 text-slate-400 text-[11px] max-w-xs truncate"><i class="fa-solid fa-location-dot text-rose-400 mr-1"></i>${String(a['Lokasi GPS'] || '-')}</td>
-                    <td class="p-3">
-                        ${a.Foto ? `<img src="${a.Foto}" class="w-10 h-10 object-cover rounded border border-slate-700">` : '<span class="text-slate-500 italic text-[10px]">No Photo</span>'}
-                    </td>
-                    <td class="p-3 font-bold text-emerald-400">${a['Nominal Deal'] ? window.formatRupiah(a['Nominal Deal']) : '-'}</td>
-                    <td class="p-3 text-center no-print">
-                        ${canDelete ? `<button onclick="window.deleteActivity('${String(a['ID Activity'] || '')}')" class="p-1.5 bg-slate-800 hover:bg-rose-900/50 text-rose-400 rounded"><i class="fa-solid fa-trash-can"></i></button>` : '<span class="text-slate-500 text-[10px]">-</span>'}
-                    </td>
-                `;
-                frag.appendChild(tr);
-            });
-            tbody.appendChild(frag);
-        };
-
-        window.openModalActivity = function() {
-            document.getElementById('form-activity').reset();
-            document.getElementById('act-mkt').value = appState.currentUser?.nama || 'Budi Santoso';
-            document.getElementById('act-date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('photo-preview-container').classList.add('hidden');
-            document.getElementById('photo-status-text').innerText = 'Belum ada foto diambil';
-            document.getElementById('act-foto-base64').value = '';
-            window.toggleNominalDealInput('Prospect');
-            document.getElementById('modal-activity').classList.remove('hidden');
-        };
-
-        window.closeModalActivity = function() { document.getElementById('modal-activity').classList.add('hidden'); };
-
-        window.toggleNominalDealInput = function(stage) {
-            const wrapper = document.getElementById('wrapper-nominal-deal');
-            if (wrapper) {
-                if (stage === 'Deal') wrapper.classList.remove('hidden');
-                else wrapper.classList.add('hidden');
-            }
-        };
-
-        window.getCurrentGpsLocation = function() {
-            if (!navigator.geolocation) { window.showToast('Geolocation tidak didukung pada browser ini.', 'error'); return; }
-            const addrInput = document.getElementById('act-gps-address');
-            addrInput.value = 'Mendeteksi posisi GPS...';
-            navigator.geolocation.getCurrentPosition(
-                pos => {
-                    const lat = pos.coords.latitude;
-                    const lng = pos.coords.longitude;
-                    document.getElementById('act-coords').value = `${lat}, ${lng}`;
-                    addrInput.value = `Koordinat GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-                },
-                err => {
-                    addrInput.value = 'Jl. M.H. Thamrin No. 1, Jakarta Pusat';
-                    window.showToast('Gagal mendapat GPS presisi, menggunakan fallback lokasi.', 'warning');
-                }
-            );
-        };
-
-        window.prevCalendarMonth = function() {
-            activeCalendarMonth--;
-            if (activeCalendarMonth < 0) {
-                activeCalendarMonth = 11;
-                activeCalendarYear--;
-            }
-            window.renderCalendar();
-        };
-
-        window.nextCalendarMonth = function() {
-            activeCalendarMonth++;
-            if (activeCalendarMonth > 11) {
-                activeCalendarMonth = 0;
-                activeCalendarYear++;
-            }
-            window.renderCalendar();
-        };
-
-        window.todayCalendarMonth = function() {
-            const today = new Date();
-            activeCalendarYear = today.getFullYear();
-            activeCalendarMonth = today.getMonth();
-            window.renderCalendar();
-        };
-
-        window.openModalCalendarEvent = function(dateStr = '') {
-            document.getElementById('form-calendar-event').reset();
-            document.getElementById('cal-event-id').value = '';
-            document.getElementById('cal-event-date').value = dateStr || new Date().toISOString().split('T')[0];
-            document.getElementById('cal-event-time').value = '09:00';
-            document.getElementById('modal-calendar-title').innerText = 'Tambah Jadwal Baru';
-            document.getElementById('modal-calendar-event').classList.remove('hidden');
-        };
-
-        window.closeModalCalendarEvent = function() {
-            document.getElementById('modal-calendar-event').classList.add('hidden');
-        };
-
-        window.handleSaveCalendarEvent = function(e) {
-            e.preventDefault();
-            const btnSave = document.getElementById('btn-save-cal-event');
-            window.setButtonLoading(btnSave, true, 'Menyimpan...');
-
-            try {
-                const date = document.getElementById('cal-event-date').value;
-                const time = document.getElementById('cal-event-time').value;
-                const title = document.getElementById('cal-event-title').value.trim();
-                const desc = document.getElementById('cal-event-desc').value.trim();
-
-                if (!date || !title) {
-                    window.showToast('Tanggal dan Judul Wajib diisi!', 'warning');
-                    return;
-                }
-
-                const newEvent = {
-                    ID: 'EVT-' + Date.now().toString().slice(-5),
-                    Tanggal: date,
-                    Jam: time,
-                    Judul: title,
-                    Keterangan: desc,
-                    CreatedBy: appState.currentUser?.nama || 'Marketing'
-                };
-
-                if (!appState.calendarEvents) appState.calendarEvents = [];
-                appState.calendarEvents.push(newEvent);
-
-                window.saveStateToLocal();
-                window.closeModalCalendarEvent();
-                window.refreshAllViews();
-                window.showToast('Jadwal kalender berhasil disimpan & dimasukkan ke Notifikasi!', 'success');
-            } finally {
-                window.setButtonLoading(btnSave, false);
-            }
-        };
-
-        window.deleteCalendarEvent = function(id) {
-            if (!appState.calendarEvents) return;
-            appState.calendarEvents = appState.calendarEvents.filter(e => e.ID !== id);
-            window.saveStateToLocal();
-            window.refreshAllViews();
-            window.showToast('Jadwal kalender dihapus.', 'info');
-        };
-
-        window.renderNotifications = function() {
-            const container = document.getElementById('notifications-container');
-            if (!container) return;
-            container.innerHTML = '';
-
-            const mktFilter = appState.filterMarketing || 'ALL';
-            const alerts = appState.pipeline.filter(p => mktFilter === 'ALL' || p['Nama Marketing'] === mktFilter);
-            const calEvents = (appState.calendarEvents || []);
-
-            if (alerts.length === 0 && calEvents.length === 0) {
-                container.innerHTML = '<div class="col-span-2 text-center text-slate-500 text-xs py-8">Tidak ada notifikasi aktif.</div>';
-                return;
-            }
-
-            const frag = document.createDocumentFragment();
-
-            calEvents.forEach(ev => {
-                const card = document.createElement('div');
-                card.className = 'glass-panel p-4 border border-indigo-500/40 flex items-start gap-3 bg-indigo-950/20';
-                card.innerHTML = `
-                    <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-calendar-check text-base"></i>
-                    </div>
-                    <div class="space-y-1 flex-1">
-                        <div class="flex items-center justify-between gap-2">
-                            <span class="font-bold text-xs text-white">${ev.Judul}</span>
-                            <span class="px-2 py-0.5 text-[9px] font-bold rounded bg-indigo-500/20 text-indigo-300">Jadwal Kalender</span>
-                        </div>
-                        <p class="text-xs text-slate-300"><i class="fa-solid fa-clock text-indigo-400 mr-1"></i>${ev.Tanggal} jam ${ev.Jam}</p>
-                        ${ev.Keterangan ? `<p class="text-[11px] text-slate-400 leading-snug">${ev.Keterangan}</p>` : ''}
-                        <span class="text-[10px] text-slate-500 block">Dibuat oleh: ${ev.CreatedBy || '-'}</span>
-                    </div>
-                `;
-                frag.appendChild(card);
-            });
-
-            alerts.forEach(al => {
-                const card = document.createElement('div');
-                card.className = 'glass-panel p-4 border border-slate-700/70 flex items-start gap-3';
-                card.innerHTML = `
-                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-bell text-base"></i>
-                    </div>
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2">
-                            <span class="font-bold text-xs text-white">${al['Nama Sekolah']}</span>
-                            <span class="px-2 py-0.5 text-[9px] font-bold rounded bg-amber-500/20 text-amber-300">${al.Aktivitas}</span>
-                        </div>
-                        <p class="text-xs text-slate-400">Jadwal follow up berikutnya: <span class="text-amber-400 font-semibold">${al['Tanggal Follow Up'] || 'Belum diatur'}</span></p>
-                        <span class="text-[10px] text-slate-500 block">Marketing: ${al['Nama Marketing']}</span>
-                    </div>
-                `;
-                frag.appendChild(card);
-            });
-
-            container.appendChild(frag);
-
-            const totalNotifs = alerts.length + calEvents.length;
-            const badge = document.getElementById('notif-badge');
-            if (badge) {
-                if (totalNotifs > 0) { badge.innerText = totalNotifs; badge.classList.remove('hidden'); }
-                else badge.classList.add('hidden');
-            }
-        };
-
         window.renderGpsMap = function() {
             const mapContainer = document.getElementById('map');
             if (!mapContainer) return;
@@ -3124,6 +2954,7 @@
                 }).reduce((acc, curr) => acc + (Number(curr['Nominal Deal']) || 0), 0);
 
                 const targetRevenueDisplay = (roleName === 'Owner' || roleName === 'HR') ? '-' : window.formatRupiah(globalTargetRevenue);
+
                 const rawWa = m['Nomor WhatsApp'] != null ? String(m['Nomor WhatsApp']) : '';
 
                 let actionsHtml = '';
