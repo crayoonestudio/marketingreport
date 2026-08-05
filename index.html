@@ -200,11 +200,11 @@
                 </div>
                 <div>
                     <h1 class="text-base font-bold text-white tracking-wide leading-none" id="app-company-name">PT Annual Book Creative</h1>
-                    <span class="text-[11px] text-indigo-400 font-medium">Buku Tahunan Sekolah Marketing Hub</span>
+                    <span class="text-[11px] text-indigo-400 font-medium">Marketing Report</span>
                 </div>
             </div>
 
-            <!-- Global Filter Bar (Tahun, Bulan, Marketing) -->
+            <!-- Global Filter Bar -->
             <div class="flex flex-wrap items-center gap-2 bg-slate-900/90 p-1.5 rounded-xl border border-slate-800">
                 <span class="text-xs text-slate-400 px-1 font-semibold hidden sm:inline"><i class="fa-solid fa-filter mr-1 text-indigo-400"></i>Filter:</span>
                 
@@ -229,7 +229,6 @@
                     <option value="12">Desember</option>
                 </select>
 
-                <!-- Filter Marketing Dropdown -->
                 <select id="filter-marketing-dashboard" onchange="window.handleMarketingFilterChange(this.value)" class="bg-slate-800 border border-slate-700 text-indigo-300 font-bold text-xs rounded-lg px-2 py-1 focus:outline-none focus:border-indigo-500">
                     <option value="ALL">Semua Marketing</option>
                 </select>
@@ -246,7 +245,6 @@
                     <span class="hidden lg:inline">Bagikan Link Sync HP/PC</span>
                 </button>
 
-                <!-- Tanggal Real-Time Badge (WIB) -->
                 <div id="realtime-date-badge" class="px-3 py-1.5 bg-slate-800/90 border border-slate-700 text-indigo-300 rounded-lg text-xs font-semibold flex items-center gap-2 shadow">
                     <i class="fa-solid fa-calendar-days text-indigo-400"></i>
                     <span id="header-date-text">Memuat tanggal...</span>
@@ -390,21 +388,6 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                        <input type="text" id="search-sekolah" onkeyup="window.renderTableSekolah()" placeholder="Cari nama sekolah / PIC..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
-                        <select id="filter-jenjang" onchange="window.renderTableSekolah()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
-                            <option value="">Semua Jenjang</option>
-                            <option value="TK">TK</option>
-                            <option value="SD">SD / MI</option>
-                            <option value="SMP">SMP / MTs</option>
-                            <option value="SMA">SMA / MA</option>
-                            <option value="SMK">SMK</option>
-                        </select>
-                        <select id="filter-wilayah" onchange="window.renderTableSekolah()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
-                            <option value="">Semua Wilayah</option>
-                        </select>
-                    </div>
-
                     <div class="overflow-x-auto rounded-lg border border-slate-800">
                         <table class="w-full text-left text-xs text-slate-300">
                             <thead class="bg-slate-900/90 uppercase text-[10px] text-slate-400 font-bold border-b border-slate-800">
@@ -437,12 +420,6 @@
                             <button id="btn-add-activity" onclick="window.openModalActivity()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> Input Aktivitas Baru</button>
                             <button onclick="window.exportDailyPdf()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow"><i class="fa-solid fa-file-pdf text-rose-400"></i> Cetak PDF</button>
                         </div>
-                    </div>
-
-                    <div class="flex items-center gap-3 mb-4 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
-                        <label class="text-xs font-semibold text-slate-300">Filter Tanggal:</label>
-                        <input type="date" id="filter-act-date" onchange="window.renderDailyActivityTable()" class="bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-2.5 py-1.5">
-                        <button onclick="document.getElementById('filter-act-date').value=''; window.renderDailyActivityTable();" class="text-xs text-indigo-400 hover:underline">Reset Filter</button>
                     </div>
 
                     <div class="overflow-x-auto rounded-lg border border-slate-800">
@@ -497,10 +474,8 @@
                         </div>
                     </div>
 
-                    <!-- Grid Kalender Bulanan -->
                     <div class="overflow-x-auto rounded-xl border border-slate-800">
                         <div class="min-w-[700px]">
-                            <!-- Day Names Header -->
                             <div class="grid grid-cols-7 bg-slate-900/90 border-b border-slate-800 text-center py-2 text-xs font-extrabold text-slate-400">
                                 <div class="text-rose-400">Minggu</div>
                                 <div>Senin</div>
@@ -510,10 +485,7 @@
                                 <div>Jumat</div>
                                 <div class="text-indigo-400">Sabtu</div>
                             </div>
-                            <!-- Calendar Days Container -->
-                            <div id="calendar-days-grid" class="grid grid-cols-7 divide-x divide-y divide-slate-800/60 bg-slate-950/40">
-                                <!-- Generated dynamically via JS -->
-                            </div>
+                            <div id="calendar-days-grid" class="grid grid-cols-7 divide-x divide-y divide-slate-800/60 bg-slate-950/40"></div>
                         </div>
                     </div>
                 </div>
@@ -595,7 +567,6 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="notifications-container"></div>
                 </div>
 
-                <!-- TARGET MINIMAL TIM MARKETING SECTION -->
                 <div class="glass-panel p-6 space-y-6">
                     <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
                         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center text-lg shadow-lg shadow-orange-500/20 shrink-0">
@@ -607,9 +578,7 @@
                         </div>
                     </div>
 
-                    <!-- 4 Target Cards Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                        <!-- 01. DATABASE (Biru) -->
                         <div class="glass-panel p-5 border-t-4 border-blue-500 hover:border-blue-400 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group">
                             <div class="space-y-3">
                                 <div class="flex items-center justify-between">
@@ -628,7 +597,6 @@
                             </div>
                         </div>
 
-                        <!-- 02. CANVASSING (Hijau) -->
                         <div class="glass-panel p-5 border-t-4 border-emerald-500 hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group">
                             <div class="space-y-3">
                                 <div class="flex items-center justify-between">
@@ -655,7 +623,6 @@
                             </div>
                         </div>
 
-                        <!-- 03. PRESENTASI (Ungu) -->
                         <div class="glass-panel p-5 border-t-4 border-purple-500 hover:border-purple-400 hover:shadow-xl hover:shadow-purple-500/10 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group">
                             <div class="space-y-3">
                                 <div class="flex items-center justify-between">
@@ -674,7 +641,6 @@
                             </div>
                         </div>
 
-                        <!-- 04. DEAL (Orange) -->
                         <div class="glass-panel p-5 border-t-4 border-amber-500 hover:border-amber-400 hover:shadow-xl hover:shadow-amber-500/10 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group">
                             <div class="space-y-3">
                                 <div class="flex items-center justify-between">
@@ -694,7 +660,6 @@
                         </div>
                     </div>
 
-                    <!-- Panel Motivasi -->
                     <div class="p-5 rounded-xl bg-gradient-to-r from-amber-500/15 via-purple-500/15 to-indigo-500/15 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-lg">
                         <div class="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center text-2xl shrink-0 border border-amber-500/30">
                             <i class="fa-solid fa-star text-amber-400"></i>
@@ -807,9 +772,7 @@
                             </div>
                         </div>
 
-                        <!-- 4 Sales Funnel Cards -->
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <!-- Card 1: Database -->
                             <div class="glass-panel p-4 space-y-3 border-t-4 border-blue-500">
                                 <div class="text-center pb-2 border-b border-slate-800">
                                     <div class="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-2 text-lg">
@@ -824,7 +787,6 @@
                                 </div>
                             </div>
 
-                            <!-- Card 2: Canvassing -->
                             <div class="glass-panel p-4 space-y-3 border-t-4 border-emerald-500">
                                 <div class="text-center pb-2 border-b border-slate-800">
                                     <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-2 text-lg">
@@ -852,7 +814,6 @@
                                 </div>
                             </div>
 
-                            <!-- Card 3: Presentasi -->
                             <div class="glass-panel p-4 space-y-3 border-t-4 border-amber-500">
                                 <div class="text-center pb-2 border-b border-slate-800">
                                     <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-2 text-lg">
@@ -867,7 +828,6 @@
                                 </div>
                             </div>
 
-                            <!-- Card 4: Deal -->
                             <div class="glass-panel p-4 space-y-3 border-t-4 border-teal-500">
                                 <div class="text-center pb-2 border-b border-slate-800">
                                     <div class="w-12 h-12 bg-teal-500/20 text-teal-400 rounded-full flex items-center justify-center mx-auto mb-2 text-lg">
@@ -883,9 +843,7 @@
                             </div>
                         </div>
 
-                        <!-- 3 Bottom Panels: Ringkasan, Rasio Konversi, Target Revenue -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <!-- Panel 1 -->
                             <div class="glass-panel p-4 space-y-3">
                                 <h4 class="text-xs font-bold text-white uppercase border-b border-slate-800 pb-2">Ringkasan KPI Target</h4>
                                 <div class="space-y-2 text-xs">
@@ -908,7 +866,6 @@
                                 </div>
                             </div>
 
-                            <!-- Panel 2 -->
                             <div class="glass-panel p-4 space-y-3">
                                 <h4 class="text-xs font-bold text-white uppercase border-b border-slate-800 pb-2">Rasio Konversi (%)</h4>
                                 <div class="space-y-3">
@@ -927,7 +884,6 @@
                                 </div>
                             </div>
 
-                            <!-- Panel 3 -->
                             <div class="glass-panel p-4 space-y-3">
                                 <h4 class="text-xs font-bold text-white uppercase border-b border-slate-800 pb-2">Target Revenue & Rumus</h4>
                                 <div class="space-y-3">
@@ -944,7 +900,7 @@
                         </div>
                     </div>
 
-                    <!-- HAK AKSES ROLE (RBAC) CONFIGURATION -->
+                    <!-- HAK AKSES ROLE CONFIGURATION -->
                     <div class="mt-8 pt-6 border-t border-slate-800 space-y-6">
                         <div class="flex flex-wrap justify-between items-center gap-4">
                             <div>
@@ -971,24 +927,18 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Hak Akses Menu -->
                             <div class="glass-panel p-5 space-y-4 border-t-4 border-indigo-500">
                                 <h4 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
                                     <i class="fa-solid fa-bars"></i> Hak Akses Menu
                                 </h4>
-                                <div id="role-menu-checkboxes" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300">
-                                    <!-- Checkboxes populated via JS -->
-                                </div>
+                                <div id="role-menu-checkboxes" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300"></div>
                             </div>
 
-                            <!-- Hak Akses Aksi -->
                             <div class="glass-panel p-5 space-y-4 border-t-4 border-purple-500">
                                 <h4 class="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
                                     <i class="fa-solid fa-hand-pointer"></i> Hak Akses Aksi
                                 </h4>
-                                <div id="role-action-checkboxes" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300">
-                                    <!-- Checkboxes populated via JS -->
-                                </div>
+                                <div id="role-action-checkboxes" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300"></div>
                             </div>
                         </div>
                     </div>
@@ -1327,6 +1277,7 @@
         </div>
     </div>
 
+    <!-- MAIN JAVASCRIPT LOGIC -->
     <script>
         const MENU_DEFINITIONS = [
             { key: 'dashboard', label: 'Dashboard KPI' },
@@ -1352,7 +1303,7 @@
         ];
 
         let appState = {
-            gasUrl: 'https://script.google.com/macros/s/AKfycbwYDNOLwc2qCd2KbVWiHxP-M7XmPDfnZ63ZPh0YudWsXkGYxWbL46DZVnQFFlfRnJc/exec',
+            gasUrl: 'https://script.google.com/macros/s/AKfycbxKfM-tfllQzB7Iobzx1ZPNzDMGpN5tuMqAKumCh9zVidqrbesOXqXjaG6u4TyrYOHX/exec',
             currentUser: null,
             filterYear: '2026',
             filterMonth: '0',
@@ -1480,6 +1431,22 @@
         };
         window.formatNumericOnly = function(input) { input.value = input.value.replace(/[^0-9]/g, ''); };
 
+        window.formatGpsLink = function(locationText, coords) {
+            if (coords && coords.includes(',')) {
+                const cleanCoords = coords.replace(/\s+/g, '');
+                return `<a href="https://www.google.com/maps?q=${cleanCoords}" target="_blank" rel="noopener noreferrer" class="text-rose-400 hover:text-rose-300 hover:underline inline-flex items-center gap-1 font-mono text-[11px]"><i class="fa-solid fa-map-location-dot"></i> ${locationText || coords}</a>`;
+            }
+            
+            if (locationText) {
+                const match = locationText.match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);
+                if (match) {
+                    const latLng = `${match[1]},${match[2]}`;
+                    return `<a href="https://www.google.com/maps?q=${latLng}" target="_blank" rel="noopener noreferrer" class="text-rose-400 hover:text-rose-300 hover:underline inline-flex items-center gap-1 font-mono text-[11px]"><i class="fa-solid fa-map-location-dot"></i> ${locationText}</a>`;
+                }
+            }
+            return locationText || '-';
+        };
+
         window.saveStateToLocal = function() {
             try {
                 localStorage.setItem('bts_app_state', JSON.stringify(appState));
@@ -1590,9 +1557,11 @@
 
             url = url.replace(/^["']|["']$/g, '').trim();
 
-            const match = url.match(/(https:\/\/script\.google\.com\/[^\s"']+)/);
-            if (match) {
-                url = match[1];
+            if (url.includes('script.google.com')) {
+                const startIdx = url.indexOf('http');
+                if (startIdx !== -1) {
+                    url = url.substring(startIdx).trim().split(/\s+/)[0];
+                }
             }
             
             if (!url) {
@@ -1792,655 +1761,6 @@
                     }
                 }
             });
-        };
-
-        window.onload = function() {
-            window.loadStateFromLocal();
-
-            const dateBadge = document.getElementById('header-date-text');
-            if (dateBadge) {
-                const now = new Date();
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                dateBadge.innerText = now.toLocaleDateString('id-ID', options);
-            }
-
-            if (appState.currentUser) {
-                document.getElementById('login-modal')?.classList.add('hidden');
-                document.getElementById('app-container')?.classList.remove('hidden');
-
-                const nameEl = document.getElementById('user-display-name');
-                const roleEl = document.getElementById('user-role-badge');
-                if (nameEl) nameEl.innerText = appState.currentUser.nama;
-                if (roleEl) roleEl.innerText = appState.currentUser.role || 'Marketing';
-
-                window.applyRoleRestrictions();
-                window.refreshAllViews();
-                const firstAllowedMenu = MENU_DEFINITIONS.find(m => window.hasMenuPermission(m.key))?.key || 'sekolah';
-                window.switchTab(firstAllowedMenu);
-            } else {
-                document.getElementById('login-modal')?.classList.remove('hidden');
-                document.getElementById('app-container')?.classList.add('hidden');
-            }
-
-            if (appState.gasUrl && appState.gasUrl.startsWith('https://script.google.com/')) {
-                window.fetchSyncFromGAS(false);
-            }
-        };
-
-        window.handlePhotoCapture = function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            if (!file.type.startsWith('image/')) {
-                window.showToast('Harap pilih file berupa gambar!', 'warning');
-                return;
-            }
-            if (file.size > 5 * 1024 * 1024) {
-                window.showToast('Ukuran gambar maksimal 5MB!', 'warning');
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                const base64 = evt.target.result;
-                const previewImg = document.getElementById('photo-preview-img');
-                const previewContainer = document.getElementById('photo-preview-container');
-                const statusText = document.getElementById('photo-status-text');
-                const fotoInput = document.getElementById('act-foto-base64');
-
-                if (previewImg) previewImg.src = base64;
-                if (previewContainer) previewContainer.classList.remove('hidden');
-                if (statusText) statusText.innerText = 'Foto berhasil diambil';
-                if (fotoInput) fotoInput.value = base64;
-            };
-            reader.readAsDataURL(file);
-        };
-
-        window.handleSaveActivity = async function(e) {
-            if (e) e.preventDefault();
-            const btnSave = document.getElementById('btn-save-activity');
-            window.setButtonLoading(btnSave, true, 'Menyimpan...');
-
-            try {
-                const date = document.getElementById('act-date').value;
-                const mkt = document.getElementById('act-mkt').value;
-                const sekolah = document.getElementById('act-sekolah').value;
-                const media = document.getElementById('act-media').value;
-                const jenis = document.getElementById('act-jenis').value;
-                const status = document.getElementById('act-status').value;
-                const progress = document.getElementById('act-progress').value.trim();
-                const nominalVal = document.getElementById('act-nominal')?.value || '';
-                const nominal = Number(nominalVal.replace(/[^0-9]/g, '')) || 0;
-                const gpsAddr = document.getElementById('act-gps-address').value.trim();
-                const coords = document.getElementById('act-coords').value;
-                const foto = document.getElementById('act-foto-base64').value;
-
-                if (!date || !sekolah || !progress) {
-                    window.showToast('Mohon lengkapi data wajib!', 'warning');
-                    return;
-                }
-
-                const newAct = {
-                    'ID Activity': 'ACT-' + Date.now().toString().slice(-5),
-                    'Tanggal Kunjungan': date,
-                    'Nama Marketing': mkt,
-                    'Nama Sekolah': sekolah,
-                    'Media Marketing': media,
-                    'Aktivitas': jenis,
-                    'Tahapan Marketing': jenis,
-                    'Status': status,
-                    'Hasil Kunjungan': progress,
-                    'Lokasi GPS': gpsAddr || 'Lokasi Kunjungan',
-                    'Coords': coords,
-                    'Foto': foto,
-                    'Nominal Deal': nominal
-                };
-
-                appState.activity.push(newAct);
-
-                window.saveStateToLocal();
-                window.closeModalActivity();
-                window.refreshAllViews();
-                window.showToast('Daily activity kunjungan berhasil disimpan!', 'success');
-                window.apiCall('saveActivity', newAct);
-            } finally {
-                window.setButtonLoading(btnSave, false);
-            }
-        };
-
-        window.deleteActivity = function(id) {
-            appState.activity = appState.activity.filter(a => a['ID Activity'] !== id);
-            window.saveStateToLocal();
-            window.refreshAllViews();
-            window.showToast('Aktivitas berhasil dihapus!', 'info');
-            window.apiCall('deleteActivity', { id: id });
-        };
-
-        window.renderCalendar = function() {
-            const labelEl = document.getElementById('calendar-month-year-label');
-            const gridEl = document.getElementById('calendar-days-grid');
-            if (!labelEl || !gridEl) return;
-
-            const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-            labelEl.innerText = `${monthNames[activeCalendarMonth]} ${activeCalendarYear}`;
-
-            gridEl.innerHTML = '';
-
-            const firstDayIndex = new Date(activeCalendarYear, activeCalendarMonth, 1).getDay();
-            const daysInMonth = new Date(activeCalendarYear, activeCalendarMonth + 1, 0).getDate();
-            const prevMonthDays = new Date(activeCalendarYear, activeCalendarMonth, 0).getDate();
-
-            const today = new Date();
-            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
-            const frag = document.createDocumentFragment();
-
-            for (let i = firstDayIndex - 1; i >= 0; i--) {
-                const dayNum = prevMonthDays - i;
-                const cell = document.createElement('div');
-                cell.className = 'min-h-[100px] p-2 bg-slate-900/30 text-slate-600 text-xs flex flex-col justify-between opacity-50';
-                cell.innerHTML = `<span class="font-bold">${dayNum}</span>`;
-                frag.appendChild(cell);
-            }
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const monthStr = String(activeCalendarMonth + 1).padStart(2, '0');
-                const dayStr = String(day).padStart(2, '0');
-                const dateKey = `${activeCalendarYear}-${monthStr}-${dayStr}`;
-
-                const isToday = (dateKey === todayStr);
-                const eventsForDay = (appState.calendarEvents || []).filter(e => e.Tanggal === dateKey);
-
-                const cell = document.createElement('div');
-                cell.className = `min-h-[100px] p-2 border-b border-r border-slate-800/60 text-xs flex flex-col justify-between hover:bg-slate-900/50 transition group relative ${isToday ? 'bg-indigo-950/30 border-indigo-500/40' : ''}`;
-
-                let eventsHtml = '';
-                if (eventsForDay.length > 0) {
-                    eventsHtml = eventsForDay.map(ev => `
-                        <div class="mt-1 p-1 bg-indigo-600/30 border border-indigo-500/40 rounded text-[10px] text-indigo-200 font-semibold truncate flex items-center justify-between group/ev" title="${ev.Judul} (${ev.Jam}) - ${ev.Keterangan || ''}">
-                            <span class="truncate"><i class="fa-solid fa-clock text-[8px] mr-1"></i>${ev.Jam} ${ev.Judul}</span>
-                            <button onclick="event.stopPropagation(); window.deleteCalendarEvent('${ev.ID}')" class="text-rose-400 hover:text-rose-300 ml-1 opacity-0 group-hover/ev:opacity-100 transition"><i class="fa-solid fa-xmark"></i></button>
-                        </div>
-                    `).join('');
-                }
-
-                cell.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span class="font-extrabold ${isToday ? 'w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[11px]' : 'text-slate-300'}">${day}</span>
-                        <button onclick="window.openModalCalendarEvent('${dateKey}')" title="Tambah Jadwal" class="w-5 h-5 rounded bg-slate-800 hover:bg-indigo-600 text-slate-400 hover:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-[10px]">
-                            <i class="fa-solid fa-plus"></i>
-                        </button>
-                    </div>
-                    <div class="space-y-1 mt-1 overflow-y-auto max-h-[70px] custom-scrollbar">${eventsHtml}</div>
-                `;
-                frag.appendChild(cell);
-            }
-
-            const totalCells = firstDayIndex + daysInMonth;
-            const nextMonthPadding = (7 - (totalCells % 7)) % 7;
-            for (let day = 1; day <= nextMonthPadding; day++) {
-                const cell = document.createElement('div');
-                cell.className = 'min-h-[100px] p-2 bg-slate-900/30 text-slate-600 text-xs flex flex-col justify-between opacity-50';
-                cell.innerHTML = `<span class="font-bold">${day}</span>`;
-                frag.appendChild(cell);
-            }
-
-            gridEl.appendChild(frag);
-        };
-
-        window.getComputedPipeline = function() {
-            const schoolMap = {};
-            appState.sekolah.forEach(s => {
-                const schoolName = String(s['Nama Sekolah'] || '');
-                if (schoolName) {
-                    schoolMap[schoolName] = {
-                        'ID Pipeline': 'PIPE-' + (s.ID || Math.random()),
-                        'Nama Sekolah': schoolName,
-                        'Nama Marketing': String(s['Nama Marketing'] || 'Marketing'),
-                        'Aktivitas': 'Prospect',
-                        'Status': 'Warm',
-                        'Tanggal Follow Up': '',
-                        'Nominal Deal': 0
-                    };
-                }
-            });
-
-            appState.activity.forEach(a => {
-                const schoolName = String(a['Nama Sekolah'] || '');
-                if (schoolName && schoolMap[schoolName]) {
-                    schoolMap[schoolName].Aktivitas = a.Aktivitas || 'Prospect';
-                    schoolMap[schoolName].Status = a.Status || 'Warm';
-                    schoolMap[schoolName]['Nama Marketing'] = a['Nama Marketing'] || schoolMap[schoolName]['Nama Marketing'];
-                    if (a['Nominal Deal']) schoolMap[schoolName]['Nominal Deal'] = a['Nominal Deal'];
-                    if (a['Tanggal Kunjungan']) schoolMap[schoolName]['Tanggal Follow Up'] = a['Tanggal Kunjungan'];
-                }
-            });
-
-            appState.pipeline.forEach(p => {
-                const schoolName = String(p['Nama Sekolah'] || '');
-                if (schoolName) {
-                    schoolMap[schoolName] = { ...schoolMap[schoolName], ...p };
-                }
-            });
-
-            return Object.values(schoolMap);
-        };
-
-        window.renderKanbanBoard = function() {
-            const pipelineData = window.getComputedPipeline();
-            const mktFilter = appState.filterMarketing || 'ALL';
-            const filtered = pipelineData.filter(p => mktFilter === 'ALL' || p['Nama Marketing'] === mktFilter);
-
-            const cols = {
-                prospect: document.getElementById('col-prospect'),
-                followup: document.getElementById('col-followup'),
-                presentasi: document.getElementById('col-presentasi'),
-                negosiasi: document.getElementById('col-negosiasi'),
-                deal: document.getElementById('col-deal'),
-                nodeal: document.getElementById('col-nodeal')
-            };
-
-            const counts = { prospect: 0, followup: 0, presentasi: 0, negosiasi: 0, deal: 0, nodeal: 0 };
-            Object.values(cols).forEach(col => { if (col) col.innerHTML = ''; });
-
-            filtered.forEach(p => {
-                const stageKey = (p.Aktivitas || 'Prospect').toLowerCase().replace(/\s+/g, '');
-                let targetColKey = 'prospect';
-                if (stageKey.includes('follow')) targetColKey = 'followup';
-                else if (stageKey.includes('presentasi')) targetColKey = 'presentasi';
-                else if (stageKey.includes('negosiasi')) targetColKey = 'negosiasi';
-                else if (stageKey === 'deal') targetColKey = 'deal';
-                else if (stageKey.includes('belum') || stageKey.includes('nodeal')) targetColKey = 'nodeal';
-
-                counts[targetColKey]++;
-
-                const targetCol = cols[targetColKey];
-                if (targetCol) {
-                    const card = document.createElement('div');
-                    card.className = 'glass-panel p-3 border border-slate-700/60 rounded-xl space-y-2 hover:border-indigo-500/50 transition shadow-sm';
-                    card.innerHTML = `
-                        <div class="font-bold text-xs text-white">${p['Nama Sekolah']}</div>
-                        <div class="flex items-center justify-between text-[10px] text-slate-400">
-                            <span><i class="fa-solid fa-user text-indigo-400 mr-1"></i>${p['Nama Marketing']}</span>
-                            <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold">${p.Status || 'Warm'}</span>
-                        </div>
-                        ${p['Nominal Deal'] ? `<div class="text-xs font-bold text-emerald-400 border-t border-slate-800/80 pt-1 mt-1">${window.formatRupiah(p['Nominal Deal'])}</div>` : ''}
-                    `;
-                    targetCol.appendChild(card);
-                }
-            });
-
-            Object.keys(counts).forEach(k => {
-                const countEl = document.getElementById('count-' + k);
-                if (countEl) countEl.innerText = counts[k];
-            });
-        };
-
-        window.switchTab = function(tabId) {
-            const isAllowed = window.hasMenuPermission(tabId);
-
-            if (!isAllowed) {
-                document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
-                document.querySelectorAll('.tab-btn').forEach(btn => {
-                    btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-lg');
-                    btn.classList.add('text-slate-400');
-                });
-                const view403 = document.getElementById('view-403');
-                if (view403) {
-                    view403.classList.remove('hidden');
-                    const roleLabel = document.getElementById('access-denied-role');
-                    if (roleLabel) roleLabel.innerText = (appState.currentUser?.nama || '') + ' (' + (appState.currentUser?.role || 'Marketing') + ')';
-                }
-                return;
-            }
-
-            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-lg');
-                btn.classList.add('text-slate-400');
-            });
-
-            const targetSec = document.getElementById('view-' + tabId);
-            if (targetSec) targetSec.classList.remove('hidden');
-            const activeBtn = document.getElementById('tab-' + tabId);
-            if (activeBtn) {
-                activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-lg');
-                activeBtn.classList.remove('text-slate-400');
-            }
-            if (tabId === 'calendar') {
-                window.renderCalendar();
-            }
-            if (tabId === 'gps') {
-                setTimeout(() => {
-                    window.renderGpsMap();
-                    if (mapInstance) mapInstance.invalidateSize();
-                }, 200);
-            }
-            if (tabId === 'settings') window.renderKpiConfigSection();
-        };
-
-        window.applyRoleRestrictions = function() {
-            const userRole = appState.currentUser?.role || 'Marketing';
-            const userNama = appState.currentUser?.nama || '';
-            const canViewAllMkt = window.hasActionPermission('view_all_mkt');
-
-            const mktFilterSelect = document.getElementById('filter-marketing-dashboard');
-            if (mktFilterSelect) {
-                if (!canViewAllMkt) {
-                    mktFilterSelect.classList.add('hidden');
-                    appState.filterMarketing = userNama;
-                } else {
-                    mktFilterSelect.classList.remove('hidden');
-                }
-            }
-
-            const gpsMktFilter = document.getElementById('gps-filter-mkt');
-            if (gpsMktFilter) {
-                if (!canViewAllMkt) gpsMktFilter.classList.add('hidden');
-                else gpsMktFilter.classList.remove('hidden');
-            }
-
-            const addSekolahBtn = document.getElementById('btn-add-sekolah');
-            if (addSekolahBtn) {
-                if (window.hasActionPermission('tambah')) addSekolahBtn.classList.remove('hidden');
-                else addSekolahBtn.classList.add('hidden');
-            }
-
-            const addActBtn = document.getElementById('btn-add-activity');
-            if (addActBtn) {
-                if (window.hasActionPermission('tambah')) addActBtn.classList.remove('hidden');
-                else addActBtn.classList.add('hidden');
-            }
-
-            document.querySelectorAll('[onclick*="exportSekolahExcel"]').forEach(btn => {
-                if (window.hasActionPermission('export_excel')) btn.classList.remove('hidden');
-                else btn.classList.add('hidden');
-            });
-
-            document.querySelectorAll('button[onclick*="export"]').forEach(btn => {
-                if (btn.getAttribute('onclick')?.includes('Pdf')) {
-                    if (window.hasActionPermission('export_pdf')) btn.classList.remove('hidden');
-                    else btn.classList.add('hidden');
-                }
-            });
-
-            document.querySelectorAll('button[onclick*="openModalMarketing"]').forEach(btn => {
-                if (window.hasActionPermission('manage_users')) btn.classList.remove('hidden');
-                else btn.classList.add('hidden');
-            });
-
-            const saveKpiBtn = document.getElementById('btn-save-kpi-settings');
-            if (saveKpiBtn) {
-                if (window.hasActionPermission('edit_kpi_target')) {
-                    saveKpiBtn.disabled = false;
-                    saveKpiBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                } else {
-                    saveKpiBtn.disabled = true;
-                    saveKpiBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                }
-            }
-
-            const restoreInput = document.getElementById('restore-file-input');
-            if (restoreInput && restoreInput.parentElement) {
-                if (window.hasActionPermission('import')) restoreInput.parentElement.classList.remove('hidden');
-                else restoreInput.parentElement.classList.add('hidden');
-            }
-
-            window.applyNavigationPermissions();
-        };
-
-        window.handleRoleAccessRoleChange = function(selectedRole) {
-            window.renderRolePermissionsUI(selectedRole);
-        };
-
-        window.renderRolePermissionsUI = function(selectedRole) {
-            const roleSelect = document.getElementById('role-access-select');
-            const targetRole = selectedRole || (roleSelect ? roleSelect.value : 'Owner');
-            if (roleSelect) roleSelect.value = targetRole;
-
-            const currentRole = appState.currentUser?.role || 'Marketing';
-            const canManagePermissions = (currentRole === 'Owner' || currentRole === 'HR');
-
-            const noticeEl = document.getElementById('role-permissions-notice');
-            const saveBtn = document.getElementById('btn-save-role-permissions');
-
-            if (!canManagePermissions) {
-                if (noticeEl) noticeEl.classList.remove('hidden');
-                if (saveBtn) saveBtn.classList.add('hidden');
-            } else {
-                if (noticeEl) noticeEl.classList.add('hidden');
-                if (saveBtn) saveBtn.classList.remove('hidden');
-            }
-
-            if (!appState.settings.rolePermissions) {
-                appState.settings.rolePermissions = {
-                    Owner: {
-                        menus: ['dashboard', 'sekolah', 'daily', 'calendar', 'pipeline', 'notifications', 'gps', 'settings'],
-                        actions: ['tambah', 'edit', 'hapus', 'import', 'export_excel', 'export_pdf', 'view_all_mkt', 'manage_users', 'edit_kpi_target']
-                    },
-                    HR: {
-                        menus: ['dashboard', 'sekolah', 'daily', 'calendar', 'pipeline', 'notifications', 'gps', 'settings'],
-                        actions: ['tambah', 'edit', 'hapus', 'import', 'export_excel', 'export_pdf', 'view_all_mkt', 'manage_users', 'edit_kpi_target']
-                    },
-                    Marketing: {
-                        menus: ['sekolah', 'daily', 'calendar', 'pipeline', 'notifications'],
-                        actions: ['tambah', 'edit', 'export_excel', 'export_pdf']
-                    }
-                };
-            }
-
-            const rolePerms = appState.settings.rolePermissions[targetRole] || { menus: [], actions: [] };
-            const currentMenus = rolePerms.menus || [];
-            const currentActions = rolePerms.actions || [];
-
-            const menuContainer = document.getElementById('role-menu-checkboxes');
-            if (menuContainer) {
-                menuContainer.innerHTML = MENU_DEFINITIONS.map(m => `
-                    <label class="flex items-center gap-2.5 p-2.5 bg-slate-900/80 rounded-lg border border-slate-800 ${canManagePermissions ? 'cursor-pointer hover:border-indigo-500/50' : 'cursor-not-allowed opacity-80'} transition">
-                        <input type="checkbox" name="role_menu_perm" value="${m.key}" ${currentMenus.includes(m.key) ? 'checked' : ''} ${!canManagePermissions ? 'disabled' : ''} class="w-4 h-4 rounded text-indigo-600 bg-slate-800 border-slate-700 focus:ring-indigo-500">
-                        <span class="font-medium text-slate-200">${m.label}</span>
-                    </label>
-                `).join('');
-            }
-
-            const actionContainer = document.getElementById('role-action-checkboxes');
-            if (actionContainer) {
-                actionContainer.innerHTML = ACTION_DEFINITIONS.map(a => `
-                    <label class="flex items-center gap-2.5 p-2.5 bg-slate-900/80 rounded-lg border border-slate-800 ${canManagePermissions ? 'cursor-pointer hover:border-purple-500/50' : 'cursor-not-allowed opacity-80'} transition">
-                        <input type="checkbox" name="role_action_perm" value="${a.key}" ${currentActions.includes(a.key) ? 'checked' : ''} ${!canManagePermissions ? 'disabled' : ''} class="w-4 h-4 rounded text-purple-600 bg-slate-800 border-slate-700 focus:ring-purple-500">
-                        <span class="font-medium text-slate-200">${a.label}</span>
-                    </label>
-                `).join('');
-            }
-        };
-
-        window.saveRolePermissions = function() {
-            const currentRole = appState.currentUser?.role || 'Marketing';
-            if (currentRole !== 'Owner' && currentRole !== 'HR') {
-                window.showToast('Anda tidak memiliki izin untuk mengubah hak akses role!', 'error');
-                return;
-            }
-
-            const btnSave = document.getElementById('btn-save-role-permissions');
-            window.setButtonLoading(btnSave, true, 'Menyimpan...');
-
-            try {
-                const roleSelect = document.getElementById('role-access-select');
-                const targetRole = roleSelect ? roleSelect.value : 'Owner';
-
-                const selectedMenus = Array.from(document.querySelectorAll('input[name="role_menu_perm"]:checked')).map(cb => cb.value);
-                const selectedActions = Array.from(document.querySelectorAll('input[name="role_action_perm"]:checked')).map(cb => cb.value);
-
-                if (!appState.settings.rolePermissions) appState.settings.rolePermissions = {};
-                appState.settings.rolePermissions[targetRole] = {
-                    menus: selectedMenus,
-                    actions: selectedActions
-                };
-
-                window.saveStateToLocal();
-                window.refreshAllViews();
-                window.showToast(`Hak akses untuk Role ${targetRole} berhasil diperbarui!`, 'success');
-                window.apiCall('saveSettings', appState.settings);
-            } finally {
-                window.setButtonLoading(btnSave, false);
-            }
-        };
-
-        window.populateDropdowns = function() {
-            const mktSelect = document.getElementById('filter-marketing-dashboard');
-            if (mktSelect) {
-                mktSelect.innerHTML = '<option value="ALL">Semua Marketing</option>';
-                const mktList = appState.marketing.filter(m => m.Role && m.Role.toLowerCase() === 'marketing');
-                mktList.forEach(m => {
-                    const opt = document.createElement('option');
-                    opt.value = m.Nama;
-                    opt.innerText = m.Nama;
-                    mktSelect.appendChild(opt);
-                });
-                mktSelect.value = appState.filterMarketing;
-            }
-
-            const gpsMktSelect = document.getElementById('gps-filter-mkt');
-            if (gpsMktSelect) {
-                gpsMktSelect.innerHTML = '<option value="ALL">Semua Marketing</option>';
-                const mktList = appState.marketing.filter(m => m.Role && m.Role.toLowerCase() === 'marketing');
-                mktList.forEach(m => {
-                    const opt = document.createElement('option');
-                    opt.value = m.Nama;
-                    opt.innerText = m.Nama;
-                    gpsMktSelect.appendChild(opt);
-                });
-            }
-
-            const wilayahSelect = document.getElementById('filter-wilayah');
-            if (wilayahSelect) {
-                const existingVal = wilayahSelect.value;
-                wilayahSelect.innerHTML = '<option value="">Semua Wilayah</option>';
-                const regions = [...new Set(appState.sekolah.map(s => s.Wilayah).filter(Boolean))];
-                regions.forEach(r => {
-                    const opt = document.createElement('option');
-                    opt.value = r;
-                    opt.innerText = r;
-                    wilayahSelect.appendChild(opt);
-                });
-                wilayahSelect.value = existingVal;
-            }
-
-            const actSekolahSelect = document.getElementById('act-sekolah');
-            if (actSekolahSelect) {
-                actSekolahSelect.innerHTML = '<option value="">-- Pilih Sekolah --</option>';
-                const isMkt = appState.currentUser?.role === 'Marketing';
-                const list = isMkt ? appState.sekolah.filter(s => String(s['Nama Marketing'] || '') === String(appState.currentUser?.nama || '')) : appState.sekolah;
-                list.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = String(s['Nama Sekolah'] || '');
-                    opt.innerText = `${String(s['Nama Sekolah'] || '')} (${String(s.Wilayah || '-')})`;
-                    actSekolahSelect.appendChild(opt);
-                });
-            }
-        };
-
-        window.updateHeaderCompanyLogo = function() {
-            const logoImg = document.getElementById('app-company-logo');
-            const logoIcon = document.getElementById('app-company-icon');
-            if (logoImg && logoIcon) {
-                if (appState.settings.logoUrl) {
-                    logoImg.src = appState.settings.logoUrl;
-                    logoImg.classList.remove('hidden');
-                    logoIcon.classList.add('hidden');
-                } else {
-                    logoImg.src = '';
-                    logoImg.classList.add('hidden');
-                    logoIcon.classList.remove('hidden');
-                }
-            }
-        };
-
-        window.refreshAllViews = function() {
-            if (appState.settings && appState.settings.companyName) {
-                const nameEl = document.getElementById('app-company-name');
-                if (nameEl) nameEl.innerText = appState.settings.companyName;
-            }
-            if (typeof window.updateHeaderCompanyLogo === 'function') window.updateHeaderCompanyLogo();
-            if (typeof window.applyRoleRestrictions === 'function') window.applyRoleRestrictions();
-            if (typeof window.populateDropdowns === 'function') window.populateDropdowns();
-            if (typeof window.renderDashboardKPIs === 'function') window.renderDashboardKPIs();
-            if (typeof window.renderCharts === 'function') window.renderCharts();
-            if (typeof window.renderWidgets === 'function') window.renderWidgets();
-            if (typeof window.renderTableSekolah === 'function') window.renderTableSekolah();
-            if (typeof window.renderDailyActivityTable === 'function') window.renderDailyActivityTable();
-            if (typeof window.renderCalendar === 'function') window.renderCalendar();
-            if (typeof window.renderKanbanBoard === 'function') window.renderKanbanBoard();
-            if (typeof window.renderNotifications === 'function') window.renderNotifications();
-            if (typeof window.renderMarketingTable === 'function') window.renderMarketingTable();
-            if (typeof window.renderKpiConfigSection === 'function') window.renderKpiConfigSection();
-        };
-
-        window.renderNotifications = function() {
-            const container = document.getElementById('notifications-container');
-            if (!container) return;
-            container.innerHTML = '';
-
-            const mktFilter = appState.filterMarketing || 'ALL';
-            const alerts = (appState.pipeline || []).filter(p => mktFilter === 'ALL' || p['Nama Marketing'] === mktFilter);
-            const calEvents = (appState.calendarEvents || []);
-
-            if (alerts.length === 0 && calEvents.length === 0) {
-                container.innerHTML = '<div class="col-span-2 text-center text-slate-500 text-xs py-8">Tidak ada notifikasi aktif.</div>';
-                return;
-            }
-
-            const frag = document.createDocumentFragment();
-
-            calEvents.forEach(ev => {
-                const card = document.createElement('div');
-                card.className = 'glass-panel p-4 border border-indigo-500/40 flex items-start gap-3 bg-indigo-950/20';
-                card.innerHTML = `
-                    <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-calendar-check text-base"></i>
-                    </div>
-                    <div class="space-y-1 flex-1">
-                        <div class="flex items-center justify-between gap-2">
-                            <span class="font-bold text-xs text-white">${ev.Judul || '-'}</span>
-                            <span class="px-2 py-0.5 text-[9px] font-bold rounded bg-indigo-500/20 text-indigo-300">Jadwal Kalender</span>
-                        </div>
-                        <p class="text-xs text-slate-300"><i class="fa-solid fa-clock text-indigo-400 mr-1"></i>${ev.Tanggal || '-'} jam ${ev.Jam || '-'}</p>
-                        ${ev.Keterangan ? `<p class="text-[11px] text-slate-400 leading-snug">${ev.Keterangan}</p>` : ''}
-                        <span class="text-[10px] text-slate-500 block">Dibuat oleh: ${ev.CreatedBy || '-'}</span>
-                    </div>
-                `;
-                frag.appendChild(card);
-            });
-
-            alerts.forEach(al => {
-                const card = document.createElement('div');
-                card.className = 'glass-panel p-4 border border-slate-700/70 flex items-start gap-3';
-                card.innerHTML = `
-                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-bell text-base"></i>
-                    </div>
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2">
-                            <span class="font-bold text-xs text-white">${al['Nama Sekolah'] || '-'}</span>
-                            <span class="px-2 py-0.5 text-[9px] font-bold rounded bg-amber-500/20 text-amber-300">${al.Aktivitas || '-'}</span>
-                        </div>
-                        <p class="text-xs text-slate-400">Jadwal follow up berikutnya: <span class="text-amber-400 font-semibold">${al['Tanggal Follow Up'] || 'Belum diatur'}</span></p>
-                        <span class="text-[10px] text-slate-500 block">Marketing: ${al['Nama Marketing'] || '-'}</span>
-                    </div>
-                `;
-                frag.appendChild(card);
-            });
-
-            container.appendChild(frag);
-
-            const totalNotifs = alerts.length + calEvents.length;
-            const badge = document.getElementById('notif-badge');
-            if (badge) {
-                if (totalNotifs > 0) { 
-                    badge.innerText = totalNotifs; 
-                    badge.classList.remove('hidden'); 
-                } else {
-                    badge.classList.add('hidden');
-                }
-            }
         };
 
         window.renderDashboardKPIs = function() {
@@ -2647,19 +1967,11 @@
             if (!tbody) return;
             tbody.innerHTML = '';
 
-            const searchVal = String(document.getElementById('search-sekolah')?.value || '').toLowerCase();
-            const jenjangVal = String(document.getElementById('filter-jenjang')?.value || '');
-            const wilayahVal = String(document.getElementById('filter-wilayah')?.value || '');
             const mktFilter = String(appState.filterMarketing || 'ALL');
 
             const filtered = appState.sekolah.filter(s => {
-                const schoolName = String(s['Nama Sekolah'] || '').toLowerCase();
-                const picName = String(s['Nama PIC'] || '').toLowerCase();
-                const matchesSearch = schoolName.includes(searchVal) || picName.includes(searchVal);
-                const matchesJenjang = !jenjangVal || String(s.Jenjang || '') === jenjangVal;
-                const matchesWilayah = !wilayahVal || String(s.Wilayah || '') === wilayahVal;
                 const matchesMkt = mktFilter === 'ALL' || String(s['Nama Marketing'] || '') === mktFilter;
-                return matchesSearch && matchesJenjang && matchesWilayah && matchesMkt;
+                return matchesMkt;
             });
 
             if (filtered.length === 0) {
@@ -2801,13 +2113,11 @@
             if (!tbody) return;
             tbody.innerHTML = '';
 
-            const dateFilter = String(document.getElementById('filter-act-date')?.value || '');
             const mktFilter = String(appState.filterMarketing || 'ALL');
 
             const filtered = appState.activity.filter(a => {
-                const matchesDate = !dateFilter || String(a['Tanggal Kunjungan'] || '') === dateFilter;
                 const matchesMkt = mktFilter === 'ALL' || String(a['Nama Marketing'] || '') === mktFilter;
-                return matchesDate && matchesMkt;
+                return matchesMkt;
             });
 
             if (filtered.length === 0) {
@@ -2821,6 +2131,8 @@
             filtered.forEach(a => {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-800/40 transition';
+                const formattedLocation = window.formatGpsLink(String(a['Lokasi GPS'] || '-'), a.Coords);
+
                 tr.innerHTML = `
                     <td class="p-3 font-semibold text-white whitespace-nowrap">${String(a['Tanggal Kunjungan'] || '-')}</td>
                     <td class="p-3 text-indigo-300 font-medium">${String(a['Nama Marketing'] || '-')}</td>
@@ -2829,9 +2141,9 @@
                     <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300">${String(a.Aktivitas || '-')}</span></td>
                     <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-${a.Status === 'Hot'?'rose':(a.Status==='Warm'?'amber':'blue')}-500/20 text-${a.Status === 'Hot'?'rose':(a.Status==='Warm'?'amber':'blue')}-300">${String(a.Status || '-')}</span></td>
                     <td class="p-3 text-slate-300 max-w-xs leading-snug">${String(a['Hasil Kunjungan'] || '-')}</td>
-                    <td class="p-3 text-slate-400 text-[11px] max-w-xs truncate"><i class="fa-solid fa-location-dot text-rose-400 mr-1"></i>${String(a['Lokasi GPS'] || '-')}</td>
+                    <td class="p-3 text-slate-400 text-[11px] max-w-xs">${formattedLocation}</td>
                     <td class="p-3">
-                        ${a.Foto ? `<img src="${a.Foto}" class="w-10 h-10 object-cover rounded border border-slate-700">` : '<span class="text-slate-500 italic text-[10px]">No Photo</span>'}
+                        ${a.Foto ? `<a href="${a.Foto}" target="_blank" rel="noopener noreferrer" title="Klik untuk membuka foto di tab baru" class="inline-block hover:scale-105 transition-transform"><img src="${a.Foto}" class="w-10 h-10 object-cover rounded border border-slate-700 hover:border-indigo-500 cursor-pointer"></a>` : '<span class="text-slate-500 italic text-[10px]">No Photo</span>'}
                     </td>
                     <td class="p-3 font-bold text-emerald-400">${a['Nominal Deal'] ? window.formatRupiah(a['Nominal Deal']) : '-'}</td>
                     <td class="p-3 text-center no-print">
@@ -2844,23 +2156,17 @@
         };
 
         window.openModalActivity = function() {
-            document.getElementById('form-activity')?.reset();
-            const mktInput = document.getElementById('act-mkt');
-            if (mktInput) mktInput.value = appState.currentUser?.nama || 'Budi Santoso';
-            const dateInput = document.getElementById('act-date');
-            if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
-            document.getElementById('photo-preview-container')?.classList.add('hidden');
-            const statusTxt = document.getElementById('photo-status-text');
-            if (statusTxt) statusTxt.innerText = 'Belum ada foto diambil';
-            const fotoBase64 = document.getElementById('act-foto-base64');
-            if (fotoBase64) fotoBase64.value = '';
+            document.getElementById('form-activity').reset();
+            document.getElementById('act-mkt').value = appState.currentUser?.nama || 'Budi Santoso';
+            document.getElementById('act-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('photo-preview-container').classList.add('hidden');
+            document.getElementById('photo-status-text').innerText = 'Belum ada foto diambil';
+            document.getElementById('act-foto-base64').value = '';
             window.toggleNominalDealInput('Prospect');
-            document.getElementById('modal-activity')?.classList.remove('hidden');
+            document.getElementById('modal-activity').classList.remove('hidden');
         };
 
-        window.closeModalActivity = function() { 
-            document.getElementById('modal-activity')?.classList.add('hidden'); 
-        };
+        window.closeModalActivity = function() { document.getElementById('modal-activity').classList.add('hidden'); };
 
         window.toggleNominalDealInput = function(stage) {
             const wrapper = document.getElementById('wrapper-nominal-deal');
@@ -2871,25 +2177,180 @@
         };
 
         window.getCurrentGpsLocation = function() {
-            if (!navigator.geolocation) { 
-                window.showToast('Geolocation tidak didukung pada browser ini.', 'error'); 
-                return; 
-            }
+            if (!navigator.geolocation) { window.showToast('Geolocation tidak didukung pada browser ini.', 'error'); return; }
             const addrInput = document.getElementById('act-gps-address');
-            if (addrInput) addrInput.value = 'Mendeteksi posisi GPS...';
+            addrInput.value = 'Mendeteksi posisi GPS...';
             navigator.geolocation.getCurrentPosition(
                 pos => {
                     const lat = pos.coords.latitude;
                     const lng = pos.coords.longitude;
-                    const coordsEl = document.getElementById('act-coords');
-                    if (coordsEl) coordsEl.value = `${lat}, ${lng}`;
-                    if (addrInput) addrInput.value = `Koordinat GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                    document.getElementById('act-coords').value = `${lat}, ${lng}`;
+                    addrInput.value = `Koordinat GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
                 },
                 err => {
-                    if (addrInput) addrInput.value = 'Jl. M.H. Thamrin No. 1, Jakarta Pusat';
+                    addrInput.value = 'Jl. M.H. Thamrin No. 1, Jakarta Pusat';
                     window.showToast('Gagal mendapat GPS presisi, menggunakan fallback lokasi.', 'warning');
                 }
             );
+        };
+
+        window.handlePhotoCapture = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                window.showToast('Harap pilih file berupa gambar!', 'warning');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                window.showToast('Ukuran gambar maksimal 5MB!', 'warning');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const base64 = evt.target.result;
+                const previewImg = document.getElementById('photo-preview-img');
+                const previewContainer = document.getElementById('photo-preview-container');
+                const statusText = document.getElementById('photo-status-text');
+                const fotoInput = document.getElementById('act-foto-base64');
+
+                if (previewImg) previewImg.src = base64;
+                if (previewContainer) previewContainer.classList.remove('hidden');
+                if (statusText) statusText.innerText = 'Foto berhasil diambil';
+                if (fotoInput) fotoInput.value = base64;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.handleSaveActivity = async function(e) {
+            if (e) e.preventDefault();
+            const btnSave = document.getElementById('btn-save-activity');
+            window.setButtonLoading(btnSave, true, 'Menyimpan...');
+
+            try {
+                const date = document.getElementById('act-date').value;
+                const mkt = document.getElementById('act-mkt').value;
+                const sekolah = document.getElementById('act-sekolah').value;
+                const media = document.getElementById('act-media').value;
+                const jenis = document.getElementById('act-jenis').value;
+                const status = document.getElementById('act-status').value;
+                const progress = document.getElementById('act-progress').value.trim();
+                const nominalVal = document.getElementById('act-nominal')?.value || '';
+                const nominal = Number(nominalVal.replace(/[^0-9]/g, '')) || 0;
+                const gpsAddr = document.getElementById('act-gps-address').value.trim();
+                const coords = document.getElementById('act-coords').value;
+                const foto = document.getElementById('act-foto-base64').value;
+
+                if (!date || !sekolah || !progress) {
+                    window.showToast('Mohon lengkapi data wajib!', 'warning');
+                    return;
+                }
+
+                const newAct = {
+                    'ID Activity': 'ACT-' + Date.now().toString().slice(-5),
+                    'Tanggal Kunjungan': date,
+                    'Nama Marketing': mkt,
+                    'Nama Sekolah': sekolah,
+                    'Media Marketing': media,
+                    'Aktivitas': jenis,
+                    'Tahapan Marketing': jenis,
+                    'Status': status,
+                    'Hasil Kunjungan': progress,
+                    'Lokasi GPS': gpsAddr || 'Lokasi Kunjungan',
+                    'Coords': coords,
+                    'Foto': foto,
+                    'Nominal Deal': nominal
+                };
+
+                appState.activity.push(newAct);
+
+                window.saveStateToLocal();
+                window.closeModalActivity();
+                window.refreshAllViews();
+                window.showToast('Daily activity kunjungan berhasil disimpan!', 'success');
+                window.apiCall('saveActivity', newAct);
+            } finally {
+                window.setButtonLoading(btnSave, false);
+            }
+        };
+
+        window.deleteActivity = function(id) {
+            appState.activity = appState.activity.filter(a => a['ID Activity'] !== id);
+            window.saveStateToLocal();
+            window.refreshAllViews();
+            window.showToast('Aktivitas berhasil dihapus!', 'info');
+            window.apiCall('deleteActivity', { id: id });
+        };
+
+        window.renderCalendar = function() {
+            const labelEl = document.getElementById('calendar-month-year-label');
+            const gridEl = document.getElementById('calendar-days-grid');
+            if (!labelEl || !gridEl) return;
+
+            const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            labelEl.innerText = `${monthNames[activeCalendarMonth]} ${activeCalendarYear}`;
+
+            gridEl.innerHTML = '';
+
+            const firstDayIndex = new Date(activeCalendarYear, activeCalendarMonth, 1).getDay();
+            const daysInMonth = new Date(activeCalendarYear, activeCalendarMonth + 1, 0).getDate();
+            const prevMonthDays = new Date(activeCalendarYear, activeCalendarMonth, 0).getDate();
+
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+            const frag = document.createDocumentFragment();
+
+            for (let i = firstDayIndex - 1; i >= 0; i--) {
+                const dayNum = prevMonthDays - i;
+                const cell = document.createElement('div');
+                cell.className = 'min-h-[100px] p-2 bg-slate-900/30 text-slate-600 text-xs flex flex-col justify-between opacity-50';
+                cell.innerHTML = `<span class="font-bold">${dayNum}</span>`;
+                frag.appendChild(cell);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const monthStr = String(activeCalendarMonth + 1).padStart(2, '0');
+                const dayStr = String(day).padStart(2, '0');
+                const dateKey = `${activeCalendarYear}-${monthStr}-${dayStr}`;
+
+                const isToday = (dateKey === todayStr);
+                const eventsForDay = (appState.calendarEvents || []).filter(e => e.Tanggal === dateKey);
+
+                const cell = document.createElement('div');
+                cell.className = `min-h-[100px] p-2 border-b border-r border-slate-800/60 text-xs flex flex-col justify-between hover:bg-slate-900/50 transition group relative ${isToday ? 'bg-indigo-950/30 border-indigo-500/40' : ''}`;
+
+                let eventsHtml = '';
+                if (eventsForDay.length > 0) {
+                    eventsHtml = eventsForDay.map(ev => `
+                        <div class="mt-1 p-1 bg-indigo-600/30 border border-indigo-500/40 rounded text-[10px] text-indigo-200 font-semibold truncate flex items-center justify-between group/ev" title="${ev.Judul} (${ev.Jam}) - ${ev.Keterangan || ''}">
+                            <span class="truncate"><i class="fa-solid fa-clock text-[8px] mr-1"></i>${ev.Jam} ${ev.Judul}</span>
+                            <button onclick="event.stopPropagation(); window.deleteCalendarEvent('${ev.ID}')" class="text-rose-400 hover:text-rose-300 ml-1 opacity-0 group-hover/ev:opacity-100 transition"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    `).join('');
+                }
+
+                cell.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="font-extrabold ${isToday ? 'w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[11px]' : 'text-slate-300'}">${day}</span>
+                        <button onclick="window.openModalCalendarEvent('${dateKey}')" title="Tambah Jadwal" class="w-5 h-5 rounded bg-slate-800 hover:bg-indigo-600 text-slate-400 hover:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-[10px]">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-1 mt-1 overflow-y-auto max-h-[70px] custom-scrollbar">${eventsHtml}</div>
+                `;
+                frag.appendChild(cell);
+            }
+
+            const totalCells = firstDayIndex + daysInMonth;
+            const nextMonthPadding = (7 - (totalCells % 7)) % 7;
+            for (let day = 1; day <= nextMonthPadding; day++) {
+                const cell = document.createElement('div');
+                cell.className = 'min-h-[100px] p-2 bg-slate-900/30 text-slate-600 text-xs flex flex-col justify-between opacity-50';
+                cell.innerHTML = `<span class="font-bold">${day}</span>`;
+                frag.appendChild(cell);
+            }
+
+            gridEl.appendChild(frag);
         };
 
         window.prevCalendarMonth = function() {
@@ -2918,35 +2379,28 @@
         };
 
         window.openModalCalendarEvent = function(dateStr = '') {
-            const form = document.getElementById('form-calendar-event');
-            if (form) form.reset();
-            const idEl = document.getElementById('cal-event-id');
-            if (idEl) idEl.value = '';
-            const dateEl = document.getElementById('cal-event-date');
-            if (dateEl) dateEl.value = dateStr || new Date().toISOString().split('T')[0];
-            const timeEl = document.getElementById('cal-event-time');
-            if (timeEl) timeEl.value = '09:00';
-            const titleModalEl = document.getElementById('modal-calendar-title');
-            if (titleModalEl) titleModalEl.innerText = 'Tambah Jadwal Baru';
-            const modalEl = document.getElementById('modal-calendar-event');
-            if (modalEl) modalEl.classList.remove('hidden');
+            document.getElementById('form-calendar-event').reset();
+            document.getElementById('cal-event-id').value = '';
+            document.getElementById('cal-event-date').value = dateStr || new Date().toISOString().split('T')[0];
+            document.getElementById('cal-event-time').value = '09:00';
+            document.getElementById('modal-calendar-title').innerText = 'Tambah Jadwal Baru';
+            document.getElementById('modal-calendar-event').classList.remove('hidden');
         };
 
         window.closeModalCalendarEvent = function() {
-            const modalEl = document.getElementById('modal-calendar-event');
-            if (modalEl) modalEl.classList.add('hidden');
+            document.getElementById('modal-calendar-event').classList.add('hidden');
         };
 
         window.handleSaveCalendarEvent = function(e) {
-            if (e) e.preventDefault();
+            e.preventDefault();
             const btnSave = document.getElementById('btn-save-cal-event');
             window.setButtonLoading(btnSave, true, 'Menyimpan...');
 
             try {
-                const date = document.getElementById('cal-event-date')?.value || '';
-                const time = document.getElementById('cal-event-time')?.value || '09:00';
-                const title = document.getElementById('cal-event-title')?.value.trim() || '';
-                const desc = document.getElementById('cal-event-desc')?.value.trim() || '';
+                const date = document.getElementById('cal-event-date').value;
+                const time = document.getElementById('cal-event-time').value;
+                const title = document.getElementById('cal-event-title').value.trim();
+                const desc = document.getElementById('cal-event-desc').value.trim();
 
                 if (!date || !title) {
                     window.showToast('Tanggal dan Judul Wajib diisi!', 'warning');
@@ -2980,6 +2434,289 @@
             window.saveStateToLocal();
             window.refreshAllViews();
             window.showToast('Jadwal kalender dihapus.', 'info');
+        };
+
+        window.getComputedPipeline = function() {
+            const schoolMap = {};
+            appState.sekolah.forEach(s => {
+                const schoolName = String(s['Nama Sekolah'] || '');
+                if (schoolName) {
+                    schoolMap[schoolName] = {
+                        'ID Pipeline': 'PIPE-' + (s.ID || Math.random()),
+                        'Nama Sekolah': schoolName,
+                        'Nama Marketing': String(s['Nama Marketing'] || 'Marketing'),
+                        'Aktivitas': 'Prospect',
+                        'Status': 'Warm',
+                        'Tanggal Follow Up': '',
+                        'Nominal Deal': 0
+                    };
+                }
+            });
+
+            appState.activity.forEach(a => {
+                const schoolName = String(a['Nama Sekolah'] || '');
+                if (schoolName && schoolMap[schoolName]) {
+                    schoolMap[schoolName].Aktivitas = a.Aktivitas || 'Prospect';
+                    schoolMap[schoolName].Status = a.Status || 'Warm';
+                    schoolMap[schoolName]['Nama Marketing'] = a['Nama Marketing'] || schoolMap[schoolName]['Nama Marketing'];
+                    if (a['Nominal Deal']) schoolMap[schoolName]['Nominal Deal'] = a['Nominal Deal'];
+                    if (a['Tanggal Kunjungan']) schoolMap[schoolName]['Tanggal Follow Up'] = a['Tanggal Kunjungan'];
+                }
+            });
+
+            appState.pipeline.forEach(p => {
+                const schoolName = String(p['Nama Sekolah'] || '');
+                if (schoolName) {
+                    schoolMap[schoolName] = { ...schoolMap[schoolName], ...p };
+                }
+            });
+
+            return Object.values(schoolMap);
+        };
+
+        window.renderKanbanBoard = function() {
+            const pipelineData = window.getComputedPipeline();
+            const mktFilter = appState.filterMarketing || 'ALL';
+            const filtered = pipelineData.filter(p => mktFilter === 'ALL' || p['Nama Marketing'] === mktFilter);
+
+            const cols = {
+                prospect: document.getElementById('col-prospect'),
+                followup: document.getElementById('col-followup'),
+                presentasi: document.getElementById('col-presentasi'),
+                negosiasi: document.getElementById('col-negosiasi'),
+                deal: document.getElementById('col-deal'),
+                nodeal: document.getElementById('col-nodeal')
+            };
+
+            const counts = { prospect: 0, followup: 0, presentasi: 0, negosiasi: 0, deal: 0, nodeal: 0 };
+            Object.values(cols).forEach(col => { if (col) col.innerHTML = ''; });
+
+            filtered.forEach(p => {
+                const stageKey = (p.Aktivitas || 'Prospect').toLowerCase().replace(/\s+/g, '');
+                let targetColKey = 'prospect';
+                if (stageKey.includes('follow')) targetColKey = 'followup';
+                else if (stageKey.includes('presentasi')) targetColKey = 'presentasi';
+                else if (stageKey.includes('negosiasi')) targetColKey = 'negosiasi';
+                else if (stageKey === 'deal') targetColKey = 'deal';
+                else if (stageKey.includes('belum') || stageKey.includes('nodeal')) targetColKey = 'nodeal';
+
+                counts[targetColKey]++;
+
+                const targetCol = cols[targetColKey];
+                if (targetCol) {
+                    const card = document.createElement('div');
+                    card.className = 'glass-panel p-3 border border-slate-700/60 rounded-xl space-y-2 hover:border-indigo-500/50 transition shadow-sm';
+                    card.innerHTML = `
+                        <div class="font-bold text-xs text-white">${p['Nama Sekolah']}</div>
+                        <div class="flex items-center justify-between text-[10px] text-slate-400">
+                            <span><i class="fa-solid fa-user text-indigo-400 mr-1"></i>${p['Nama Marketing']}</span>
+                            <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold">${p.Status || 'Warm'}</span>
+                        </div>
+                        ${p['Nominal Deal'] ? `<div class="text-xs font-bold text-emerald-400 border-t border-slate-800/80 pt-1 mt-1">${window.formatRupiah(p['Nominal Deal'])}</div>` : ''}
+                    `;
+                    targetCol.appendChild(card);
+                }
+            });
+
+            Object.keys(counts).forEach(k => {
+                const countEl = document.getElementById('count-' + k);
+                if (countEl) countEl.innerText = counts[k];
+            });
+        };
+
+        window.renderNotifications = function() {
+            const container = document.getElementById('notifications-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const mktFilter = appState.filterMarketing || 'ALL';
+            const alerts = appState.pipeline.filter(p => mktFilter === 'ALL' || p['Nama Marketing'] === mktFilter);
+            const calEvents = (appState.calendarEvents || []);
+
+            if (alerts.length === 0 && calEvents.length === 0) {
+                container.innerHTML = '<div class="col-span-2 text-center text-slate-500 text-xs py-8">Tidak ada notifikasi aktif.</div>';
+                return;
+            }
+
+            const frag = document.createDocumentFragment();
+
+            calEvents.forEach(ev => {
+                const card = document.createElement('div');
+                card.className = 'glass-panel p-4 border border-indigo-500/40 flex items-start gap-3 bg-indigo-950/20';
+                card.innerHTML = `
+                    <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-calendar-check text-base"></i>
+                    </div>
+                    <div class="space-y-1 flex-1">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-bold text-xs text-white">${ev.Judul}</span>
+                            <span class="px-2 py-0.5 text-[9px] font-bold rounded bg-indigo-500/20 text-indigo-300">Jadwal Kalender</span>
+                        </div>
+                        <p class="text-xs text-slate-300"><i class="fa-solid fa-clock text-indigo-400 mr-1"></i>${ev.Tanggal} jam ${ev.Jam}</p>
+                        ${ev.Keterangan ? `<p class="text-[11px] text-slate-400 leading-snug">${ev.Keterangan}</p>` : ''}
+                        <span class="text-[10px] text-slate-500 block">Dibuat oleh: ${ev.CreatedBy || '-'}</span>
+                    </div>
+                `;
+                frag.appendChild(card);
+            });
+
+            alerts.forEach(al => {
+                const card = document.createElement('div');
+                card.className = 'glass-panel p-4 border border-slate-700/70 flex items-start gap-3';
+                card.innerHTML = `
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-bell text-base"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-xs text-white">${al['Nama Sekolah']}</span>
+                            <span class="px-2 py-0.5 text-[9px] font-bold rounded bg-amber-500/20 text-amber-300">${al.Aktivitas}</span>
+                        </div>
+                        <p class="text-xs text-slate-400">Jadwal follow up berikutnya: <span class="text-amber-400 font-semibold">${al['Tanggal Follow Up'] || 'Belum diatur'}</span></p>
+                        <span class="text-[10px] text-slate-500 block">Marketing: ${al['Nama Marketing']}</span>
+                    </div>
+                `;
+                frag.appendChild(card);
+            });
+
+            container.appendChild(frag);
+
+            const totalNotifs = alerts.length + calEvents.length;
+            const badge = document.getElementById('notif-badge');
+            if (badge) {
+                if (totalNotifs > 0) { badge.innerText = totalNotifs; badge.classList.remove('hidden'); }
+                else badge.classList.add('hidden');
+            }
+        };
+
+        window.renderGpsMap = function() {
+            const mapContainer = document.getElementById('map');
+            if (!mapContainer) return;
+
+            if (typeof L === 'undefined') {
+                console.warn('Leaflet library is not loaded.');
+                return;
+            }
+
+            if (mapInstance) {
+                mapInstance.remove();
+                mapInstance = null;
+            }
+
+            if (mapContainer._leaflet_id) {
+                mapContainer._leaflet_id = null;
+            }
+
+            mapInstance = L.map('map').setView([-6.175392, 106.827153], 10);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(mapInstance);
+
+            const mktFilter = document.getElementById('gps-filter-mkt')?.value || appState.filterMarketing || 'ALL';
+            const filteredActivities = appState.activity.filter(a => (mktFilter === 'ALL' || a['Nama Marketing'] === mktFilter) && a.Coords);
+
+            const historyTimeline = document.getElementById('gps-history-timeline');
+            if (historyTimeline) historyTimeline.innerHTML = '';
+
+            filteredActivities.forEach(a => {
+                const [lat, lng] = a.Coords.split(',').map(n => parseFloat(n.trim()));
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    const marker = L.marker([lat, lng]).addTo(mapInstance);
+                    marker.bindPopup(`
+                        <div class="text-xs font-sans">
+                            <b class="text-indigo-600">${a['Nama Sekolah']}</b><br>
+                            <b>Marketing:</b> ${a['Nama Marketing']}<br>
+                            <b>Aktivitas:</b> ${a.Aktivitas}<br>
+                            <b>Tanggal:</b> ${a['Tanggal Kunjungan']}
+                        </div>
+                    `);
+
+                    if (historyTimeline) {
+                        const item = document.createElement('div');
+                        item.className = 'p-3 bg-slate-900/60 rounded-xl border border-slate-800 text-xs flex justify-between items-center';
+                        const formattedLocation = window.formatGpsLink(a['Lokasi GPS'] || 'Lokasi Terdeteksi', a.Coords);
+                        item.innerHTML = `
+                            <div>
+                                <div class="font-bold text-white">${a['Nama Sekolah']}</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">${formattedLocation}</div>
+                                <div class="text-[10px] text-indigo-300 font-medium mt-0.5">${a['Nama Marketing']} • ${a['Tanggal Kunjungan']}</div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300">${a.Aktivitas}</span>
+                        `;
+                        historyTimeline.appendChild(item);
+                    }
+                }
+            });
+        };
+
+        window.renderKpiConfigSection = function() {
+            const s = appState.settings;
+            if (document.getElementById('setting-company-name')) document.getElementById('setting-company-name').value = s.companyName || '';
+            
+            const logoPreview = document.getElementById('setting-logo-preview');
+            const placeholderIcon = document.getElementById('setting-logo-placeholder-icon');
+            const logoBase64Input = document.getElementById('setting-logo-base64');
+            const removeBtn = document.getElementById('btn-remove-logo');
+            
+            if (logoPreview && logoBase64Input) {
+                logoBase64Input.value = s.logoUrl || '';
+                if (s.logoUrl) {
+                    logoPreview.src = s.logoUrl;
+                    logoPreview.classList.remove('hidden');
+                    if (placeholderIcon) placeholderIcon.classList.add('hidden');
+                    if (removeBtn) removeBtn.classList.remove('hidden');
+                } else {
+                    logoPreview.src = '';
+                    logoPreview.classList.add('hidden');
+                    if (placeholderIcon) placeholderIcon.classList.remove('hidden');
+                    if (removeBtn) removeBtn.classList.add('hidden');
+                }
+            }
+
+            if (document.getElementById('cfg-target-db')) document.getElementById('cfg-target-db').value = s.targetDatabase || 100;
+            if (document.getElementById('cfg-target-harian-val')) document.getElementById('cfg-target-harian-val').value = s.targetHarian || 3;
+            if (document.getElementById('cfg-working-days')) document.getElementById('cfg-working-days').value = s.workingDays || 5;
+            if (document.getElementById('cfg-weeks-month')) document.getElementById('cfg-weeks-month').value = s.weeksMonth || 4;
+            if (document.getElementById('cfg-ratio-db-canvass')) document.getElementById('cfg-ratio-db-canvass').value = s.ratioDbCanvass || 60;
+            if (document.getElementById('cfg-ratio-canvass-pres')) document.getElementById('cfg-ratio-canvass-pres').value = s.ratioCanvassPres || 50;
+            if (document.getElementById('cfg-ratio-pres-deal')) document.getElementById('cfg-ratio-pres-deal').value = s.ratioPresDeal || 66.7;
+            if (document.getElementById('cfg-target-revenue-val')) document.getElementById('cfg-target-revenue-val').value = window.formatRupiah(s.targetRevenue || 500000000);
+            if (document.getElementById('cfg-formula-revenue')) document.getElementById('cfg-formula-revenue').value = s.formulaRevenue || '(Revenue Aktual / Target Revenue) * 100';
+
+            window.recalculateFunnel();
+            window.renderRolePermissionsUI();
+        };
+
+        window.handleLogoUpload = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                window.showToast('Harap pilih file berupa gambar!', 'warning');
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                window.showToast('Ukuran gambar maksimal 2MB!', 'warning');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const base64 = evt.target.result;
+                const previewImg = document.getElementById('setting-logo-preview');
+                const placeholderIcon = document.getElementById('setting-logo-placeholder-icon');
+                const logoInputVal = document.getElementById('setting-logo-base64');
+                const removeBtn = document.getElementById('btn-remove-logo');
+                
+                if (previewImg) {
+                    previewImg.src = base64;
+                    previewImg.classList.remove('hidden');
+                }
+                if (placeholderIcon) placeholderIcon.classList.add('hidden');
+                if (logoInputVal) logoInputVal.value = base64;
+                if (removeBtn) removeBtn.classList.remove('hidden');
+                
+                window.showToast('Logo berhasil dipilih. Klik "Simpan Pengaturan Profil" untuk menerapkan.', 'info');
+            };
+            reader.readAsDataURL(file);
         };
 
         window.removeCompanyLogo = function() {
@@ -3321,6 +3058,322 @@
             const tableData = appState.activity.map(a => [a['Tanggal Kunjungan'], a['Nama Marketing'], a['Nama Sekolah'], a['Lokasi GPS'] || '-']);
             doc.autoTable({ startY: 22, head: [['Tanggal', 'Marketing', 'Sekolah', 'Alamat / Lokasi GPS']], body: tableData });
             doc.save(`GPS_Tracking_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+        };
+
+        window.applyRoleRestrictions = function() {
+            const userRole = appState.currentUser?.role || 'Marketing';
+            const userNama = appState.currentUser?.nama || '';
+            const canViewAllMkt = window.hasActionPermission('view_all_mkt');
+
+            const mktFilterSelect = document.getElementById('filter-marketing-dashboard');
+            if (mktFilterSelect) {
+                if (!canViewAllMkt) {
+                    mktFilterSelect.classList.add('hidden');
+                    appState.filterMarketing = userNama;
+                } else {
+                    mktFilterSelect.classList.remove('hidden');
+                }
+            }
+
+            const gpsMktFilter = document.getElementById('gps-filter-mkt');
+            if (gpsMktFilter) {
+                if (!canViewAllMkt) gpsMktFilter.classList.add('hidden');
+                else gpsMktFilter.classList.remove('hidden');
+            }
+
+            const addSekolahBtn = document.getElementById('btn-add-sekolah');
+            if (addSekolahBtn) {
+                if (window.hasActionPermission('tambah')) addSekolahBtn.classList.remove('hidden');
+                else addSekolahBtn.classList.add('hidden');
+            }
+
+            const addActBtn = document.getElementById('btn-add-activity');
+            if (addActBtn) {
+                if (window.hasActionPermission('tambah')) addActBtn.classList.remove('hidden');
+                else addActBtn.classList.add('hidden');
+            }
+
+            document.querySelectorAll('[onclick*="exportSekolahExcel"]').forEach(btn => {
+                if (window.hasActionPermission('export_excel')) btn.classList.remove('hidden');
+                else btn.classList.add('hidden');
+            });
+
+            document.querySelectorAll('button[onclick*="export"]').forEach(btn => {
+                if (btn.getAttribute('onclick')?.includes('Pdf')) {
+                    if (window.hasActionPermission('export_pdf')) btn.classList.remove('hidden');
+                    else btn.classList.add('hidden');
+                }
+            });
+
+            document.querySelectorAll('button[onclick*="openModalMarketing"]').forEach(btn => {
+                if (window.hasActionPermission('manage_users')) btn.classList.remove('hidden');
+                else btn.classList.add('hidden');
+            });
+
+            const saveKpiBtn = document.getElementById('btn-save-kpi-settings');
+            if (saveKpiBtn) {
+                if (window.hasActionPermission('edit_kpi_target')) {
+                    saveKpiBtn.disabled = false;
+                    saveKpiBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                } else {
+                    saveKpiBtn.disabled = true;
+                    saveKpiBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            }
+
+            const restoreInput = document.getElementById('restore-file-input');
+            if (restoreInput && restoreInput.parentElement) {
+                if (window.hasActionPermission('import')) restoreInput.parentElement.classList.remove('hidden');
+                else restoreInput.parentElement.classList.add('hidden');
+            }
+
+            window.applyNavigationPermissions();
+        };
+
+        window.handleRoleAccessRoleChange = function(selectedRole) {
+            window.renderRolePermissionsUI(selectedRole);
+        };
+
+        window.renderRolePermissionsUI = function(selectedRole) {
+            const roleSelect = document.getElementById('role-access-select');
+            const targetRole = selectedRole || (roleSelect ? roleSelect.value : 'Owner');
+            if (roleSelect) roleSelect.value = targetRole;
+
+            const currentRole = appState.currentUser?.role || 'Marketing';
+            const canManagePermissions = (currentRole === 'Owner' || currentRole === 'HR');
+
+            const noticeEl = document.getElementById('role-permissions-notice');
+            const saveBtn = document.getElementById('btn-save-role-permissions');
+
+            if (!canManagePermissions) {
+                if (noticeEl) noticeEl.classList.remove('hidden');
+                if (saveBtn) saveBtn.classList.add('hidden');
+            } else {
+                if (noticeEl) noticeEl.classList.add('hidden');
+                if (saveBtn) saveBtn.classList.remove('hidden');
+            }
+
+            if (!appState.settings.rolePermissions) {
+                appState.settings.rolePermissions = {
+                    Owner: {
+                        menus: ['dashboard', 'sekolah', 'daily', 'calendar', 'pipeline', 'notifications', 'gps', 'settings'],
+                        actions: ['tambah', 'edit', 'hapus', 'import', 'export_excel', 'export_pdf', 'view_all_mkt', 'manage_users', 'edit_kpi_target']
+                    },
+                    HR: {
+                        menus: ['dashboard', 'sekolah', 'daily', 'calendar', 'pipeline', 'notifications', 'gps', 'settings'],
+                        actions: ['tambah', 'edit', 'hapus', 'import', 'export_excel', 'export_pdf', 'view_all_mkt', 'manage_users', 'edit_kpi_target']
+                    },
+                    Marketing: {
+                        menus: ['sekolah', 'daily', 'calendar', 'pipeline', 'notifications'],
+                        actions: ['tambah', 'edit', 'export_excel', 'export_pdf']
+                    }
+                };
+            }
+
+            const rolePerms = appState.settings.rolePermissions[targetRole] || { menus: [], actions: [] };
+            const currentMenus = rolePerms.menus || [];
+            const currentActions = rolePerms.actions || [];
+
+            const menuContainer = document.getElementById('role-menu-checkboxes');
+            if (menuContainer) {
+                menuContainer.innerHTML = MENU_DEFINITIONS.map(m => `
+                    <label class="flex items-center gap-2.5 p-2.5 bg-slate-900/80 rounded-lg border border-slate-800 ${canManagePermissions ? 'cursor-pointer hover:border-indigo-500/50' : 'cursor-not-allowed opacity-80'} transition">
+                        <input type="checkbox" name="role_menu_perm" value="${m.key}" ${currentMenus.includes(m.key) ? 'checked' : ''} ${!canManagePermissions ? 'disabled' : ''} class="w-4 h-4 rounded text-indigo-600 bg-slate-800 border-slate-700 focus:ring-indigo-500">
+                        <span class="font-medium text-slate-200">${m.label}</span>
+                    </label>
+                `).join('');
+            }
+
+            const actionContainer = document.getElementById('role-action-checkboxes');
+            if (actionContainer) {
+                actionContainer.innerHTML = ACTION_DEFINITIONS.map(a => `
+                    <label class="flex items-center gap-2.5 p-2.5 bg-slate-900/80 rounded-lg border border-slate-800 ${canManagePermissions ? 'cursor-pointer hover:border-purple-500/50' : 'cursor-not-allowed opacity-80'} transition">
+                        <input type="checkbox" name="role_action_perm" value="${a.key}" ${currentActions.includes(a.key) ? 'checked' : ''} ${!canManagePermissions ? 'disabled' : ''} class="w-4 h-4 rounded text-purple-600 bg-slate-800 border-slate-700 focus:ring-purple-500">
+                        <span class="font-medium text-slate-200">${a.label}</span>
+                    </label>
+                `).join('');
+            }
+        };
+
+        window.saveRolePermissions = function() {
+            const currentRole = appState.currentUser?.role || 'Marketing';
+            if (currentRole !== 'Owner' && currentRole !== 'HR') {
+                window.showToast('Anda tidak memiliki izin untuk mengubah hak akses role!', 'error');
+                return;
+            }
+
+            const btnSave = document.getElementById('btn-save-role-permissions');
+            window.setButtonLoading(btnSave, true, 'Menyimpan...');
+
+            try {
+                const roleSelect = document.getElementById('role-access-select');
+                const targetRole = roleSelect ? roleSelect.value : 'Owner';
+
+                const selectedMenus = Array.from(document.querySelectorAll('input[name="role_menu_perm"]:checked')).map(cb => cb.value);
+                const selectedActions = Array.from(document.querySelectorAll('input[name="role_action_perm"]:checked')).map(cb => cb.value);
+
+                if (!appState.settings.rolePermissions) appState.settings.rolePermissions = {};
+                appState.settings.rolePermissions[targetRole] = {
+                    menus: selectedMenus,
+                    actions: selectedActions
+                };
+
+                window.saveStateToLocal();
+                window.refreshAllViews();
+                window.showToast(`Hak akses untuk Role ${targetRole} berhasil diperbarui!`, 'success');
+                window.apiCall('saveSettings', appState.settings);
+            } finally {
+                window.setButtonLoading(btnSave, false);
+            }
+        };
+
+        window.populateDropdowns = function() {
+            const mktSelect = document.getElementById('filter-marketing-dashboard');
+            if (mktSelect) {
+                mktSelect.innerHTML = '<option value="ALL">Semua Marketing</option>';
+                const mktList = appState.marketing.filter(m => m.Role && m.Role.toLowerCase() === 'marketing');
+                mktList.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.Nama;
+                    opt.innerText = m.Nama;
+                    mktSelect.appendChild(opt);
+                });
+                mktSelect.value = appState.filterMarketing;
+            }
+
+            const gpsMktSelect = document.getElementById('gps-filter-mkt');
+            if (gpsMktSelect) {
+                gpsMktSelect.innerHTML = '<option value="ALL">Semua Marketing</option>';
+                const mktList = appState.marketing.filter(m => m.Role && m.Role.toLowerCase() === 'marketing');
+                mktList.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.Nama;
+                    opt.innerText = m.Nama;
+                    gpsMktSelect.appendChild(opt);
+                });
+            }
+
+            const actSekolahSelect = document.getElementById('act-sekolah');
+            if (actSekolahSelect) {
+                actSekolahSelect.innerHTML = '<option value="">-- Pilih Sekolah --</option>';
+                const isMkt = appState.currentUser?.role === 'Marketing';
+                const list = isMkt ? appState.sekolah.filter(s => String(s['Nama Marketing'] || '') === String(appState.currentUser?.nama || '')) : appState.sekolah;
+                list.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = String(s['Nama Sekolah'] || '');
+                    opt.innerText = `${String(s['Nama Sekolah'] || '')} (${String(s.Wilayah || '-')})`;
+                    actSekolahSelect.appendChild(opt);
+                });
+            }
+        };
+
+        window.updateHeaderCompanyLogo = function() {
+            const logoImg = document.getElementById('app-company-logo');
+            const logoIcon = document.getElementById('app-company-icon');
+            if (logoImg && logoIcon) {
+                if (appState.settings.logoUrl) {
+                    logoImg.src = appState.settings.logoUrl;
+                    logoImg.classList.remove('hidden');
+                    logoIcon.classList.add('hidden');
+                } else {
+                    logoImg.src = '';
+                    logoImg.classList.add('hidden');
+                    logoIcon.classList.remove('hidden');
+                }
+            }
+        };
+
+        window.refreshAllViews = function() {
+            if (appState.settings.companyName) document.getElementById('app-company-name').innerText = appState.settings.companyName;
+            window.updateHeaderCompanyLogo();
+            window.applyRoleRestrictions();
+            window.populateDropdowns();
+            window.renderDashboardKPIs();
+            window.renderCharts();
+            window.renderWidgets();
+            window.renderTableSekolah();
+            window.renderDailyActivityTable();
+            window.renderCalendar();
+            window.renderKanbanBoard();
+            window.renderNotifications();
+            window.renderMarketingTable();
+            window.renderKpiConfigSection();
+        };
+
+        window.switchTab = function(tabId) {
+            const isAllowed = window.hasMenuPermission(tabId);
+
+            if (!isAllowed) {
+                document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-lg');
+                    btn.classList.add('text-slate-400');
+                });
+                const view403 = document.getElementById('view-403');
+                if (view403) {
+                    view403.classList.remove('hidden');
+                    const roleLabel = document.getElementById('access-denied-role');
+                    if (roleLabel) roleLabel.innerText = (appState.currentUser?.nama || '') + ' (' + (appState.currentUser?.role || 'Marketing') + ')';
+                }
+                return;
+            }
+
+            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-lg');
+                btn.classList.add('text-slate-400');
+            });
+
+            const targetSec = document.getElementById('view-' + tabId);
+            if (targetSec) targetSec.classList.remove('hidden');
+            const activeBtn = document.getElementById('tab-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-lg');
+                activeBtn.classList.remove('text-slate-400');
+            }
+            if (tabId === 'calendar') {
+                window.renderCalendar();
+            }
+            if (tabId === 'gps') {
+                setTimeout(() => {
+                    window.renderGpsMap();
+                    if (mapInstance) mapInstance.invalidateSize();
+                }, 200);
+            }
+            if (tabId === 'settings') window.renderKpiConfigSection();
+        };
+
+        window.onload = function() {
+            window.loadStateFromLocal();
+
+            const dateBadge = document.getElementById('header-date-text');
+            if (dateBadge) {
+                const now = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                dateBadge.innerText = now.toLocaleDateString('id-ID', options);
+            }
+
+            if (appState.currentUser) {
+                document.getElementById('login-modal')?.classList.add('hidden');
+                document.getElementById('app-container')?.classList.remove('hidden');
+
+                const nameEl = document.getElementById('user-display-name');
+                const roleEl = document.getElementById('user-role-badge');
+                if (nameEl) nameEl.innerText = appState.currentUser.nama;
+                if (roleEl) roleEl.innerText = appState.currentUser.role || 'Marketing';
+
+                window.applyRoleRestrictions();
+                window.refreshAllViews();
+                const firstAllowedMenu = MENU_DEFINITIONS.find(m => window.hasMenuPermission(m.key))?.key || 'sekolah';
+                window.switchTab(firstAllowedMenu);
+            } else {
+                document.getElementById('login-modal')?.classList.remove('hidden');
+                document.getElementById('app-container')?.classList.add('hidden');
+            }
+
+            if (appState.gasUrl && appState.gasUrl.startsWith('https://script.google.com/')) {
+                window.fetchSyncFromGAS(false);
+            }
         };
     </script>
 </body>
