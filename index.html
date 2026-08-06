@@ -338,12 +338,22 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="glass-panel p-5">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-chart-line text-indigo-400"></i> Grafik Closing Bulanan (Rp)</h3>
-                            <span class="text-[11px] text-slate-400" id="chart-year-label">Tahun 2026</span>
+                    <!-- WIDGET BARU: RANKING MARKETING -->
+                    <div class="glass-panel p-5 flex flex-col justify-between border border-slate-700/60 shadow-xl">
+                        <div class="flex justify-between items-start mb-4 border-b border-slate-800 pb-3">
+                            <div>
+                                <h3 class="text-sm font-extrabold text-white tracking-tight flex items-center gap-1.5">
+                                    <span>RANKING MARKETING</span>
+                                </h3>
+                                <p class="text-xs font-bold text-indigo-400 tracking-tight">(BERDASARKAN CANVASSING, PRESENTASI & DEAL)</p>
+                            </div>
+                            <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-800 text-indigo-300 border border-slate-700" id="ranking-filter-label">
+                                Live Updates
+                            </span>
                         </div>
-                        <div class="h-64 relative"><canvas id="chartClosing"></canvas></div>
+                        <div id="ranking-marketing-list" class="space-y-3.5 h-64 overflow-y-auto custom-scrollbar pr-1">
+                            <!-- Populated dynamically via JS -->
+                        </div>
                     </div>
 
                     <div class="glass-panel p-5">
@@ -1137,7 +1147,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Foto Lokasi Kunjungan <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Foto Lokasi Kunjungan (Otomatis Dikompres ke KB) <span class="text-rose-500">*</span></label>
                     <div class="flex items-center gap-3">
                         <input type="file" id="act-foto-input" accept="image/*" capture="environment" onchange="window.handlePhotoCapture(event)" class="hidden">
                         <button type="button" onclick="document.getElementById('act-foto-input').click()" class="px-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold flex items-center gap-2 transition shadow">
@@ -1303,7 +1313,7 @@
         ];
 
         let appState = {
-            gasUrl: 'https://script.google.com/macros/s/AKfycbxKfM-tfllQzB7Iobzx1ZPNzDMGpN5tuMqAKumCh9zVidqrbesOXqXjaG6u4TyrYOHX/exec',
+            gasUrl: 'https://script.google.com/macros/s/AKfycbz5zYX5-EDdi0sXJ4vL6EozMw8MDzf4uGfOFxHxlCXkLsx5NO0vhwOd2DKbfvU3XzvL/exec',
             currentUser: null,
             filterYear: '2026',
             filterMonth: '0',
@@ -1363,7 +1373,6 @@
         let activeCalendarMonth = new Date().getMonth();
         let activeCalendarYear = new Date().getFullYear();
         let mapInstance = null;
-        let chartClosingInstance = null;
         let chartActivityInstance = null;
         let isSyncInProgress = false;
 
@@ -1834,52 +1843,140 @@
             });
         };
 
+        /* RENDER RANKING MARKETING PRESISI SESUAI REFERENSI GAMBAR */
+        window.renderRankingMarketing = function() {
+            const listEl = document.getElementById('ranking-marketing-list');
+            const labelEl = document.getElementById('ranking-filter-label');
+            if (!listEl) return;
+
+            const yr = appState.filterYear;
+            const mo = appState.filterMonth;
+            const mktFilter = appState.filterMarketing || 'ALL';
+
+            if (labelEl) {
+                labelEl.innerHTML = `<i class="fa-solid fa-calendar-alt text-[9px] mr-1"></i> ${yr}${mo !== '0' ? ' - ' + window.getMonthName(mo) : ''}`;
+            }
+
+            const mktList = appState.marketing.filter(m => m.Role && m.Role.toLowerCase() === 'marketing');
+
+            const mktStats = mktList.map(m => {
+                const name = String(m.Nama || '');
+                const singleTargets = window.getGlobalKpiTargets(name);
+                const targetDeal = singleTargets.targetDeal || 20;
+
+                const activities = appState.activity.filter(a => {
+                    if (!a['Tanggal Kunjungan']) return false;
+                    const d = new Date(a['Tanggal Kunjungan']);
+                    const matchesYr = d.getFullYear().toString() === yr;
+                    const matchesMo = mo === '0' || (d.getMonth() + 1).toString() === mo;
+                    const matchesMkt = String(a['Nama Marketing'] || '') === name;
+                    return matchesYr && matchesMo && matchesMkt;
+                });
+
+                const countCanvass = activities.filter(a => (a['Media Marketing'] || '').toLowerCase() === 'canvassing').length;
+                const countPresentasi = activities.filter(a => (a.Aktivitas || '').toLowerCase() === 'presentasi').length;
+                const countDeal = activities.filter(a => (a.Aktivitas || '').toLowerCase() === 'deal').length;
+                
+                const percentage = targetDeal > 0 ? Math.round((countDeal / targetDeal) * 100) : 0;
+
+                return {
+                    name,
+                    countCanvass,
+                    countPresentasi,
+                    countDeal,
+                    percentage,
+                    targetDeal
+                };
+            });
+
+            const displayStats = mktFilter === 'ALL' 
+                ? mktStats 
+                : mktStats.filter(s => s.name === mktFilter);
+
+            displayStats.sort((a, b) => {
+                if (b.countDeal !== a.countDeal) return b.countDeal - a.countDeal;
+                if (b.countPresentasi !== a.countPresentasi) return b.countPresentasi - a.countPresentasi;
+                if (b.countCanvass !== a.countCanvass) return b.countCanvass - a.countCanvass;
+                return b.percentage - a.percentage;
+            });
+
+            listEl.innerHTML = '';
+
+            if (displayStats.length === 0) {
+                listEl.innerHTML = '<div class="text-xs text-slate-500 italic text-center py-8">Tidak ada data marketing untuk ditampilkan.</div>';
+                return;
+            }
+
+            // Design Tokens Following Picture Reference (Rank 1 Gold, Rank 2 Silver, Rank 3 Bronze, Rank 4+ Muted)
+            const rankCircleColors = [
+                'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 font-black',  // Rank 1 Yellow Circle
+                'bg-slate-400 text-slate-950 shadow-md shadow-slate-400/20 font-black',  // Rank 2 Silver Circle
+                'bg-amber-700 text-white shadow-md shadow-amber-700/20 font-black',      // Rank 3 Bronze Circle
+                'bg-slate-800 text-slate-300 font-bold'                                   // Rank 4+ Grey Circle
+            ];
+
+            const frag = document.createDocumentFragment();
+
+            displayStats.forEach((st, idx) => {
+                const rankNum = idx + 1;
+                const circleClass = rankCircleColors[idx] || rankCircleColors[3];
+                const initial = st.name.charAt(0).toUpperCase();
+
+                const item = document.createElement('div');
+                item.className = 'p-2.5 bg-slate-900/60 rounded-xl border border-slate-800/80 hover:border-slate-700 transition flex flex-col gap-2';
+                
+                item.innerHTML = `
+                    <div class="flex items-center justify-between gap-3">
+                        <!-- Left: Rank Number + Avatar + Name & Subtitle Target + Progress Bar -->
+                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                            <!-- Rank Circle Badge -->
+                            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 ${circleClass}">
+                                ${rankNum}
+                            </div>
+
+                            <!-- Avatar -->
+                            <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow border border-indigo-400/30">
+                                ${initial}
+                            </div>
+
+                            <!-- Name, Subtitle Target, Progress Bar -->
+                            <div class="min-w-0 flex-1 space-y-1">
+                                <div class="font-bold text-xs text-white truncate tracking-wide">${st.name}</div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] text-slate-400 font-medium shrink-0">${st.percentage}% dari target</span>
+                                    <div class="flex-1 bg-slate-950 rounded-full h-1.5 overflow-hidden border border-slate-800">
+                                        <div class="bg-emerald-500 h-1.5 rounded-full transition-all duration-500" style="width: ${Math.min(100, st.percentage)}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Box: Deal Count Badge (e.g. 18 Sekolah) -->
+                        <div class="px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-950/20 text-emerald-400 text-center shrink-0 flex items-center gap-1.5 shadow-sm">
+                            <span class="text-sm font-black text-emerald-400">${st.countDeal}</span>
+                            <span class="text-[10px] font-semibold text-slate-300">Sekolah</span>
+                        </div>
+                    </div>
+
+                    <!-- Mini Stat Sub-Row for Canvassing & Presentasi -->
+                    <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800/40 px-1">
+                        <span class="flex items-center gap-1"><i class="fa-solid fa-person-walking text-indigo-400 text-[9px]"></i> Canvassing: <strong class="text-indigo-300">${st.countCanvass}</strong></span>
+                        <span class="flex items-center gap-1"><i class="fa-solid fa-chalkboard-user text-amber-400 text-[9px]"></i> Presentasi: <strong class="text-amber-300">${st.countPresentasi}</strong></span>
+                        <span class="flex items-center gap-1"><i class="fa-solid fa-handshake text-emerald-400 text-[9px]"></i> Deal: <strong class="text-emerald-300">${st.countDeal}</strong></span>
+                    </div>
+                `;
+                frag.appendChild(item);
+            });
+
+            listEl.appendChild(frag);
+        };
+
         window.renderCharts = function() {
             const yr = appState.filterYear;
             const mktFilter = appState.filterMarketing || 'ALL';
             const isLight = document.body.classList.contains('light-mode');
             const textColor = isLight ? '#0f172a' : '#94a3b8';
             const gridColor = isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)';
-
-            const monthlyRevenue = Array(12).fill(0);
-            appState.activity.forEach(a => {
-                if ((a.Aktivitas || '').toLowerCase() === 'deal' && a['Tanggal Kunjungan']) {
-                    const d = new Date(a['Tanggal Kunjungan']);
-                    if (d.getFullYear().toString() === yr && (mktFilter === 'ALL' || a['Nama Marketing'] === mktFilter)) {
-                        monthlyRevenue[d.getMonth()] += Number(a['Nominal Deal']) || 0;
-                    }
-                }
-            });
-
-            const ctxClosing = document.getElementById('chartClosing')?.getContext('2d');
-            if (ctxClosing) {
-                if (chartClosingInstance) chartClosingInstance.destroy();
-                chartClosingInstance = new Chart(ctxClosing, {
-                    type: 'line',
-                    data: {
-                        labels: ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],
-                        datasets: [{
-                            label: 'Revenue Deal (Rp)',
-                            data: monthlyRevenue,
-                            borderColor: '#6366f1',
-                            backgroundColor: 'rgba(99, 102, 241, 0.15)',
-                            fill: true,
-                            tension: 0.3,
-                            pointRadius: 4,
-                            pointHoverRadius: 6
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: { ticks: { color: textColor }, grid: { color: gridColor } },
-                            y: { ticks: { color: textColor, callback: v => 'Rp ' + (v/1000000) + 'M' }, grid: { color: gridColor } }
-                        }
-                    }
-                });
-            }
 
             const stages = ['Prospect', 'Follow Up', 'Presentasi', 'Negosiasi', 'Deal', 'Belum Deal'];
             const stageCounts = stages.map(stg => {
@@ -2201,22 +2298,48 @@
                 window.showToast('Harap pilih file berupa gambar!', 'warning');
                 return;
             }
-            if (file.size > 5 * 1024 * 1024) {
-                window.showToast('Ukuran gambar maksimal 5MB!', 'warning');
-                return;
-            }
+            
             const reader = new FileReader();
             reader.onload = function(evt) {
-                const base64 = evt.target.result;
-                const previewImg = document.getElementById('photo-preview-img');
-                const previewContainer = document.getElementById('photo-preview-container');
-                const statusText = document.getElementById('photo-status-text');
-                const fotoInput = document.getElementById('act-foto-base64');
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800;
+                    const MAX_HEIGHT = 800;
+                    let width = img.width;
+                    let height = img.height;
 
-                if (previewImg) previewImg.src = base64;
-                if (previewContainer) previewContainer.classList.remove('hidden');
-                if (statusText) statusText.innerText = 'Foto berhasil diambil';
-                if (fotoInput) fotoInput.value = base64;
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.65);
+
+                    const previewImg = document.getElementById('photo-preview-img');
+                    const previewContainer = document.getElementById('photo-preview-container');
+                    const statusText = document.getElementById('photo-status-text');
+                    const fotoInput = document.getElementById('act-foto-base64');
+
+                    if (previewImg) previewImg.src = compressedBase64;
+                    if (previewContainer) previewContainer.classList.remove('hidden');
+                    if (statusText) statusText.innerText = 'Foto berhasil diambil & dikompres (KB)';
+                    if (fotoInput) fotoInput.value = compressedBase64;
+                };
+                img.src = evt.target.result;
             };
             reader.readAsDataURL(file);
         };
@@ -2622,26 +2745,38 @@
                 const [lat, lng] = a.Coords.split(',').map(n => parseFloat(n.trim()));
                 if (!isNaN(lat) && !isNaN(lng)) {
                     const marker = L.marker([lat, lng]).addTo(mapInstance);
+                    
+                    const popupPhotoHtml = a.Foto ? `<div class="mt-2"><a href="${a.Foto}" target="_blank" rel="noopener noreferrer"><img src="${a.Foto}" style="width:110px; height:75px; object-fit:cover; border-radius:6px; border:1px solid #cbd5e1;"></a></div>` : '';
+
                     marker.bindPopup(`
                         <div class="text-xs font-sans">
                             <b class="text-indigo-600">${a['Nama Sekolah']}</b><br>
                             <b>Marketing:</b> ${a['Nama Marketing']}<br>
                             <b>Aktivitas:</b> ${a.Aktivitas}<br>
                             <b>Tanggal:</b> ${a['Tanggal Kunjungan']}
+                            ${popupPhotoHtml}
                         </div>
                     `);
 
                     if (historyTimeline) {
                         const item = document.createElement('div');
-                        item.className = 'p-3 bg-slate-900/60 rounded-xl border border-slate-800 text-xs flex justify-between items-center';
+                        item.className = 'p-3 bg-slate-900/60 rounded-xl border border-slate-800 text-xs flex justify-between items-center gap-3';
                         const formattedLocation = window.formatGpsLink(a['Lokasi GPS'] || 'Lokasi Terdeteksi', a.Coords);
+                        
+                        const photoThumbnailHtml = a.Foto ? `<a href="${a.Foto}" target="_blank" rel="noopener noreferrer" title="Klik untuk memperbesar foto"><img src="${a.Foto}" class="w-11 h-11 object-cover rounded-lg border border-slate-700 hover:border-indigo-500 hover:scale-105 transition-transform shrink-0 cursor-pointer"></a>` : '<span class="text-slate-500 italic text-[10px] shrink-0">No Photo</span>';
+
                         item.innerHTML = `
-                            <div>
-                                <div class="font-bold text-white">${a['Nama Sekolah']}</div>
-                                <div class="text-[10px] text-slate-400 mt-0.5">${formattedLocation}</div>
-                                <div class="text-[10px] text-indigo-300 font-medium mt-0.5">${a['Nama Marketing']} • ${a['Tanggal Kunjungan']}</div>
+                            <div class="flex items-center gap-3 flex-1 min-w-0">
+                                <div class="space-y-0.5 flex-1 min-w-0">
+                                    <div class="font-bold text-white truncate">${a['Nama Sekolah']}</div>
+                                    <div class="text-[10px] text-slate-400">${formattedLocation}</div>
+                                    <div class="text-[10px] text-indigo-300 font-medium">${a['Nama Marketing']} • ${a['Tanggal Kunjungan']}</div>
+                                </div>
                             </div>
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300">${a.Aktivitas}</span>
+                            <div class="flex items-center gap-3 shrink-0">
+                                ${photoThumbnailHtml}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300">${a.Aktivitas}</span>
+                            </div>
                         `;
                         historyTimeline.appendChild(item);
                     }
@@ -3289,6 +3424,7 @@
             window.applyRoleRestrictions();
             window.populateDropdowns();
             window.renderDashboardKPIs();
+            window.renderRankingMarketing();
             window.renderCharts();
             window.renderWidgets();
             window.renderTableSekolah();
@@ -3330,6 +3466,9 @@
             if (activeBtn) {
                 activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-lg');
                 activeBtn.classList.remove('text-slate-400');
+            }
+            if (tabId === 'dashboard') {
+                window.renderRankingMarketing();
             }
             if (tabId === 'calendar') {
                 window.renderCalendar();
