@@ -338,12 +338,12 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- WIDGET BARU: RANKING MARKETING -->
+                    <!-- WIDGET BARU: RANKING MARKETING (PRESISI REFERENSI GAMBAR) -->
                     <div class="glass-panel p-5 flex flex-col justify-between border border-slate-700/60 shadow-xl">
                         <div class="flex justify-between items-start mb-4 border-b border-slate-800 pb-3">
                             <div>
                                 <h3 class="text-sm font-extrabold text-white tracking-tight flex items-center gap-1.5">
-                                    <span>RANKING MARKETING</span>
+                                    <span>9. RANKING MARKETING</span>
                                 </h3>
                                 <p class="text-xs font-bold text-indigo-400 tracking-tight">(BERDASARKAN CANVASSING, PRESENTASI & DEAL)</p>
                             </div>
@@ -1313,7 +1313,7 @@
         ];
 
         let appState = {
-            gasUrl: 'https://script.google.com/macros/s/AKfycbz5zYX5-EDdi0sXJ4vL6EozMw8MDzf4uGfOFxHxlCXkLsx5NO0vhwOd2DKbfvU3XzvL/exec',
+            gasUrl: 'https://script.google.com/macros/s/AKfycbxZ-bQKYH619ZZLjUbkKAiB7BPEMca1khba70ehey4VsJEZsruktjueCTNNQWY6q1Dn/exec',
             currentUser: null,
             filterYear: '2026',
             filterMonth: '0',
@@ -1907,12 +1907,12 @@
                 return;
             }
 
-            // Design Tokens Following Picture Reference (Rank 1 Gold, Rank 2 Silver, Rank 3 Bronze, Rank 4+ Muted)
+            // Rank 1 Gold, Rank 2 Silver, Rank 3 Bronze, Rank 4+ Muted
             const rankCircleColors = [
-                'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 font-black',  // Rank 1 Yellow Circle
-                'bg-slate-400 text-slate-950 shadow-md shadow-slate-400/20 font-black',  // Rank 2 Silver Circle
-                'bg-amber-700 text-white shadow-md shadow-amber-700/20 font-black',      // Rank 3 Bronze Circle
-                'bg-slate-800 text-slate-300 font-bold'                                   // Rank 4+ Grey Circle
+                'bg-amber-500 text-slate-950 font-black',
+                'bg-slate-400 text-slate-950 font-black',
+                'bg-amber-700 text-white font-black',
+                'bg-slate-800 text-slate-300 font-bold'
             ];
 
             const frag = document.createDocumentFragment();
@@ -1927,19 +1927,13 @@
                 
                 item.innerHTML = `
                     <div class="flex items-center justify-between gap-3">
-                        <!-- Left: Rank Number + Avatar + Name & Subtitle Target + Progress Bar -->
                         <div class="flex items-center gap-3 min-w-0 flex-1">
-                            <!-- Rank Circle Badge -->
                             <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 ${circleClass}">
                                 ${rankNum}
                             </div>
-
-                            <!-- Avatar -->
                             <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow border border-indigo-400/30">
                                 ${initial}
                             </div>
-
-                            <!-- Name, Subtitle Target, Progress Bar -->
                             <div class="min-w-0 flex-1 space-y-1">
                                 <div class="font-bold text-xs text-white truncate tracking-wide">${st.name}</div>
                                 <div class="flex items-center gap-2">
@@ -1950,15 +1944,11 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Right Box: Deal Count Badge (e.g. 18 Sekolah) -->
                         <div class="px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-950/20 text-emerald-400 text-center shrink-0 flex items-center gap-1.5 shadow-sm">
                             <span class="text-sm font-black text-emerald-400">${st.countDeal}</span>
                             <span class="text-[10px] font-semibold text-slate-300">Sekolah</span>
                         </div>
                     </div>
-
-                    <!-- Mini Stat Sub-Row for Canvassing & Presentasi -->
                     <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800/40 px-1">
                         <span class="flex items-center gap-1"><i class="fa-solid fa-person-walking text-indigo-400 text-[9px]"></i> Canvassing: <strong class="text-indigo-300">${st.countCanvass}</strong></span>
                         <span class="flex items-center gap-1"><i class="fa-solid fa-chalkboard-user text-amber-400 text-[9px]"></i> Presentasi: <strong class="text-amber-300">${st.countPresentasi}</strong></span>
@@ -2571,6 +2561,8 @@
                         'Aktivitas': 'Prospect',
                         'Status': 'Warm',
                         'Tanggal Follow Up': '',
+                        'Media Marketing': '-',
+                        'Progress': '-',
                         'Nominal Deal': 0
                     };
                 }
@@ -2584,6 +2576,8 @@
                     schoolMap[schoolName]['Nama Marketing'] = a['Nama Marketing'] || schoolMap[schoolName]['Nama Marketing'];
                     if (a['Nominal Deal']) schoolMap[schoolName]['Nominal Deal'] = a['Nominal Deal'];
                     if (a['Tanggal Kunjungan']) schoolMap[schoolName]['Tanggal Follow Up'] = a['Tanggal Kunjungan'];
+                    if (a['Media Marketing']) schoolMap[schoolName]['Media Marketing'] = a['Media Marketing'];
+                    if (a['Hasil Kunjungan']) schoolMap[schoolName]['Progress'] = a['Hasil Kunjungan'];
                 }
             });
 
@@ -2597,6 +2591,7 @@
             return Object.values(schoolMap);
         };
 
+        /* UPDATE KANBAN BOARD CARD - MENAMBAHKAN TANGGAL, MEDIA MARKETING, DAN PROGRESS KUNJUNGAN */
         window.renderKanbanBoard = function() {
             const pipelineData = window.getComputedPipeline();
             const mktFilter = appState.filterMarketing || 'ALL';
@@ -2631,10 +2626,25 @@
                     card.className = 'glass-panel p-3 border border-slate-700/60 rounded-xl space-y-2 hover:border-indigo-500/50 transition shadow-sm';
                     card.innerHTML = `
                         <div class="font-bold text-xs text-white">${p['Nama Sekolah']}</div>
+                        
                         <div class="flex items-center justify-between text-[10px] text-slate-400">
                             <span><i class="fa-solid fa-user text-indigo-400 mr-1"></i>${p['Nama Marketing']}</span>
                             <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold">${p.Status || 'Warm'}</span>
                         </div>
+
+                        <!-- ATRIBUT BARU: Tanggal & Media Marketing -->
+                        <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800/60">
+                            <span><i class="fa-solid fa-calendar text-indigo-400 mr-1"></i>${p['Tanggal Follow Up'] || '-'}</span>
+                            <span class="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-indigo-300 font-semibold">${p['Media Marketing'] || '-'}</span>
+                        </div>
+
+                        <!-- ATRIBUT BARU: Progress Kunjungan -->
+                        ${p.Progress && p.Progress !== '-' ? `
+                            <div class="text-[10px] text-slate-300 bg-slate-950/40 p-1.5 rounded-lg border border-slate-800/80 leading-relaxed truncate" title="${p.Progress}">
+                                <i class="fa-solid fa-comment-dots text-amber-400 mr-1"></i><span>${p.Progress}</span>
+                            </div>
+                        ` : ''}
+
                         ${p['Nominal Deal'] ? `<div class="text-xs font-bold text-emerald-400 border-t border-slate-800/80 pt-1 mt-1">${window.formatRupiah(p['Nominal Deal'])}</div>` : ''}
                     `;
                     targetCol.appendChild(card);
