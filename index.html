@@ -208,9 +208,11 @@
             <div class="flex flex-wrap items-center gap-2 bg-slate-900/90 p-1.5 rounded-xl border border-slate-800">
                 <span class="text-xs text-slate-400 px-1 font-semibold hidden sm:inline"><i class="fa-solid fa-filter mr-1 text-indigo-400"></i>Filter:</span>
                 
+                <!-- FILTER TAHUN TERMASUK AKUMULASI (2026 + 2027) -->
                 <div class="flex bg-slate-800/80 p-0.5 rounded-lg border border-slate-700/50">
                     <button id="btn-year-2026" onclick="window.setFilterYear('2026')" class="px-2.5 py-1 rounded-md text-xs font-bold transition bg-indigo-600 text-white shadow">2026</button>
                     <button id="btn-year-2027" onclick="window.setFilterYear('2027')" class="px-2.5 py-1 rounded-md text-xs font-bold transition text-slate-400 hover:text-white">2027</button>
+                    <button id="btn-year-ALL" onclick="window.setFilterYear('ALL')" class="px-2.5 py-1 rounded-md text-xs font-bold transition text-slate-400 hover:text-white">Akumulasi</button>
                 </div>
 
                 <select id="filter-month" onchange="window.handleMonthChange(this.value)" class="bg-slate-800 border border-slate-700 text-white text-xs font-medium rounded-lg px-2 py-1 focus:outline-none focus:border-indigo-500">
@@ -343,7 +345,7 @@
                         <div class="flex justify-between items-start mb-4 border-b border-slate-800 pb-3">
                             <div>
                                 <h3 class="text-sm font-extrabold text-white tracking-tight flex items-center gap-1.5">
-                                    <span>9. RANKING MARKETING</span>
+                                    <span>RANKING MARKETING</span>
                                 </h3>
                                 <p class="text-xs font-bold text-indigo-400 tracking-tight">(BERDASARKAN CANVASSING, PRESENTASI & DEAL)</p>
                             </div>
@@ -1313,9 +1315,9 @@
         ];
 
         let appState = {
-            gasUrl: 'https://script.google.com/macros/s/AKfycbxZ-bQKYH619ZZLjUbkKAiB7BPEMca1khba70ehey4VsJEZsruktjueCTNNQWY6q1Dn/exec',
+            gasUrl: 'https://script.google.com/macros/s/AKfycbxp-H4hLgt1rjSooMoeav3Y5I1WNwkum-dlvYiVLCGC2pyvIa8MQPBkEInmoHLP9t0o/exec',
             currentUser: null,
-            filterYear: '2026',
+            filterYear: '2026', // Nilai default: '2026', '2027', atau 'ALL' (Akumulasi)
             filterMonth: '0',
             filterMarketing: 'ALL',
             settings: {
@@ -1661,14 +1663,24 @@
             }
         };
 
+        /* MENGATUR FILTER TAHUN TERMASUK 'ALL' (AKUMULASI 2026 + 2027) */
         window.setFilterYear = function(yr) {
             appState.filterYear = yr;
-            document.getElementById('btn-year-2026')?.classList.toggle('bg-indigo-600', yr === '2026');
-            document.getElementById('btn-year-2026')?.classList.toggle('text-white', yr === '2026');
-            document.getElementById('btn-year-2026')?.classList.toggle('text-slate-400', yr !== '2026');
-            document.getElementById('btn-year-2027')?.classList.toggle('bg-indigo-600', yr === '2027');
-            document.getElementById('btn-year-2027')?.classList.toggle('text-white', yr === '2027');
-            document.getElementById('btn-year-2027')?.classList.toggle('text-slate-400', yr !== '2027');
+            
+            const btn2026 = document.getElementById('btn-year-2026');
+            const btn2027 = document.getElementById('btn-year-2027');
+            const btnALL = document.getElementById('btn-year-ALL');
+
+            if (btn2026) {
+                btn2026.className = yr === '2026' ? 'px-2.5 py-1 rounded-md text-xs font-bold transition bg-indigo-600 text-white shadow' : 'px-2.5 py-1 rounded-md text-xs font-bold transition text-slate-400 hover:text-white';
+            }
+            if (btn2027) {
+                btn2027.className = yr === '2027' ? 'px-2.5 py-1 rounded-md text-xs font-bold transition bg-indigo-600 text-white shadow' : 'px-2.5 py-1 rounded-md text-xs font-bold transition text-slate-400 hover:text-white';
+            }
+            if (btnALL) {
+                btnALL.className = yr === 'ALL' ? 'px-2.5 py-1 rounded-md text-xs font-bold transition bg-indigo-600 text-white shadow' : 'px-2.5 py-1 rounded-md text-xs font-bold transition text-slate-400 hover:text-white';
+            }
+
             window.refreshAllViews();
         };
 
@@ -1781,7 +1793,7 @@
             const filteredActivities = appState.activity.filter(a => {
                 if (!a['Tanggal Kunjungan']) return false;
                 const d = new Date(a['Tanggal Kunjungan']);
-                const matchesYear = d.getFullYear().toString() === yr;
+                const matchesYear = (yr === 'ALL') || (d.getFullYear().toString() === yr);
                 const matchesMonth = mo === '0' || (d.getMonth() + 1).toString() === mo;
                 const matchesMkt = mktFilter === 'ALL' || a['Nama Marketing'] === mktFilter;
                 return matchesYear && matchesMonth && matchesMkt;
@@ -1843,7 +1855,7 @@
             });
         };
 
-        /* RENDER RANKING MARKETING PRESISI SESUAI REFERENSI GAMBAR */
+        /* RENDER RANKING MARKETING PRESISI DENGAN DUKUNGAN AKUMULASI TAHUN */
         window.renderRankingMarketing = function() {
             const listEl = document.getElementById('ranking-marketing-list');
             const labelEl = document.getElementById('ranking-filter-label');
@@ -1854,7 +1866,8 @@
             const mktFilter = appState.filterMarketing || 'ALL';
 
             if (labelEl) {
-                labelEl.innerHTML = `<i class="fa-solid fa-calendar-alt text-[9px] mr-1"></i> ${yr}${mo !== '0' ? ' - ' + window.getMonthName(mo) : ''}`;
+                const yrLabel = yr === 'ALL' ? 'Akumulasi (2026 + 2027)' : yr;
+                labelEl.innerHTML = `<i class="fa-solid fa-calendar-alt text-[9px] mr-1"></i> ${yrLabel}${mo !== '0' ? ' - ' + window.getMonthName(mo) : ''}`;
             }
 
             const mktList = appState.marketing.filter(m => m.Role && m.Role.toLowerCase() === 'marketing');
@@ -1867,7 +1880,7 @@
                 const activities = appState.activity.filter(a => {
                     if (!a['Tanggal Kunjungan']) return false;
                     const d = new Date(a['Tanggal Kunjungan']);
-                    const matchesYr = d.getFullYear().toString() === yr;
+                    const matchesYr = (yr === 'ALL') || (d.getFullYear().toString() === yr);
                     const matchesMo = mo === '0' || (d.getMonth() + 1).toString() === mo;
                     const matchesMkt = String(a['Nama Marketing'] || '') === name;
                     return matchesYr && matchesMo && matchesMkt;
@@ -1907,7 +1920,7 @@
                 return;
             }
 
-            // Rank 1 Gold, Rank 2 Silver, Rank 3 Bronze, Rank 4+ Muted
+            // Rank Circle Colors (Rank 1 Gold, Rank 2 Silver, Rank 3 Bronze, Rank 4+ Grey)
             const rankCircleColors = [
                 'bg-amber-500 text-slate-950 font-black',
                 'bg-slate-400 text-slate-950 font-black',
@@ -1973,7 +1986,7 @@
                 return appState.activity.filter(a => {
                     if (!a['Tanggal Kunjungan']) return false;
                     const d = new Date(a['Tanggal Kunjungan']);
-                    const matchesYr = d.getFullYear().toString() === yr;
+                    const matchesYr = (yr === 'ALL') || (d.getFullYear().toString() === yr);
                     const matchesMo = appState.filterMonth === '0' || (d.getMonth() + 1).toString() === appState.filterMonth;
                     const matchesMkt = mktFilter === 'ALL' || a['Nama Marketing'] === mktFilter;
                     return matchesYr && matchesMo && matchesMkt && (a.Aktivitas || '').toLowerCase() === stg.toLowerCase();
@@ -2201,10 +2214,20 @@
             tbody.innerHTML = '';
 
             const mktFilter = String(appState.filterMarketing || 'ALL');
+            const yr = appState.filterYear;
+            const mo = appState.filterMonth;
 
             const filtered = appState.activity.filter(a => {
                 const matchesMkt = mktFilter === 'ALL' || String(a['Nama Marketing'] || '') === mktFilter;
-                return matchesMkt;
+                
+                let matchesDate = true;
+                if (a['Tanggal Kunjungan']) {
+                    const d = new Date(a['Tanggal Kunjungan']);
+                    const matchesYr = (yr === 'ALL') || (d.getFullYear().toString() === yr);
+                    const matchesMo = mo === '0' || (d.getMonth() + 1).toString() === mo;
+                    matchesDate = matchesYr && matchesMo;
+                }
+                return matchesMkt && matchesDate;
             });
 
             if (filtered.length === 0) {
@@ -2591,11 +2614,23 @@
             return Object.values(schoolMap);
         };
 
-        /* UPDATE KANBAN BOARD CARD - MENAMBAHKAN TANGGAL, MEDIA MARKETING, DAN PROGRESS KUNJUNGAN */
         window.renderKanbanBoard = function() {
             const pipelineData = window.getComputedPipeline();
             const mktFilter = appState.filterMarketing || 'ALL';
-            const filtered = pipelineData.filter(p => mktFilter === 'ALL' || p['Nama Marketing'] === mktFilter);
+            const yr = appState.filterYear;
+            const mo = appState.filterMonth;
+
+            const filtered = pipelineData.filter(p => {
+                const matchesMkt = mktFilter === 'ALL' || p['Nama Marketing'] === mktFilter;
+                let matchesDate = true;
+                if (p['Tanggal Follow Up']) {
+                    const d = new Date(p['Tanggal Follow Up']);
+                    const matchesYr = (yr === 'ALL') || (d.getFullYear().toString() === yr);
+                    const matchesMo = mo === '0' || (d.getMonth() + 1).toString() === mo;
+                    matchesDate = matchesYr && matchesMo;
+                }
+                return matchesMkt && matchesDate;
+            });
 
             const cols = {
                 prospect: document.getElementById('col-prospect'),
@@ -2632,13 +2667,11 @@
                             <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold">${p.Status || 'Warm'}</span>
                         </div>
 
-                        <!-- ATRIBUT BARU: Tanggal & Media Marketing -->
                         <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800/60">
                             <span><i class="fa-solid fa-calendar text-indigo-400 mr-1"></i>${p['Tanggal Follow Up'] || '-'}</span>
                             <span class="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-indigo-300 font-semibold">${p['Media Marketing'] || '-'}</span>
                         </div>
 
-                        <!-- ATRIBUT BARU: Progress Kunjungan -->
                         ${p.Progress && p.Progress !== '-' ? `
                             <div class="text-[10px] text-slate-300 bg-slate-950/40 p-1.5 rounded-lg border border-slate-800/80 leading-relaxed truncate" title="${p.Progress}">
                                 <i class="fa-solid fa-comment-dots text-amber-400 mr-1"></i><span>${p.Progress}</span>
@@ -2746,7 +2779,20 @@
             }).addTo(mapInstance);
 
             const mktFilter = document.getElementById('gps-filter-mkt')?.value || appState.filterMarketing || 'ALL';
-            const filteredActivities = appState.activity.filter(a => (mktFilter === 'ALL' || a['Nama Marketing'] === mktFilter) && a.Coords);
+            const yr = appState.filterYear;
+            const mo = appState.filterMonth;
+
+            const filteredActivities = appState.activity.filter(a => {
+                const matchesMkt = (mktFilter === 'ALL' || a['Nama Marketing'] === mktFilter) && a.Coords;
+                let matchesDate = true;
+                if (a['Tanggal Kunjungan']) {
+                    const d = new Date(a['Tanggal Kunjungan']);
+                    const matchesYr = (yr === 'ALL') || (d.getFullYear().toString() === yr);
+                    const matchesMo = mo === '0' || (d.getMonth() + 1).toString() === mo;
+                    matchesDate = matchesYr && matchesMo;
+                }
+                return matchesMkt && matchesDate;
+            });
 
             const historyTimeline = document.getElementById('gps-history-timeline');
             if (historyTimeline) historyTimeline.innerHTML = '';
@@ -2968,7 +3014,7 @@
                     if (!isMktMatch || !isDeal || !a['Tanggal Kunjungan']) return false;
 
                     const d = new Date(a['Tanggal Kunjungan']);
-                    const matchesYr = d.getFullYear().toString() === activeYear;
+                    const matchesYr = (activeYear === 'ALL') || (d.getFullYear().toString() === activeYear);
                     const matchesMo = activeMonth === '0' || (d.getMonth() + 1).toString() === activeMonth;
                     return matchesYr && matchesMo;
                 }).reduce((acc, curr) => acc + (Number(curr['Nominal Deal']) || 0), 0);
@@ -3142,7 +3188,8 @@
             const doc = new jsPDF('landscape');
             doc.text("Laporan Daily Activity Kunjungan", 14, 15);
             doc.setFontSize(10);
-            doc.text(`Periode Filter: ${appState.filterYear} - Bulan ${window.getMonthName(appState.filterMonth)}`, 14, 22);
+            const yrLabel = appState.filterYear === 'ALL' ? 'Akumulasi (2026 + 2027)' : appState.filterYear;
+            doc.text(`Periode Filter: ${yrLabel} - Bulan ${window.getMonthName(appState.filterMonth)}`, 14, 22);
 
             const tableData = appState.activity.map(a => [a['Tanggal Kunjungan'], a['Nama Marketing'], a['Nama Sekolah'], a['Media Marketing'], a.Aktivitas, a.Status, a['Hasil Kunjungan'], a['Nominal Deal'] ? window.formatRupiah(a['Nominal Deal']) : '-']);
             doc.autoTable({
@@ -3159,7 +3206,8 @@
             doc.text("Laporan Dashboard KPI Performa Marketing", 14, 15);
             doc.setFontSize(10);
             doc.text(`Perusahaan: ${appState.settings.companyName}`, 14, 22);
-            doc.text(`Filter Tahun: ${appState.filterYear} | Bulan: ${window.getMonthName(appState.filterMonth)} | Marketing: ${appState.filterMarketing}`, 14, 28);
+            const yrLabel = appState.filterYear === 'ALL' ? 'Akumulasi (2026 + 2027)' : appState.filterYear;
+            doc.text(`Filter Tahun: ${yrLabel} | Bulan: ${window.getMonthName(appState.filterMonth)} | Marketing: ${appState.filterMarketing}`, 14, 28);
 
             const targets = window.getGlobalKpiTargets(appState.filterMarketing);
             const summary = [
