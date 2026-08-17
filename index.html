@@ -1304,16 +1304,16 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Configuration setup
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'bts-marketing-app';
+        // Firebase Configuration setup - Kunci appId permanen agar GitHub & Preview terhubung ke DB yang sama
+        const appId = 'bts-marketing-app';
         const firebaseConfig = {
-  apiKey: "AIzaSyBqSp938MyTFIzszrmLGdhuDSk5wu_YV1k",
-  authDomain: "database-crayoone.firebaseapp.com",
-  projectId: "database-crayoone",
-  storageBucket: "database-crayoone.firebasestorage.app",
-  messagingSenderId: "542171956517",
-  appId: "1:542171956517:web:d0e278a975c54a246586cc"
-};
+          apiKey: "AIzaSyBqSp938MyTFIzszrmLGdhuDSk5wu_YV1k",
+          authDomain: "database-crayoone.firebaseapp.com",
+          projectId: "database-crayoone",
+          storageBucket: "database-crayoone.firebasestorage.app",
+          messagingSenderId: "542171956517",
+          appId: "1:542171956517:web:d0e278a975c54a246586cc"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -3405,20 +3405,53 @@
             const logo = document.getElementById('setting-logo-base64')?.value || window.appState.settings.logoUrl || '';
             if (name) {
                 window.appState.settings.companyName = name;
-                document.getElementById('app-company-name').innerText = name;
             }
             if (logo) {
                 window.appState.settings.logoUrl = logo;
-                const logoImg = document.getElementById('app-company-logo');
-                const logoIcon = document.getElementById('app-company-icon');
-                if (logoImg && logoIcon) {
-                    logoImg.src = logo;
-                    logoImg.classList.remove('hidden');
-                    logoIcon.classList.add('hidden');
-                }
             }
             await window.fbSaveSettings(window.appState.settings);
+            if (typeof window.renderCompanyProfile === 'function') window.renderCompanyProfile();
             window.showToast('Profil Perusahaan berhasil disimpan ke Realtime Database!', 'success');
+        };
+
+        window.renderCompanyProfile = function() {
+            const s = window.appState.settings || {};
+            const name = s.companyName || 'PT Annual Book Creative';
+            const logo = s.logoUrl || '';
+
+            const nameEl = document.getElementById('app-company-name');
+            if (nameEl) nameEl.innerText = name;
+
+            const settingNameEl = document.getElementById('setting-company-name');
+            if (settingNameEl && document.activeElement !== settingNameEl) {
+                settingNameEl.value = name;
+            }
+
+            const logoImg = document.getElementById('app-company-logo');
+            const logoIcon = document.getElementById('app-company-icon');
+            const settingLogoPreview = document.getElementById('setting-logo-preview');
+            const settingLogoIcon = document.getElementById('setting-logo-placeholder-icon');
+            const btnRemoveLogo = document.getElementById('btn-remove-logo');
+
+            if (logo) {
+                if (logoImg) {
+                    logoImg.src = logo;
+                    logoImg.classList.remove('hidden');
+                }
+                if (logoIcon) logoIcon.classList.add('hidden');
+                if (settingLogoPreview) {
+                    settingLogoPreview.src = logo;
+                    settingLogoPreview.classList.remove('hidden');
+                }
+                if (settingLogoIcon) settingLogoIcon.classList.add('hidden');
+                if (btnRemoveLogo) btnRemoveLogo.classList.remove('hidden');
+            } else {
+                if (logoImg) logoImg.classList.add('hidden');
+                if (logoIcon) logoIcon.classList.remove('hidden');
+                if (settingLogoPreview) settingLogoPreview.classList.add('hidden');
+                if (settingLogoIcon) settingLogoIcon.classList.remove('hidden');
+                if (btnRemoveLogo) btnRemoveLogo.classList.add('hidden');
+            }
         };
 
         window.handleLogoUpload = function(event) {
@@ -3447,19 +3480,8 @@
         window.removeCompanyLogo = async function() {
             document.getElementById('setting-logo-base64').value = '';
             window.appState.settings.logoUrl = '';
-            const prevImg = document.getElementById('setting-logo-preview');
-            const placeholderIcon = document.getElementById('setting-logo-placeholder-icon');
-            if (prevImg) prevImg.classList.add('hidden');
-            if (placeholderIcon) placeholderIcon.classList.remove('hidden');
-            document.getElementById('btn-remove-logo')?.classList.add('hidden');
-
-            const logoImg = document.getElementById('app-company-logo');
-            const logoIcon = document.getElementById('app-company-icon');
-            if (logoImg && logoIcon) {
-                logoImg.classList.add('hidden');
-                logoIcon.classList.remove('hidden');
-            }
             await window.fbSaveSettings(window.appState.settings);
+            if (typeof window.renderCompanyProfile === 'function') window.renderCompanyProfile();
             window.showToast('Logo Perusahaan telah dihapus', 'info');
         };
 
@@ -3567,6 +3589,7 @@
 
         window.refreshAllViews = function() {
             try {
+                if (typeof window.renderCompanyProfile === 'function') window.renderCompanyProfile();
                 if (typeof window.applyRoleRestrictions === 'function') window.applyRoleRestrictions();
                 if (typeof window.renderDashboardKPIs === 'function') window.renderDashboardKPIs();
                 if (typeof window.renderRankingMarketing === 'function') window.renderRankingMarketing();
