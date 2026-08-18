@@ -1696,6 +1696,16 @@
         };
         window.formatNumericOnly = function(input) { input.value = input.value.replace(/[^0-9]/g, ''); };
 
+        window.formatWaUrl = function(phoneStr) {
+            if (!phoneStr) return '#';
+            let clean = String(phoneStr).replace(/[^0-9]/g, '');
+            if (!clean) return '#';
+            if (clean.startsWith('0')) {
+                clean = '62' + clean.slice(1);
+            }
+            return `https://wa.me/${clean}`;
+        };
+
         window.updateRealtimeHeaderDate = function() {
             const headerDate = document.getElementById('header-date-text');
             if (headerDate) {
@@ -2293,7 +2303,7 @@
                     <td class="p-3 text-slate-300 font-medium">${s.Wilayah || '-'}</td>
                     <td class="p-3">
                         <div class="font-semibold text-white">${s['Nama PIC'] || '-'}</div>
-                        <div class="text-[10px] text-emerald-400"><i class="fa-brands fa-whatsapp mr-1"></i>${s['Nomor WhatsApp'] || '-'}</div>
+                        ${s['Nomor WhatsApp'] ? `<a href="${window.formatWaUrl(s['Nomor WhatsApp'])}" target="_blank" rel="noopener noreferrer" class="text-[10px] text-emerald-400 hover:text-emerald-300 hover:underline inline-flex items-center gap-1 cursor-pointer"><i class="fa-brands fa-whatsapp"></i>${s['Nomor WhatsApp']}</a>` : '<span class="text-[10px] text-slate-500">-</span>'}
                     </td>
                     <td class="p-3 text-indigo-300 font-semibold">${s['Nama Marketing'] || '-'}</td>
                     <td class="p-3 text-center no-print">
@@ -3201,7 +3211,9 @@
                         <td class="p-3 font-mono text-[11px] text-indigo-400 font-bold">${m['ID Marketing']}</td>
                         <td class="p-3 font-bold text-white">${m.Username}</td>
                         <td class="p-3 font-bold text-indigo-300">${m.Nama}</td>
-                        <td class="p-3 text-emerald-400 font-semibold"><i class="fa-brands fa-whatsapp mr-1"></i>${m['Nomor WhatsApp'] || '-'}</td>
+                        <td class="p-3 text-emerald-400 font-semibold">
+                            ${m['Nomor WhatsApp'] ? `<a href="${window.formatWaUrl(m['Nomor WhatsApp'])}" target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-emerald-300 inline-flex items-center gap-1 cursor-pointer text-emerald-400"><i class="fa-brands fa-whatsapp"></i>${m['Nomor WhatsApp']}</a>` : '-'}
+                        </td>
                         <td class="p-3 text-slate-300">${m.Area || '-'}</td>
                         <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${roleBadge}">${role}</span></td>
                         <td class="p-3 font-semibold text-emerald-300">${targetRevDisplay}</td>
