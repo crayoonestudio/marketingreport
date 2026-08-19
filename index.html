@@ -2796,15 +2796,19 @@
                     if (window.isSchoolDeal(schName)) return; 
                     const actMkt = String(a['Nama Marketing'] || '').trim();
                     if (!isAllMkt && actMkt.toLowerCase() !== mktFilter.trim().toLowerCase()) return;
-                    if (!window.isDateMatched(a['Tanggal Kunjungan'])) return;
-                    if (String(a.Aktivitas || '').toLowerCase().includes('follow up')) {
-                        reminders.push({
-                            sekolah: a['Nama Sekolah'] || 'Sekolah',
-                            mkt: a['Nama Marketing'] || 'Marketing',
-                            tanggal: a['Tanggal Kunjungan'] || '-',
-                            source: 'Daily Activity',
-                            badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                        });
+
+                    if (String(a.Aktivitas || '').toLowerCase().includes('follow')) {
+                        const latestStage = window.getSchoolLatestStatus(schName);
+                        // Otomatis disembunyikan/selesai jika tahapan terbaru sekolah bukan lagi Follow Up
+                        if (String(latestStage).toLowerCase().includes('follow')) {
+                            reminders.push({
+                                sekolah: a['Nama Sekolah'] || 'Sekolah',
+                                mkt: a['Nama Marketing'] || 'Marketing',
+                                tanggal: a['Tanggal Kunjungan'] || '-',
+                                source: 'Daily Activity',
+                                badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                            });
+                        }
                     }
                 });
 
@@ -2840,7 +2844,6 @@
 
             if (newPipe) {
                 const recentActivities = [...(window.appState.activity || [])].filter(a => {
-                    if (!window.isDateMatched(a['Tanggal Kunjungan'])) return false;
                     const schName = a['Nama Sekolah'] || '';
                     if (window.isSchoolDeal(schName)) return false; 
                     const actMkt = String(a['Nama Marketing'] || '').trim();
@@ -3146,28 +3149,96 @@
             if (container) {
                 const alerts = [];
 
-                // 1. Prospek HOT Notifications
+                // 1. Notifikasi Reminder Follow Up Otomatis (Sinkronisasi Daily Activity & Kanban Pipeline)
+                const followUpMap = new Map();
+                const schoolStageMap = new Map();
+
+                const matchingActivities = (window.appState.activity || []).filter(a => {
+                    const actMkt = String(a['Nama Marketing'] || '').trim();
+                    if (!isAllMkt && actMkt.toLowerCase() !== mktFilter.trim().toLowerCase()) return false;
+                    return true;
+                });
+
+                // Urutkan kronologis
+                matchingActivities.sort((a, b) => {
+                    const dateA = String(a['Tanggal Kunjungan'] || '');
+                    const dateB = String(b['Tanggal Kunjungan'] || '');
+                    if (dateA !== dateB) return dateA.localeCompare(dateB);
+                    const idA = String(a['ID Activity'] || '');
+                    const idB = String(b['ID Activity'] || '');
+                    return idA.localeCompare(idB);
+                });
+
+                matchingActivities.forEach(a => {
+                    const schName = String(a['Nama Sekolah'] || '').trim();
+                    if (!schName) return;
+                    const normKey = window.normalizeSchoolName ? window.normalizeSchoolName(schName) : schName.toLowerCase();
+                    const stageInfo = getActivityStageInfo(a);
+
+                    const curr = schoolStageMap.get(normKey);
+                    if (!curr || stageInfo.rank > curr.rank || (stageInfo.rank === curr.rank && stageInfo.stage === 'followup')) {
+                        schoolStageMap.set(normKey, {
+                            rawName: schName,
+                            act: a,
+                            stage: stageInfo.stage,
+                            rank: stageInfo.rank
+                        });
+                    }
+                });
+
+                schoolStageMap.forEach((info, normKey) => {
+                    if (info.stage === 'followup') {
+                        const a = info.act;
+                        followUpMap.set(normKey, {
+                            title: `REMINDER FOLLOW UP: ${a['Nama Sekolah']}`,
+                            desc: `Aktivitas Follow Up oleh ${a['Nama Marketing']} (${a['Tanggal Kunjungan'] || '-'}). ${a.Media ? 'Media: ' + a.Media + '. ' : ''}Catatan: ${a.Progress || '-'}`,
+                            icon: 'fa-clock text-amber-400',
+                            bg: 'bg-amber-500/10 border-amber-500/30'
+                        });
+                    }
+                });
+
+                // Memeriksa item pipeline tambahan jika ada
+                (window.appState.pipeline || []).forEach(p => {
+                    const schName = String(p['Nama Sekolah'] || p.Sekolah || '').trim();
+                    if (!schName) return;
+                    const normKey = window.normalizeSchoolName ? window.normalizeSchoolName(schName) : schName.toLowerCase();
+                    const stageStr = String(p.Stage || p.Status || p.Tahapan || '').toLowerCase();
+                    if (stageStr.includes('follow') && !schoolStageMap.has(normKey)) {
+                        const pMkt = String(p['Nama Marketing'] || p.Marketing || '').trim();
+                        if (isAllMkt || pMkt.toLowerCase() === mktFilter.trim().toLowerCase()) {
+                            followUpMap.set(normKey, {
+                                title: `REMINDER FOLLOW UP: ${schName}`,
+                                desc: `Aktivitas Follow Up oleh ${pMkt || 'Marketing'}. Catatan: ${p.Progress || p.Catatan || 'Dalam proses follow up'}`,
+                                icon: 'fa-clock text-amber-400',
+                                bg: 'bg-amber-500/10 border-amber-500/30'
+                            });
+                        }
+                    }
+                });
+
+                followUpMap.forEach(item => alerts.push(item));
+
+                // 2. Notifikasi Prospek HOT
                 (window.appState.activity || []).forEach(a => {
                     const schName = a['Nama Sekolah'] || '';
-                    if (window.isSchoolDeal(schName)) return; 
+                    if (!schName || window.isSchoolDeal(schName)) return; 
                     const actMkt = String(a['Nama Marketing'] || '').trim();
                     if (!isAllMkt && actMkt.toLowerCase() !== mktFilter.trim().toLowerCase()) return;
-                    if (!window.isDateMatched(a['Tanggal Kunjungan'])) return;
                     if (String(a.Status || '').toLowerCase() === 'hot') {
                         alerts.push({
                             title: `PROSPEK HOT: ${a['Nama Sekolah']}`,
-                            desc: `Aktivitas ${a.Aktivitas} oleh ${a['Nama Marketing']} perlu follow-up cepat.`,
+                            desc: `Aktivitas ${a.Aktivitas} oleh ${a['Nama Marketing']} (${a['Tanggal Kunjungan'] || '-'}) perlu penanganan cepat.`,
                             icon: 'fa-fire text-rose-400',
                             bg: 'bg-rose-500/10 border-rose-500/30'
                         });
                     }
                 });
 
-                // 2. Scheduled Calendar Agendas Notifications
+                // 3. Agenda Kalender Terjadwal
                 (window.appState.calendarEvents || []).forEach(ev => {
                     const evMkt = String(ev.Marketing || '').trim();
                     if (!isAllMkt && evMkt.toLowerCase() !== mktFilter.trim().toLowerCase()) return;
-                    if (!window.isDateMatched(ev.Tanggal)) return;
                     alerts.push({
                         title: `AGENDA KALENDER: ${ev.Judul}`,
                         desc: `Jadwal tanggal ${ev.Tanggal} jam ${ev.Jam} (${ev.Marketing || 'Marketing'}).${ev.Keterangan ? ' Catatan: ' + ev.Keterangan : ''}`,
@@ -3178,7 +3249,7 @@
 
                 countAlerts = alerts.length;
                 container.innerHTML = alerts.length === 0 ? '<div class="text-xs text-slate-500 py-6 text-center italic col-span-2">Tidak ada notifikasi atau peringatan khusus.</div>' : alerts.map(al => `
-                    <div class="p-4 rounded-xl border ${al.bg} flex items-start gap-3 text-xs">
+                    <div class="p-4 rounded-xl border ${al.bg} flex items-start gap-3 text-xs shadow">
                         <i class="fa-solid ${al.icon} text-lg mt-0.5"></i>
                         <div>
                             <div class="font-bold text-white mb-0.5">${al.title}</div>
@@ -3227,7 +3298,7 @@
                             </div>
                             <p class="text-xs text-slate-300 pt-1">Jumlah sekolah baru yang berhasil dikunjungi.</p>
                             <div class="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-[11px] text-emerald-300 space-y-1">
-                                <div class="font-bold"><i class="fa-solid fa-circle-check mr-1"></i>Ketentuan:</div>
+                                <div class="font-bold"><i class="fa-circle-check fa-solid mr-1"></i>Ketentuan:</div>
                                 <div>✓ Sekolah yang dikunjungi harus sekolah baru.</div>
                                 <div>✓ Setiap sekolah hanya dihitung 1 kali sebagai aktivitas Canvassing.</div>
                                 <div>✓ Kunjungan ulang dihitung sebagai Follow Up.</div>
