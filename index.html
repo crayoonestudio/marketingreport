@@ -146,7 +146,6 @@
     <!-- Toast Notifications Container -->
     <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
 
-    <!-- Login Modal -->
     <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md">
         <div class="glass-panel p-8 w-full max-w-md shadow-2xl relative border border-slate-700/50 my-auto">
             <div class="text-center mb-6">
@@ -186,7 +185,6 @@
         </div>
     </div>
 
-    <!-- Main Application Container -->
     <div id="app-container" class="hidden min-h-screen flex flex-col md:flex-row bg-[#0b1120]">
         
         <div id="sidebar-overlay" onclick="window.toggleMobileSidebar(false)" class="fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm hidden md:hidden"></div>
@@ -310,7 +308,6 @@
             </div>
         </aside>
 
-        <!-- Main Content View Wrapper -->
         <div class="flex-1 flex flex-col min-w-0 md:ml-72">
             <header class="sticky top-0 z-40 w-full bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3 shadow-lg">
                 <div class="flex items-center gap-3">
@@ -378,7 +375,6 @@
 
             <main class="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
 
-                <!-- VIEW 1: DASHBOARD -->
                 <section id="view-dashboard" class="space-y-6">
                     <div class="flex flex-wrap items-center justify-between gap-4 no-print">
                         <div>
@@ -392,6 +388,21 @@
 
                     <div id="kpi-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
 
+                    <!-- Chart.js Visualization Section -->
+                    <div class="grid grid-cols-1 gap-6">
+                        <div class="glass-panel p-5 border border-slate-800 rounded-2xl">
+                            <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-800">
+                                <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-column text-indigo-400"></i> Funnel Conversion Analysis
+                                </h3>
+                                <span class="text-[10px] text-slate-400">Target vs Realisasi</span>
+                            </div>
+                            <div class="relative h-64 w-full">
+                                <canvas id="chart-funnel-canvas"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="glass-panel p-6 border border-slate-700/60 shadow-xl space-y-6">
                         <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
                             <div class="flex items-center gap-3">
@@ -400,7 +411,7 @@
                                 </div>
                                 <div>
                                     <h3 class="text-base font-extrabold text-white tracking-wide">RANKING MARKETING</h3>
-                                    <p class="text-xs text-slate-400">Berdasarkan Canvassing, Presentasi & Deal</p>
+                                    <p class="text-xs text-slate-400">Otomatis Terintegrasi dari Daily Activity & Database Sekolah</p>
                                 </div>
                             </div>
                             <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-800 text-indigo-300 border border-slate-700">
@@ -429,7 +440,6 @@
                     </div>
                 </section>
 
-                <!-- VIEW 2: SEKOLAH -->
                 <section id="view-sekolah" class="hidden space-y-4">
                     <div class="glass-panel p-5">
                         <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
@@ -449,7 +459,7 @@
                         </div>
 
                         <div class="overflow-x-auto rounded-lg border border-slate-800">
-                            <table class="w-full text-left text-xs text-slate-300">
+                            <table class="w-full text-left text-xs text-slate-300" id="table-sekolah-elem">
                                 <thead class="bg-slate-900/90 uppercase text-[10px] text-slate-400 font-bold border-b border-slate-800">
                                     <tr>
                                         <th class="p-3">No</th>
@@ -468,7 +478,6 @@
                     </div>
                 </section>
 
-                <!-- VIEW 3: DAILY ACTIVITY -->
                 <section id="view-daily" class="hidden space-y-4">
                     <div class="glass-panel p-5">
                         <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
@@ -487,7 +496,7 @@
                         </div>
 
                         <div class="overflow-x-auto rounded-lg border border-slate-800">
-                            <table class="w-full text-left text-xs text-slate-300">
+                            <table class="w-full text-left text-xs text-slate-300" id="table-daily-elem">
                                 <thead class="bg-slate-900/90 uppercase text-[10px] text-slate-400 font-bold border-b border-slate-800">
                                     <tr>
                                         <th class="p-3">Tanggal</th>
@@ -509,13 +518,12 @@
                     </div>
                 </section>
 
-                <!-- VIEW 4: CALENDAR -->
                 <section id="view-calendar" class="hidden space-y-4">
                     <div class="glass-panel p-5 space-y-4">
                         <div class="flex flex-wrap items-center justify-between gap-4">
                             <div>
                                 <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                                    <i class="fa-solid fa-calendar-days text-indigo-400"></i> Kalender Agendakan Kunjungan
+                                    <i class="fa-solid fa-calendar-days text-indigo-400"></i> Kalender
                                 </h2>
                                 <p class="text-xs text-slate-400">Kelola dan pantau jadwal agenda & meeting marketing</p>
                             </div>
@@ -555,7 +563,6 @@
                     </div>
                 </section>
 
-                <!-- VIEW 5: PIPELINE -->
                 <section id="view-pipeline" class="hidden space-y-4">
                     <div class="glass-panel p-5">
                         <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
@@ -593,10 +600,10 @@
 
                             <div class="kanban-col p-3 flex flex-col gap-3">
                                 <div class="flex items-center justify-between pb-2 border-b border-slate-700">
-                                    <span class="text-xs font-bold text-cyan-400"><i class="fa-solid fa-comments-dollar mr-1"></i>Negosiasi</span>
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300" id="count-negosiasi">0</span>
+                                    <span class="text-xs font-bold text-cyan-400"><i class="fa-solid fa-comments-dollar mr-1"></i>Penawaran</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300" id="count-penawaran">0</span>
                                 </div>
-                                <div id="col-negosiasi" class="space-y-3 flex-1"></div>
+                                <div id="col-penawaran" class="space-y-3 flex-1"></div>
                             </div>
 
                             <div class="kanban-col p-3 flex flex-col gap-3 bg-emerald-950/20 border-emerald-500/20">
@@ -618,7 +625,6 @@
                     </div>
                 </section>
 
-                <!-- VIEW 6: NOTIFICATIONS -->
                 <section id="view-notifications" class="hidden space-y-6">
                     <div class="glass-panel p-5">
                         <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
@@ -635,7 +641,6 @@
                     <div id="target-minimal-panel" class="glass-panel p-6 border border-slate-700/60 shadow-xl space-y-6"></div>
                 </section>
 
-                <!-- VIEW 7: SETTINGS -->
                 <section id="view-settings" class="hidden space-y-6">
                     <div class="glass-panel p-5">
                         <h2 class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-sliders text-amber-400 mr-2"></i>Pengaturan Admin (Khusus Owner & HR)</h2>
@@ -863,15 +868,15 @@
                                     <div class="space-y-3 pt-1">
                                         <div>
                                             <label class="block text-[11px] font-semibold text-slate-400 mb-1">Database → Canvassing (%)</label>
-                                            <input type="number" step="0.1" id="cfg-ratio-db-canvass" value="60" oninput="window.recalculateFunnel()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-bold focus:outline-none focus:border-indigo-500">
+                                            <input type="number" step="0.1" id="cfg-ratio-db-canvass" value="60" oninput="window.recalculateFunnel()" onkeyup="window.recalculateFunnel()" onchange="window.recalculateFunnel()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-bold focus:outline-none focus:border-indigo-500">
                                         </div>
                                         <div>
                                             <label class="block text-[11px] font-semibold text-slate-400 mb-1">Canvassing → Presentasi (%)</label>
-                                            <input type="number" step="0.1" id="cfg-ratio-canvass-pres" value="50" oninput="window.recalculateFunnel()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-bold focus:outline-none focus:border-indigo-500">
+                                            <input type="number" step="0.1" id="cfg-ratio-canvass-pres" value="50" oninput="window.recalculateFunnel()" onkeyup="window.recalculateFunnel()" onchange="window.recalculateFunnel()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-bold focus:outline-none focus:border-indigo-500">
                                         </div>
                                         <div>
                                             <label class="block text-[11px] font-semibold text-slate-400 mb-1">Presentasi → Deal (%)</label>
-                                            <input type="number" step="0.1" id="cfg-ratio-pres-deal" value="52" oninput="window.recalculateFunnel()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-bold focus:outline-none focus:border-indigo-500">
+                                            <input type="number" step="0.1" id="cfg-ratio-pres-deal" value="52" oninput="window.recalculateFunnel()" onkeyup="window.recalculateFunnel()" onchange="window.recalculateFunnel()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-bold focus:outline-none focus:border-indigo-500">
                                         </div>
                                     </div>
                                 </div>
@@ -999,7 +1004,7 @@
                             <option value="SMA">SMA</option>
                             <option value="SMK">SMK</option>
                             <option value="SMP">SMP</option>
-                            <option value="SD">SD</option>
+                            <option value="MA/MAN">MA/MAN</option>
                             <option value="Lainnya">Lainnya</option>
                         </select>
                     </div>
@@ -1121,7 +1126,7 @@
                             <option value="Prospect">Prospect</option>
                             <option value="Follow Up">Follow Up</option>
                             <option value="Presentasi">Presentasi</option>
-                            <option value="Negosiasi">Negosiasi</option>
+                            <option value="Penawaran">Penawaran</option>
                             <option value="Deal">Deal</option>
                             <option value="Belum Deal">Belum Deal</option>
                         </select>
@@ -1266,6 +1271,23 @@
         </div>
     </div>
 
+    <!-- MODAL CONFIRM DELETE CALENDAR EVENT -->
+    <div id="modal-confirm-delete-cal-event" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-sm p-6 space-y-4 border border-slate-700 text-center my-auto">
+            <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-full flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-sm font-bold text-white">Konfirmasi Hapus Agenda</h3>
+            <p class="text-xs text-slate-300">Apakah Anda yakin ingin menghapus agenda kalender ini?</p>
+            <div class="flex justify-center gap-3 pt-2">
+                <button type="button" onclick="window.closeConfirmDeleteCalEventModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition">Batal</button>
+                <button type="button" id="btn-exec-delete-cal-event" onclick="window.executeDeleteCalendarEvent()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                    <span>Ya, Hapus</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL 4: KALENDER EVENT MODAL -->
     <div id="modal-calendar-event" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-md p-6 space-y-4 border border-slate-700 my-auto">
@@ -1332,6 +1354,108 @@
         </div>
     </div>
 
+    <!-- MODAL 6: TOTAL CANVASSING DETAIL MODAL -->
+    <div id="modal-total-canvassing" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-5xl p-6 space-y-5 border border-slate-700 my-auto max-h-[92vh] flex flex-col overflow-hidden shadow-2xl">
+            <!-- Header -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl shadow">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <span>Detail Total Canvassing Kunjungan</span>
+                            <span id="canvass-modal-mkt-badge" class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold">Semua Marketing</span>
+                        </h3>
+                        <p class="text-xs text-slate-400">Rincian otomatis data aktivitas harian berdasarkan Media Canvassing & Kunjungan</p>
+                    </div>
+                </div>
+                <button onclick="window.closeModalTotalCanvassing()" class="text-slate-400 hover:text-white p-1 rounded-lg text-lg transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Media Breakdown Filter Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
+                <button onclick="window.setModalCanvassMediaFilter('Canvassing')" id="btn-media-canvassing" class="canvass-media-filter-btn p-3 rounded-xl bg-slate-900 border border-indigo-500/80 bg-indigo-950/40 text-left transition flex items-center justify-between group cursor-pointer shadow">
+                    <div>
+                        <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block">MEDIA CANVASSING</span>
+                        <div class="text-lg font-black text-white mt-0.5" id="modal-cnt-canvass">0</div>
+                        <span class="text-[10px] text-slate-400">Kunjungan</span>
+                    </div>
+                    <i class="fa-solid fa-person-walking text-xl text-indigo-400 opacity-80 group-hover:scale-110 transition"></i>
+                </button>
+
+                <button onclick="window.setModalCanvassMediaFilter('Telepon')" id="btn-media-telepon" class="canvass-media-filter-btn p-3 rounded-xl bg-slate-900 border border-slate-800 text-left transition flex items-center justify-between group cursor-pointer shadow">
+                    <div>
+                        <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">MEDIA TELEPON</span>
+                        <div class="text-lg font-black text-white mt-0.5" id="modal-cnt-telepon">0</div>
+                        <span class="text-[10px] text-slate-400">Panggilan</span>
+                    </div>
+                    <i class="fa-solid fa-phone text-xl text-amber-400 opacity-80 group-hover:scale-110 transition"></i>
+                </button>
+
+                <button onclick="window.setModalCanvassMediaFilter('WhatsApp')" id="btn-media-wa" class="canvass-media-filter-btn p-3 rounded-xl bg-slate-900 border border-slate-800 text-left transition flex items-center justify-between group cursor-pointer shadow">
+                    <div>
+                        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">MEDIA WHATSAPP</span>
+                        <div class="text-lg font-black text-white mt-0.5" id="modal-cnt-wa">0</div>
+                        <span class="text-[10px] text-slate-400">Pesan / Chat</span>
+                    </div>
+                    <i class="fa-brands fa-whatsapp text-xl text-emerald-400 opacity-80 group-hover:scale-110 transition"></i>
+                </button>
+
+                <button onclick="window.setModalCanvassMediaFilter('ALL')" id="btn-media-all" class="canvass-media-filter-btn p-3 rounded-xl bg-slate-900 border border-slate-800 text-left transition flex items-center justify-between group cursor-pointer shadow">
+                    <div>
+                        <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider block">SEMUA MEDIA</span>
+                        <div class="text-lg font-black text-white mt-0.5" id="modal-cnt-all">0</div>
+                        <span class="text-[10px] text-slate-400">Total Sesi</span>
+                    </div>
+                    <i class="fa-solid fa-layer-group text-xl text-purple-400 opacity-80 group-hover:scale-110 transition"></i>
+                </button>
+            </div>
+
+            <!-- Toolbar Search inside Modal -->
+            <div class="flex flex-wrap items-center justify-between gap-3 shrink-0">
+                <div class="relative flex-1 max-w-md">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                    <input type="text" id="modal-canvass-search" oninput="window.renderCanvassingModalTable()" placeholder="Cari nama sekolah, lokasi, PIC, atau catatan..." class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="text-xs text-slate-400 font-semibold" id="modal-canvass-status-summary">
+                    Menampilkan data kunjungan canvassing
+                </div>
+            </div>
+
+            <!-- Modal Table Container -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar border border-slate-800 rounded-xl">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-900/95 sticky top-0 z-10 uppercase text-[10px] text-slate-400 font-bold border-b border-slate-800 backdrop-blur-md">
+                        <tr>
+                            <th class="p-3">Tanggal</th>
+                            <th class="p-3">Marketing</th>
+                            <th class="p-3">Sekolah</th>
+                            <th class="p-3">Media</th>
+                            <th class="p-3">Tahapan</th>
+                            <th class="p-3">Status</th>
+                            <th class="p-3">Progress / Catatan Kunjungan</th>
+                            <th class="p-3">Lokasi / Alamat</th>
+                            <th class="p-3">Foto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-modal-canvassing" class="divide-y divide-slate-800/80"></tbody>
+                </table>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex items-center justify-between pt-2 border-t border-slate-800 text-xs shrink-0">
+                <span class="text-slate-400 text-[11px]"><i class="fa-solid fa-circle-info text-indigo-400 mr-1"></i> Data diperbarui secara otomatis dari log Daily Activity.</span>
+                <button onclick="window.closeModalTotalCanvassing()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -1340,13 +1464,13 @@
         // Permanent ID appId across all deployments
         const appId = 'bts-marketing-app';
         const firebaseConfig = {
-          apiKey: "AIzaSyBqSp938MyTFIzszrmLGdhuDSk5wu_YV1k",
-          authDomain: "database-crayoone.firebaseapp.com",
-          projectId: "database-crayoone",
-          storageBucket: "database-crayoone.firebasestorage.app",
-          messagingSenderId: "542171956517",
-          appId: "1:542171956517:web:d0e278a975c54a246586cc"
-        };
+  apiKey: "AIzaSyBqSp938MyTFIzszrmLGdhuDSk5wu_YV1k",
+  authDomain: "database-crayoone.firebaseapp.com",
+  projectId: "database-crayoone",
+  storageBucket: "database-crayoone.firebasestorage.app",
+  messagingSenderId: "542171956517",
+  appId: "1:542171956517:web:d0e278a975c54a246586cc"
+};
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -1647,8 +1771,8 @@
         let pendingDeleteSekolahId = null;
         let pendingDeleteMktId = null;
         let pendingDeleteActId = null;
+        let pendingDeleteCalEventId = null;
 
-        // UI Utility functions
         window.toggleMobileSidebar = function(show) {
             const sidebar = document.getElementById('sidebar-nav');
             const overlay = document.getElementById('sidebar-overlay');
@@ -1793,6 +1917,7 @@
             if (icon) {
                 icon.className = document.body.classList.contains('light-mode') ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
             }
+            window.refreshAllViews();
         };
 
         window.handleManualRefresh = function() {
@@ -1875,6 +2000,7 @@
             window.toggleMobileSidebar(false);
 
             if (tabKey === 'calendar' && typeof window.renderCalendar === 'function') window.renderCalendar();
+            if (tabKey === 'pipeline' && typeof window.renderKanbanBoard === 'function') window.renderKanbanBoard();
             if (tabKey === 'settings') {
                 if (typeof window.populateKpiSettingsInputs === 'function') window.populateKpiSettingsInputs();
                 if (typeof window.renderRolePermissionsUI === 'function') window.renderRolePermissionsUI();
@@ -1973,6 +2099,23 @@
             };
         };
 
+        window.getSchoolLatestStatus = function(schoolName) {
+            if (!schoolName) return '';
+            const normName = String(schoolName).trim().toLowerCase();
+            const schoolActs = (window.appState.activity || []).filter(a => 
+                String(a['Nama Sekolah'] || '').trim().toLowerCase() === normName
+            );
+            if (schoolActs.length === 0) return 'Prospect';
+            const hasDeal = schoolActs.some(a => String(a.Aktivitas || '').trim().toLowerCase() === 'deal');
+            if (hasDeal) return 'Deal';
+            const lastAct = schoolActs[schoolActs.length - 1];
+            return String(lastAct.Aktivitas || 'Prospect').trim();
+        };
+
+        window.isSchoolDeal = function(schoolName) {
+            return window.getSchoolLatestStatus(schoolName).toLowerCase() === 'deal';
+        };
+
         window.getKpiStatusBadge = function(pct) {
             const thresh = window.appState.settings.statusThresholds || { excellent: 90, good: 70, fair: 50 };
             const p = Number(pct) || 0;
@@ -1993,7 +2136,9 @@
             const logoImg = document.getElementById('app-company-logo');
             const logoIcon = document.getElementById('app-company-icon');
 
-            if (nameEl) nameEl.innerText = s.companyName || 'PT Annual Book Creative';
+            const compName = s.companyName || 'PT Annual Book Creative';
+            if (nameEl) nameEl.innerText = compName;
+
             if (logoImg && logoIcon) {
                 if (s.logoUrl) {
                     logoImg.src = s.logoUrl;
@@ -2002,6 +2147,34 @@
                 } else {
                     logoImg.classList.add('hidden');
                     logoIcon.classList.remove('hidden');
+                }
+            }
+
+            // Realtime Sync ke Input Fields & Preview di Pengaturan Admin
+            const inputName = document.getElementById('setting-company-name');
+            const previewImg = document.getElementById('setting-logo-preview');
+            const placeholderIcon = document.getElementById('setting-logo-placeholder-icon');
+            const base64Input = document.getElementById('setting-logo-base64');
+            const removeBtn = document.getElementById('btn-remove-logo');
+
+            if (inputName && document.activeElement !== inputName) {
+                inputName.value = compName;
+            }
+
+            if (base64Input) {
+                base64Input.value = s.logoUrl || '';
+            }
+
+            if (previewImg && placeholderIcon && removeBtn) {
+                if (s.logoUrl) {
+                    previewImg.src = s.logoUrl;
+                    previewImg.classList.remove('hidden');
+                    placeholderIcon.classList.add('hidden');
+                    removeBtn.classList.remove('hidden');
+                } else {
+                    previewImg.classList.add('hidden');
+                    placeholderIcon.classList.remove('hidden');
+                    removeBtn.classList.add('hidden');
                 }
             }
         };
@@ -2026,10 +2199,18 @@
             });
 
             const dbAchieved = filteredSekolah.length;
-            const canvassAchieved = filteredActs.filter(a => String(a.Aktivitas || '').toLowerCase().includes('canvass')).length;
-            const presAchieved = filteredActs.filter(a => String(a.Aktivitas || '').toLowerCase().includes('presentasi')).length;
+            const canvassActs = filteredActs.filter(a => {
+                const med = String(a.Media || 'Canvassing').trim().toLowerCase();
+                return med.includes('canvass') || med === '';
+            });
+            const canvassAchieved = new Set(canvassActs.map(a => String(a['Nama Sekolah'] || '').trim().toLowerCase())).size;
+
+            const presActs = filteredActs.filter(a => String(a.Aktivitas || '').trim().toLowerCase() === 'presentasi');
+            const presAchieved = new Set(presActs.map(a => String(a['Nama Sekolah'] || '').trim().toLowerCase())).size;
+
             const dealActs = filteredActs.filter(a => String(a.Aktivitas || '').toLowerCase() === 'deal');
-            const dealAchieved = dealActs.length;
+            const dealAchieved = new Set(dealActs.map(a => String(a['Nama Sekolah'] || '').trim().toLowerCase())).size;
+
             const nodealAchieved = filteredActs.filter(a => String(a.Aktivitas || '').toLowerCase().includes('belum')).length;
 
             const revenueAchieved = dealActs.reduce((sum, a) => sum + (Number(a['Nominal Deal']) || 0), 0);
@@ -2044,8 +2225,8 @@
 
             const cards = [
                 { title: 'DATABASE SEKOLAH', val: `${dbAchieved}`, targetVal: targets.targetDb, pct: dbPct, icon: 'fa-school', badgeBg: 'bg-blue-600', ringColor: '#2563eb' },
-                { title: 'CANVASSING', val: `${canvassAchieved}`, targetVal: targets.targetCanvass, pct: canvassPct, icon: 'fa-location-dot', badgeBg: 'bg-emerald-600', ringColor: '#10b981' },
-                { title: 'PRESENTASI', val: `${presAchieved}`, targetVal: targets.targetPresentasi, pct: presPct, icon: 'fa-chalkboard-user', badgeBg: 'bg-purple-600', ringColor: '#a855f7' },
+                { title: 'CANVASSING (SEKOLAH)', val: `${canvassAchieved}`, targetVal: targets.targetCanvass, pct: canvassPct, icon: 'fa-location-dot', badgeBg: 'bg-emerald-600', ringColor: '#10b981', isClickable: true, mediaType: 'Canvassing' },
+                { title: 'PRESENTASI', val: `${presAchieved}`, targetVal: targets.targetPresentasi, pct: presPct, icon: 'fa-chalkboard-user', badgeBg: 'bg-purple-600', ringColor: '#a855f7', isClickable: true, mediaType: 'Presentasi' },
                 { title: 'DEAL', val: `${dealAchieved}`, targetVal: targets.targetDeal, pct: dealPct, icon: 'fa-handshake', badgeBg: 'bg-amber-600', ringColor: '#f59e0b' },
                 { title: 'BELUM DEAL', val: `${nodealAchieved}`, targetVal: dbAchieved, pct: nodealPct, icon: 'fa-circle-xmark', badgeBg: 'bg-rose-600', ringColor: '#f43f5e' },
                 { title: 'RASIO KONVERSI', val: `${conversionRate}%`, subText: 'Deal vs Canvassing', pct: conversionRate, icon: 'fa-percent', badgeBg: 'bg-indigo-600', ringColor: '#6366f1' },
@@ -2057,14 +2238,19 @@
                 const statusInfo = window.getKpiStatusBadge(c.pct);
                 const strokeDashOffset = 100 - Math.min(100, Math.max(0, Number(c.pct)));
                 const targetText = c.targetVal ? `Target ${c.targetVal} Sekolah` : (c.subText || '');
+                const clickAttr = c.isClickable ? `onclick="window.openModalTotalCanvassing(null, '${c.mediaType || 'Canvassing'}')"` : '';
+                const clickClass = c.isClickable ? 'cursor-pointer hover:border-indigo-500/80 hover:scale-[1.02] shadow-lg group' : 'hover:border-slate-700';
 
                 return `
-                    <div class="glass-panel p-4 border border-slate-800 rounded-2xl flex flex-col justify-between space-y-4 hover:border-slate-700 transition">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-7 h-7 rounded-lg ${c.badgeBg} text-white flex items-center justify-center text-xs shadow-md">
-                                <i class="fa-solid ${c.icon}"></i>
+                    <div ${clickAttr} class="glass-panel p-4 border border-slate-800 rounded-2xl flex flex-col justify-between space-y-4 transition ${clickClass}">
+                        <div class="flex items-center justify-between gap-2.5">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-7 h-7 rounded-lg ${c.badgeBg} text-white flex items-center justify-center text-xs shadow-md">
+                                    <i class="fa-solid ${c.icon}"></i>
+                                </div>
+                                <span class="text-xs font-bold text-white tracking-wide uppercase">${c.title}</span>
                             </div>
-                            <span class="text-xs font-bold text-white tracking-wide uppercase">${c.title}</span>
+                            ${c.isClickable ? `<i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-indigo-400 opacity-70 group-hover:opacity-100 transition"></i>` : ''}
                         </div>
                         <div class="flex items-center justify-between">
                             <div>
@@ -2086,41 +2272,242 @@
                     </div>
                 `;
             }).join('');
+
+            // Render Charts via Chart.js
+            if (typeof window.renderChartVisualizations === 'function') {
+                window.renderChartVisualizations({
+                    targetDb: targets.targetDb,
+                    targetCanvass: targets.targetCanvass,
+                    targetPresentasi: targets.targetPresentasi,
+                    targetDeal: targets.targetDeal,
+                    dbAchieved,
+                    canvassAchieved,
+                    presAchieved,
+                    dealAchieved
+                });
+            }
+        };
+
+        window.renderChartVisualizations = function(data) {
+            if (typeof Chart === 'undefined') return;
+
+            // 1. Funnel Bar Chart
+            const ctxFunnel = document.getElementById('chart-funnel-canvas');
+            if (ctxFunnel) {
+                if (window.funnelChart) {
+                    window.funnelChart.destroy();
+                }
+                window.funnelChart = new Chart(ctxFunnel, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Database', 'Canvassing', 'Presentasi', 'Deal'],
+                        datasets: [
+                            {
+                                label: 'Target',
+                                data: [data.targetDb || 0, data.targetCanvass || 0, data.targetPresentasi || 0, data.targetDeal || 0],
+                                backgroundColor: 'rgba(99, 102, 241, 0.35)',
+                                borderColor: '#6366f1',
+                                borderWidth: 1.5,
+                                borderRadius: 6
+                            },
+                            {
+                                label: 'Realisasi',
+                                data: [data.dbAchieved || 0, data.canvassAchieved || 0, data.presAchieved || 0, data.dealAchieved || 0],
+                                backgroundColor: 'rgba(16, 185, 129, 0.75)',
+                                borderColor: '#10b981',
+                                borderWidth: 1.5,
+                                borderRadius: 6
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11 } } },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                            y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
+                        }
+                    }
+                });
+            }
+
+            // 2. Monthly Trend Line Chart
+            const ctxTrend = document.getElementById('chart-trend-canvas');
+            if (ctxTrend) {
+                if (window.trendChart) {
+                    window.trendChart.destroy();
+                }
+
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                const mktFilter = window.appState.filterMarketing || 'ALL';
+                const isAllMkt = !mktFilter || mktFilter === 'ALL';
+                const selYear = window.appState.filterYear || 'ALL';
+
+                const monthlyDeals = new Array(12).fill(0);
+                const monthlyRevenue = new Array(12).fill(0);
+
+                (window.appState.activity || []).forEach(a => {
+                    if (String(a.Aktivitas || '').toLowerCase() !== 'deal') return;
+                    const actMkt = String(a['Nama Marketing'] || '').trim();
+                    if (!isAllMkt && actMkt.toLowerCase() !== mktFilter.trim().toLowerCase()) return;
+
+                    const parsed = window.parseDateYearMonth(a['Tanggal Kunjungan']);
+                    if (!parsed.yr || !parsed.mo) return;
+                    if (selYear !== 'ALL' && parsed.yr !== selYear) return;
+
+                    const mIdx = parseInt(parsed.mo, 10) - 1;
+                    if (mIdx >= 0 && mIdx < 12) {
+                        monthlyDeals[mIdx]++;
+                        monthlyRevenue[mIdx] += (Number(a['Nominal Deal']) || 0) / 1000000; // In Millions
+                    }
+                });
+
+                window.trendChart = new Chart(ctxTrend, {
+                    type: 'line',
+                    data: {
+                        labels: monthNames,
+                        datasets: [
+                            {
+                                label: 'Total Deal (Sekolah)',
+                                data: monthlyDeals,
+                                borderColor: '#f59e0b',
+                                backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                                fill: true,
+                                tension: 0.3,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Revenue (Juta Rp)',
+                                data: monthlyRevenue,
+                                borderColor: '#14b8a6',
+                                backgroundColor: 'rgba(20, 184, 166, 0.15)',
+                                fill: true,
+                                tension: 0.3,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11 } } }
+                        },
+                        scales: {
+                            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                            y: { type: 'linear', display: true, position: 'left', ticks: { color: '#f59e0b', precision: 0 }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true },
+                            y1: { type: 'linear', display: true, position: 'right', ticks: { color: '#14b8a6' }, grid: { drawOnChartArea: false }, beginAtZero: true }
+                        }
+                    }
+                });
+            }
         };
 
         window.renderRankingMarketing = function() {
             const container = document.getElementById('ranking-marketing-container');
             if (!container) return;
 
-            let mktStaff = (window.appState.marketing || []).filter(m => !m.Role || m.Role.toLowerCase() === 'marketing' || m.Role === 'Marketing');
-            if (mktStaff.length === 0) {
-                const names = new Set();
-                (window.appState.activity || []).forEach(a => { if (a['Nama Marketing']) names.add(a['Nama Marketing']); });
-                (window.appState.sekolah || []).forEach(s => { if (s['Nama Marketing']) names.add(s['Nama Marketing']); });
-                mktStaff = Array.from(names).map(n => ({ Nama: n, Area: '-' }));
+            const mktFilter = window.appState.filterMarketing || 'ALL';
+            const isAllMkt = !mktFilter || mktFilter === 'ALL';
+
+            const staffMap = new Map();
+            
+            (window.appState.marketing || []).forEach(m => {
+                const role = String(m.Role || 'Marketing').toLowerCase();
+                if (!m.Role || role === 'marketing') {
+                    const nameKey = String(m.Nama || m.Username || '').trim();
+                    if (nameKey) {
+                        staffMap.set(nameKey.toLowerCase(), {
+                            nama: m.Nama || m.Username,
+                            area: m.Area || '-'
+                        });
+                    }
+                }
+            });
+
+            (window.appState.activity || []).forEach(a => {
+                const name = String(a['Nama Marketing'] || '').trim();
+                if (name && !staffMap.has(name.toLowerCase())) {
+                    staffMap.set(name.toLowerCase(), { nama: name, area: '-' });
+                }
+            });
+
+            (window.appState.sekolah || []).forEach(s => {
+                const name = String(s['Nama Marketing'] || '').trim();
+                if (name && !staffMap.has(name.toLowerCase())) {
+                    staffMap.set(name.toLowerCase(), { nama: name, area: s.Wilayah || '-' });
+                }
+            });
+
+            let mktStaff = Array.from(staffMap.values());
+
+            if (!isAllMkt) {
+                mktStaff = mktStaff.filter(m => String(m.nama).trim().toLowerCase() === mktFilter.trim().toLowerCase());
+                if (mktStaff.length === 0) {
+                    mktStaff = [{ nama: mktFilter, area: '-' }];
+                }
             }
 
             const targets = window.getGlobalKpiTargets('SINGLE');
 
             const mktStats = mktStaff.map(m => {
-                const name = m.Nama;
+                const name = m.nama;
+                const normName = String(name).trim().toLowerCase();
+
                 const mktActs = (window.appState.activity || []).filter(a => {
-                    if (String(a['Nama Marketing'] || '').trim().toLowerCase() !== String(name || '').trim().toLowerCase()) return false;
+                    const actMkt = String(a['Nama Marketing'] || '').trim().toLowerCase();
+                    if (actMkt !== normName) return false;
                     return window.isDateMatched(a['Tanggal Kunjungan']);
                 });
 
-                const canvassCount = mktActs.filter(a => String(a.Aktivitas || '').toLowerCase().includes('canvass')).length;
-                const presCount = mktActs.filter(a => String(a.Aktivitas || '').toLowerCase().includes('presentasi')).length;
-                const dealActs = mktActs.filter(a => String(a.Aktivitas || '').toLowerCase() === 'deal');
-                const dealCount = dealActs.length;
-                
-                const convRate = presCount > 0 ? ((dealCount / presCount) * 100).toFixed(2) : '0.00';
+                // Filter Daily Activity entries strictly synchronized to Media Marketing: Canvassing
+                const canvassActs = mktActs.filter(a => {
+                    const med = String(a.Media || 'Canvassing').trim().toLowerCase();
+                    return med.includes('canvass') || med === '';
+                });
+
+                // Total Kunjungan Canvassing is strictly the count of Daily Activity entries with Media: Canvassing
+                const totalCanvassVisits = canvassActs.length;
+
+                // Unique schools visited via Canvassing Media in Daily Activity
+                const canvassSchoolSet = new Set();
+                canvassActs.forEach(a => {
+                    if (a['Nama Sekolah']) canvassSchoolSet.add(String(a['Nama Sekolah']).trim().toLowerCase());
+                });
+
+                const uniqueCanvassSchools = canvassSchoolSet.size;
+
+                const presActs = mktActs.filter(a => String(a.Aktivitas || '').trim().toLowerCase() === 'presentasi');
+                const presCount = new Set(presActs.map(a => String(a['Nama Sekolah'] || '').trim().toLowerCase())).size;
+
+                const dealSchoolSet = new Set();
+                mktActs.forEach(a => {
+                    const actType = String(a.Aktivitas || '').toLowerCase();
+                    if (actType === 'deal') {
+                        if (a['Nama Sekolah']) dealSchoolSet.add(String(a['Nama Sekolah']).trim().toLowerCase());
+                    }
+                });
+                const dealCount = dealSchoolSet.size;
+
+                let convRateNum = 0;
+                if (presCount > 0) {
+                    convRateNum = (dealCount / presCount) * 100;
+                } else if (uniqueCanvassSchools > 0) {
+                    convRateNum = (dealCount / uniqueCanvassSchools) * 100;
+                }
+                const convRate = convRateNum.toFixed(2);
+
                 const dealTargetPct = targets.targetDeal > 0 ? Math.round((dealCount / targets.targetDeal) * 100) : 0;
 
                 return {
                     nama: name,
-                    area: m.Area || '-',
-                    canvassCount,
+                    area: m.area || '-',
+                    uniqueCanvassSchools,
+                    totalCanvassVisits,
                     presCount,
                     dealCount,
                     convRate,
@@ -2128,46 +2515,65 @@
                 };
             });
 
-            mktStats.sort((a, b) => b.dealCount - a.dealCount || b.presCount - a.presCount || b.canvassCount - a.canvassCount);
+            mktStats.sort((a, b) => 
+                b.dealCount - a.dealCount || 
+                b.presCount - a.presCount || 
+                b.uniqueCanvassSchools - a.uniqueCanvassSchools || 
+                b.totalCanvassVisits - a.totalCanvassVisits
+            );
 
-            const totalCanvass = mktStats.reduce((s, m) => s + m.canvassCount, 0);
+            const totalUniqueCanvass = mktStats.reduce((s, m) => s + m.uniqueCanvassSchools, 0);
+            const totalCanvassVisitsAll = mktStats.reduce((s, m) => s + m.totalCanvassVisits, 0);
             const totalPres = mktStats.reduce((s, m) => s + m.presCount, 0);
             const totalDeal = mktStats.reduce((s, m) => s + m.dealCount, 0);
-            const overallConvRate = totalPres > 0 ? ((totalDeal / totalPres) * 100).toFixed(2) : '0.00';
+            const overallConvRate = totalPres > 0 ? ((totalDeal / totalPres) * 100).toFixed(2) : (totalUniqueCanvass > 0 ? ((totalDeal / totalUniqueCanvass) * 100).toFixed(2) : '0.00');
 
             const summaryCardsHtml = `
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="p-4 bg-slate-900/90 rounded-xl border border-slate-800 flex items-center justify-between">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div onclick="window.openModalTotalCanvassing(null, 'Canvassing')" class="p-4 bg-slate-900/90 hover:bg-slate-800/90 rounded-xl border border-slate-800 hover:border-indigo-500/60 flex items-center justify-between cursor-pointer transition shadow group">
                         <div>
-                            <span class="text-[10px] font-bold text-blue-400 uppercase">TOTAL CANVASSING</span>
-                            <div class="text-xl font-black text-white mt-1">${totalCanvass}</div>
-                            <span class="text-[10px] text-slate-400">Data Sekolah</span>
+                            <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider block flex items-center gap-1">TOTAL CANVASSING <i class="fa-solid fa-arrow-up-right-from-square text-[9px] opacity-70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition"></i></span>
+                            <span class="text-[10px] text-slate-400 block -mt-0.5">Berdasarkan Jumlah Sekolah</span>
+                            <div class="text-xl font-black text-white mt-1">${totalUniqueCanvass}</div>
+                            <span class="text-[10px] text-slate-400">Sekolah</span>
                         </div>
-                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-lg"><i class="fa-solid fa-users"></i></div>
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 transition"><i class="fa-solid fa-school"></i></div>
+                    </div>
+                    <div onclick="window.openModalTotalCanvassing(null, 'Canvassing')" class="p-4 bg-slate-900/90 hover:bg-slate-800/90 rounded-xl border border-slate-800 hover:border-indigo-500/60 flex items-center justify-between cursor-pointer transition shadow group">
+                        <div>
+                            <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block flex items-center gap-1">TOTAL CANVASSING <i class="fa-solid fa-arrow-up-right-from-square text-[9px] opacity-70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition"></i></span>
+                            <span class="text-[10px] text-slate-400 block -mt-0.5">Berdasarkan Total Kunjungan</span>
+                            <div class="text-xl font-black text-white mt-1">${totalCanvassVisitsAll}</div>
+                            <span class="text-[10px] text-slate-400">Kunjungan</span>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 transition"><i class="fa-solid fa-users"></i></div>
                     </div>
                     <div class="p-4 bg-slate-900/90 rounded-xl border border-slate-800 flex items-center justify-between">
                         <div>
-                            <span class="text-[10px] font-bold text-emerald-400 uppercase">TOTAL PRESENTASI</span>
+                            <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">TOTAL PRESENTASI</span>
+                            <span class="text-[10px] text-slate-400 block -mt-0.5">Berdasarkan Jumlah Sekolah</span>
                             <div class="text-xl font-black text-white mt-1">${totalPres}</div>
                             <span class="text-[10px] text-slate-400">Sekolah</span>
                         </div>
-                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg"><i class="fa-solid fa-chalkboard-user"></i></div>
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg shrink-0"><i class="fa-solid fa-chalkboard-user"></i></div>
                     </div>
                     <div class="p-4 bg-slate-900/90 rounded-xl border border-slate-800 flex items-center justify-between">
                         <div>
-                            <span class="text-[10px] font-bold text-amber-400 uppercase">TOTAL DEAL</span>
+                            <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">TOTAL DEAL</span>
+                            <span class="text-[10px] text-slate-400 block -mt-0.5">Berdasarkan Jumlah Sekolah</span>
                             <div class="text-xl font-black text-white mt-1">${totalDeal}</div>
                             <span class="text-[10px] text-slate-400">Sekolah</span>
                         </div>
-                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-lg"><i class="fa-solid fa-handshake"></i></div>
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-lg shrink-0"><i class="fa-solid fa-handshake"></i></div>
                     </div>
                     <div class="p-4 bg-slate-900/90 rounded-xl border border-slate-800 flex items-center justify-between">
                         <div>
-                            <span class="text-[10px] font-bold text-purple-400 uppercase">CONVERSION RATE</span>
+                            <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider block">CONVERSION RATE</span>
+                            <span class="text-[10px] text-slate-400 block -mt-0.5">Rasio Deal / Presentasi</span>
                             <div class="text-xl font-black text-white mt-1">${overallConvRate}%</div>
                             <span class="text-[10px] text-slate-400">(Deal / Presentasi)</span>
                         </div>
-                        <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-lg"><i class="fa-solid fa-chart-line"></i></div>
+                        <div class="w-10 h-10 rounded-xl bg-purple-400/10 text-purple-400 flex items-center justify-center text-lg shrink-0"><i class="fa-solid fa-chart-line"></i></div>
                     </div>
                 </div>
             `;
@@ -2186,7 +2592,8 @@
                                 <span class="text-[10px] text-slate-400 font-normal">${st.area}</span>
                             </div>
                         </td>
-                        <td class="p-3 text-center font-bold text-blue-400">${st.canvassCount}</td>
+                        <td onclick="window.openModalTotalCanvassing('${st.nama}', 'Canvassing')" class="p-3 text-center font-bold text-blue-400 cursor-pointer hover:underline" title="Klik untuk lihat detail canvassing ${st.nama}">${st.uniqueCanvassSchools}</td>
+                        <td onclick="window.openModalTotalCanvassing('${st.nama}', 'Canvassing')" class="p-3 text-center font-bold text-indigo-400 cursor-pointer hover:underline" title="Klik untuk lihat detail kunjungan ${st.nama}">${st.totalCanvassVisits}</td>
                         <td class="p-3 text-center font-bold text-emerald-400">${st.presCount}</td>
                         <td class="p-3 text-center font-bold text-amber-400">${st.dealCount}</td>
                         <td class="p-3 text-center font-bold text-purple-400">${st.convRate}%</td>
@@ -2209,11 +2616,12 @@
                         <thead class="bg-slate-900/90 uppercase text-[10px] text-slate-400 font-bold border-b border-slate-800">
                             <tr>
                                 <th class="p-3 text-center">RANK</th>
-                                <th class="p-3">MARKETING</th>
-                                <th class="p-3 text-center">CANVASSING (Data Sekolah)</th>
-                                <th class="p-3 text-center">PRESENTASI (Sekolah)</th>
-                                <th class="p-3 text-center">DEAL (Sekolah)</th>
-                                <th class="p-3 text-center">CONVERSION RATE (Deal / Presentasi)</th>
+                                <th class="p-3">NAMA PIC / MARKETING</th>
+                                <th class="p-3 text-center">JUMLAH SEKOLAH<br><span class="text-[9px] text-slate-400 font-normal">(Canvassing Unik)</span></th>
+                                <th class="p-3 text-center">TOTAL KUNJUNGAN<br><span class="text-[9px] text-slate-400 font-normal">(Canvassing Total)</span></th>
+                                <th class="p-3 text-center">PRESENTASI<br><span class="text-[9px] text-slate-400 font-normal">(Sekolah)</span></th>
+                                <th class="p-3 text-center">DEAL<br><span class="text-[9px] text-slate-400 font-normal">(Sekolah)</span></th>
+                                <th class="p-3 text-center">CONVERSION RATE<br><span class="text-[9px] text-slate-400 font-normal">(Deal / Presentasi)</span></th>
                                 <th class="p-3">PENCAPAIAN TARGET (Deal)</th>
                             </tr>
                         </thead>
@@ -2221,6 +2629,156 @@
                     </table>
                 </div>
             `;
+        };
+
+        // --- POPUP MODAL TOTAL CANVASSING LOGIC ---
+        let currentCanvassModalMediaFilter = 'Canvassing';
+        let currentCanvassModalMktFilter = null;
+
+        window.openModalTotalCanvassing = function(mktName = null, mediaFilter = 'Canvassing') {
+            currentCanvassModalMktFilter = mktName;
+            currentCanvassModalMediaFilter = mediaFilter;
+            
+            const modal = document.getElementById('modal-total-canvassing');
+            const badge = document.getElementById('canvass-modal-mkt-badge');
+            const searchInput = document.getElementById('modal-canvass-search');
+            if (searchInput) searchInput.value = '';
+
+            if (badge) {
+                if (mktName) badge.innerText = `Staff: ${mktName}`;
+                else {
+                    const globalMkt = window.appState.filterMarketing || 'ALL';
+                    badge.innerText = (globalMkt === 'ALL') ? 'Semua Marketing' : `Staff: ${globalMkt}`;
+                }
+            }
+
+            if (modal) modal.classList.remove('hidden');
+            window.setModalCanvassMediaFilter(mediaFilter);
+        };
+
+        window.closeModalTotalCanvassing = function() {
+            document.getElementById('modal-total-canvassing')?.classList.add('hidden');
+        };
+
+        window.setModalCanvassMediaFilter = function(media) {
+            currentCanvassModalMediaFilter = media;
+            
+            document.querySelectorAll('.canvass-media-filter-btn').forEach(btn => {
+                btn.classList.remove('border-indigo-500/80', 'bg-indigo-950/40', 'border-amber-500/80', 'bg-amber-950/40', 'border-emerald-500/80', 'bg-emerald-950/40', 'border-purple-500/80', 'bg-purple-950/40');
+                btn.classList.add('border-slate-800', 'bg-slate-900');
+            });
+
+            const activeBtnMap = {
+                'Canvassing': document.getElementById('btn-media-canvassing'),
+                'Telepon': document.getElementById('btn-media-telepon'),
+                'WhatsApp': document.getElementById('btn-media-wa'),
+                'ALL': document.getElementById('btn-media-all')
+            };
+
+            const activeBtn = activeBtnMap[media] || activeBtnMap['ALL'];
+            if (activeBtn) {
+                activeBtn.classList.remove('border-slate-800', 'bg-slate-900');
+                if (media === 'Canvassing') activeBtn.classList.add('border-indigo-500/80', 'bg-indigo-950/40');
+                else if (media === 'Telepon') activeBtn.classList.add('border-amber-500/80', 'bg-amber-950/40');
+                else if (media === 'WhatsApp') activeBtn.classList.add('border-emerald-500/80', 'bg-emerald-950/40');
+                else activeBtn.classList.add('border-purple-500/80', 'bg-purple-950/40');
+            }
+
+            window.renderCanvassingModalTable();
+        };
+
+        window.renderCanvassingModalTable = function() {
+            const tbody = document.getElementById('tbody-modal-canvassing');
+            const searchVal = (document.getElementById('modal-canvass-search')?.value || '').toLowerCase().trim();
+            if (!tbody) return;
+
+            const globalMkt = window.appState.filterMarketing || 'ALL';
+            const targetMkt = currentCanvassModalMktFilter || (globalMkt === 'ALL' ? null : globalMkt);
+
+            const allActsMatchedDateAndMkt = (window.appState.activity || []).filter(a => {
+                if (!window.isDateMatched(a['Tanggal Kunjungan'])) return false;
+                if (targetMkt) {
+                    const actMkt = String(a['Nama Marketing'] || '').trim().toLowerCase();
+                    if (actMkt !== String(targetMkt).trim().toLowerCase()) return false;
+                }
+                return true;
+            });
+
+            let cntCanvass = 0, cntTelepon = 0, cntWa = 0, cntAll = allActsMatchedDateAndMkt.length;
+            allActsMatchedDateAndMkt.forEach(a => {
+                const m = String(a.Media || '').toLowerCase();
+                if (m.includes('canvass') || m === '') cntCanvass++;
+                else if (m.includes('telepon') || m.includes('phone') || m.includes('telp')) cntTelepon++;
+                else if (m.includes('wa') || m.includes('whatsapp')) cntWa++;
+                else cntCanvass++;
+            });
+
+            if (document.getElementById('modal-cnt-canvass')) document.getElementById('modal-cnt-canvass').innerText = cntCanvass;
+            if (document.getElementById('modal-cnt-telepon')) document.getElementById('modal-cnt-telepon').innerText = cntTelepon;
+            if (document.getElementById('modal-cnt-wa')) document.getElementById('modal-cnt-wa').innerText = cntWa;
+            if (document.getElementById('modal-cnt-all')) document.getElementById('modal-cnt-all').innerText = cntAll;
+
+            const filteredActs = allActsMatchedDateAndMkt.filter(a => {
+                const m = String(a.Media || '').toLowerCase();
+
+                if (currentCanvassModalMediaFilter === 'Canvassing') {
+                    if (!m.includes('canvass') && m !== '') {
+                        return false;
+                    }
+                } else if (currentCanvassModalMediaFilter === 'Telepon') {
+                    if (!m.includes('telepon') && !m.includes('phone') && !m.includes('telp')) return false;
+                } else if (currentCanvassModalMediaFilter === 'WhatsApp') {
+                    if (!m.includes('wa') && !m.includes('whatsapp')) return false;
+                } else if (currentCanvassModalMediaFilter === 'Presentasi') {
+                    const act = String(a.Aktivitas || '').trim().toLowerCase();
+                    if (act !== 'presentasi') return false;
+                }
+
+                if (searchVal) {
+                    const sch = String(a['Nama Sekolah'] || '').toLowerCase();
+                    const mkt = String(a['Nama Marketing'] || '').toLowerCase();
+                    const prog = String(a.Progress || '').toLowerCase();
+                    const addr = String(a['Alamat GPS'] || '').toLowerCase();
+                    return sch.includes(searchVal) || mkt.includes(searchVal) || prog.includes(searchVal) || addr.includes(searchVal);
+                }
+
+                return true;
+            });
+
+            const statusSum = document.getElementById('modal-canvass-status-summary');
+            if (statusSum) {
+                const labelText = currentCanvassModalMediaFilter === 'Presentasi' ? 'kunjungan presentasi' : `kunjungan media "${currentCanvassModalMediaFilter}"`;
+                statusSum.innerText = `Menampilkan ${filteredActs.length} dari ${cntAll} sesi (${labelText})`;
+            }
+
+            if (filteredActs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-slate-500 italic">Tidak ada data kunjungan untuk "${currentCanvassModalMediaFilter}".</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filteredActs.map(a => {
+                const photoHtml = a.Foto 
+                    ? `<img src="${a.Foto}" class="w-9 h-9 object-cover rounded border border-slate-700 cursor-pointer shadow hover:scale-105 transition" onclick="window.openModalViewPhoto('${a.Foto}')" alt="Foto">`
+                    : `<span class="text-slate-500 text-[10px]">-</span>`;
+
+                const mediaBadge = String(a.Media || '').toLowerCase().includes('telepon') ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
+                                   String(a.Media || '').toLowerCase().includes('wa') ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' :
+                                   'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
+
+                return `
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="p-3 text-slate-300 font-mono text-[11px] whitespace-nowrap">${a['Tanggal Kunjungan'] || '-'}</td>
+                        <td class="p-3 font-semibold text-indigo-300 whitespace-nowrap">${a['Nama Marketing'] || '-'}</td>
+                        <td class="p-3 font-bold text-white">${a['Nama Sekolah'] || '-'}</td>
+                        <td class="p-3 whitespace-nowrap"><span class="px-2 py-0.5 rounded border text-[10px] font-bold ${mediaBadge}">${a.Media || 'Canvassing'}</span></td>
+                        <td class="p-3 whitespace-nowrap"><span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-bold">${a.Aktivitas || '-'}</span></td>
+                        <td class="p-3 whitespace-nowrap"><span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold">${a.Status || 'Warm'}</span></td>
+                        <td class="p-3 text-slate-300 max-w-xs truncate" title="${a.Progress || ''}">${a.Progress || '-'}</td>
+                        <td class="p-3 text-slate-400 max-w-xs truncate">${a['Alamat GPS'] || '-'}</td>
+                        <td class="p-3">${photoHtml}</td>
+                    </tr>
+                `;
+            }).join('');
         };
 
         window.renderWidgets = function() {
@@ -2234,6 +2792,8 @@
             if (reminderList) {
                 const reminders = [];
                 (window.appState.activity || []).forEach(a => {
+                    const schName = a['Nama Sekolah'] || '';
+                    if (window.isSchoolDeal(schName)) return; 
                     const actMkt = String(a['Nama Marketing'] || '').trim();
                     if (!isAllMkt && actMkt.toLowerCase() !== mktFilter.trim().toLowerCase()) return;
                     if (!window.isDateMatched(a['Tanggal Kunjungan'])) return;
@@ -2279,7 +2839,14 @@
             }
 
             if (newPipe) {
-                const recentActivities = [...(window.appState.activity || [])].filter(a => window.isDateMatched(a['Tanggal Kunjungan'])).reverse().slice(0, 5);
+                const recentActivities = [...(window.appState.activity || [])].filter(a => {
+                    if (!window.isDateMatched(a['Tanggal Kunjungan'])) return false;
+                    const schName = a['Nama Sekolah'] || '';
+                    if (window.isSchoolDeal(schName)) return false; 
+                    const actMkt = String(a['Nama Marketing'] || '').trim();
+                    return isAllMkt || actMkt.toLowerCase() === mktFilter.trim().toLowerCase();
+                }).reverse().slice(0, 5);
+
                 newPipe.innerHTML = recentActivities.length === 0 ? '<div class="text-xs text-slate-500 py-3 italic">Belum ada aktivitas.</div>' : recentActivities.map(a => `
                     <div class="p-2.5 bg-slate-900/60 rounded-lg border border-slate-800 text-xs flex justify-between items-center">
                         <div>
@@ -2417,12 +2984,36 @@
             }).join('');
         };
 
+        function getActivityStageInfo(a) {
+            const actType = String(a.Aktivitas || '').toLowerCase().trim();
+
+            if (actType === 'deal') {
+                return { stage: 'deal', rank: 5 };
+            }
+            if (actType.includes('belum')) {
+                return { stage: 'nodeal', rank: 6 };
+            }
+            if (actType.includes('penawaran') || actType.includes('negosiasi')) {
+                return { stage: 'penawaran', rank: 4 };
+            }
+            if (actType.includes('presentasi')) {
+                return { stage: 'presentasi', rank: 3 };
+            }
+            if (actType.includes('follow')) {
+                return { stage: 'followup', rank: 2 };
+            }
+            if (actType.includes('prospect') || actType.includes('canvass') || actType === '') {
+                return { stage: 'prospect', rank: 1 };
+            }
+            return { stage: 'prospect', rank: 1 };
+        }
+
         window.renderKanbanBoard = function() {
             const cols = {
                 prospect: document.getElementById('col-prospect'),
                 followup: document.getElementById('col-followup'),
                 presentasi: document.getElementById('col-presentasi'),
-                negosiasi: document.getElementById('col-negosiasi'),
+                penawaran: document.getElementById('col-penawaran') || document.getElementById('col-negosiasi'),
                 deal: document.getElementById('col-deal'),
                 nodeal: document.getElementById('col-nodeal')
             };
@@ -2431,69 +3022,108 @@
 
             Object.values(cols).forEach(c => { if (c) c.innerHTML = ''; });
 
-            const counts = { prospect: 0, followup: 0, presentasi: 0, negosiasi: 0, deal: 0, nodeal: 0 };
+            const counts = { prospect: 0, followup: 0, presentasi: 0, penawaran: 0, deal: 0, nodeal: 0 };
             const mktFilter = window.appState.filterMarketing || 'ALL';
             const isAllMkt = !mktFilter || mktFilter === 'ALL';
 
             const schoolMap = new Map();
-            (window.appState.sekolah || []).forEach(s => {
-                const schMkt = String(s['Nama Marketing'] || '').trim();
-                if (isAllMkt || schMkt.toLowerCase() === mktFilter.trim().toLowerCase()) {
-                    schoolMap.set(s['Nama Sekolah'], {
-                        sekolah: s['Nama Sekolah'],
-                        mkt: s['Nama Marketing'],
-                        status: 'Prospect',
-                        wilayah: s.Wilayah || '-',
-                        dealVal: 0
+
+            // Filter & urutkan entri Daily Activity secara kronologis
+            const matchingActivities = (window.appState.activity || []).filter(a => {
+                const actMkt = String(a['Nama Marketing'] || '').trim();
+                if (!isAllMkt && actMkt.toLowerCase() !== mktFilter.trim().toLowerCase()) return false;
+                if (!window.isDateMatched(a['Tanggal Kunjungan'])) return false;
+                return true;
+            });
+
+            matchingActivities.sort((a, b) => {
+                const dateA = String(a['Tanggal Kunjungan'] || '');
+                const dateB = String(b['Tanggal Kunjungan'] || '');
+                return dateA.localeCompare(dateB);
+            });
+
+            matchingActivities.forEach(a => {
+                const schName = String(a['Nama Sekolah'] || '').trim();
+                if (!schName) return;
+
+                const stageInfo = getActivityStageInfo(a);
+                if (!stageInfo) return;
+
+                const curr = schoolMap.get(schName);
+
+                // Update jika sekolah belum ada di map ATAU aktivitas baru memiliki tahapan yang lebih tinggi / setara
+                if (!curr || stageInfo.rank > curr.rank || stageInfo.rank === curr.rank) {
+                    schoolMap.set(schName, {
+                        sekolah: schName,
+                        mkt: a['Nama Marketing'] || '-',
+                        media: a.Media || 'Canvassing',
+                        stage: stageInfo.stage,
+                        rank: stageInfo.rank,
+                        statusProspek: a.Status || 'Warm',
+                        progress: a.Progress || '-',
+                        tanggal: a['Tanggal Kunjungan'] || '-',
+                        dealVal: stageInfo.stage === 'deal' ? (Number(a['Nominal Deal']) || 0) : 0
                     });
                 }
             });
 
-            (window.appState.activity || []).forEach(a => {
-                const actMkt = String(a['Nama Marketing'] || '').trim();
-                if (!isAllMkt && actMkt.toLowerCase() !== mktFilter.trim().toLowerCase()) return;
-                if (!window.isDateMatched(a['Tanggal Kunjungan'])) return;
-
-                const schName = a['Nama Sekolah'];
-                const curr = schoolMap.get(schName) || { sekolah: schName, mkt: a['Nama Marketing'], status: 'Prospect', wilayah: '-', dealVal: 0 };
-                
-                const actType = String(a.Aktivitas || '').toLowerCase();
-                if (actType.includes('prospect')) curr.status = 'Prospect';
-                else if (actType.includes('follow')) curr.status = 'Follow Up';
-                else if (actType.includes('presentasi')) curr.status = 'Presentasi';
-                else if (actType.includes('negosiasi')) curr.status = 'Negosiasi';
-                else if (actType === 'deal') {
-                    curr.status = 'Deal';
-                    curr.dealVal = Number(a['Nominal Deal']) || 0;
-                } else if (actType.includes('belum')) curr.status = 'Belum Deal';
-
-                schoolMap.set(schName, curr);
-            });
-
             schoolMap.forEach(item => {
-                let key = 'prospect';
-                const st = item.status.toLowerCase();
-                if (st.includes('follow')) key = 'followup';
-                else if (st.includes('presentasi')) key = 'presentasi';
-                else if (st.includes('negosiasi')) key = 'negosiasi';
-                else if (st === 'deal') key = 'deal';
-                else if (st.includes('belum')) key = 'nodeal';
+                const key = item.stage;
+                if (!key || !cols[key]) return;
 
                 counts[key]++;
 
-                if (cols[key]) {
-                    const card = document.createElement('div');
-                    card.className = "glass-panel p-3 text-xs space-y-2 border border-slate-700 hover:border-indigo-500 transition shadow cursor-pointer";
-                    card.innerHTML = `
-                        <div class="font-bold text-white text-xs leading-snug">${item.sekolah}</div>
-                        <div class="text-[10px] text-slate-400 flex justify-between items-center">
-                            <span><i class="fa-solid fa-location-dot mr-1"></i>${item.wilayah}</span>
-                            <span class="text-indigo-300 font-semibold">${item.mkt || 'Mkt'}</span>
-                        </div>
-                        ${item.dealVal ? `<div class="text-[11px] font-extrabold text-emerald-400 border-t border-slate-800 pt-1">${window.formatRupiah(item.dealVal)}</div>` : ''}
-                    `;
-                    cols[key].appendChild(card);
+                const statusBadgeClass = String(item.statusProspek || '').toLowerCase() === 'hot' 
+                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' 
+                    : String(item.statusProspek || '').toLowerCase() === 'cold' 
+                    ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' 
+                    : 'bg-amber-500/20 text-amber-300 border border-amber-500/30';
+
+                const mediaStr = String(item.media || 'Canvassing').trim();
+                const mediaLower = mediaStr.toLowerCase();
+
+                let mediaBadgeClass = 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
+                let mediaIcon = 'fa-solid fa-person-walking';
+
+                if (mediaLower.includes('telepon') || mediaLower.includes('telp') || mediaLower.includes('phone')) {
+                    mediaBadgeClass = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+                    mediaIcon = 'fa-solid fa-phone';
+                } else if (mediaLower.includes('wa') || mediaLower.includes('whatsapp')) {
+                    mediaBadgeClass = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+                    mediaIcon = 'fa-brands fa-whatsapp';
+                } else if (mediaLower.includes('presentasi')) {
+                    mediaBadgeClass = 'bg-purple-500/20 text-purple-300 border-purple-500/30';
+                    mediaIcon = 'fa-solid fa-display';
+                } else if (mediaLower.includes('canvass')) {
+                    mediaBadgeClass = 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
+                    mediaIcon = 'fa-solid fa-person-walking';
+                } else {
+                    mediaBadgeClass = 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
+                    mediaIcon = 'fa-solid fa-share-nodes';
                 }
+
+                const card = document.createElement('div');
+                card.className = "glass-panel p-3 text-xs space-y-2 border border-slate-700 hover:border-indigo-500 transition shadow cursor-pointer";
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-1">
+                        <div class="font-bold text-white text-xs leading-snug truncate" title="${item.sekolah}">${item.sekolah}</div>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold shrink-0 ${statusBadgeClass}">${item.statusProspek || 'Warm'}</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 space-y-1">
+                        <div class="flex items-center justify-between gap-1 border-b border-slate-800/60 pb-1">
+                            <span class="text-indigo-300 font-semibold truncate"><i class="fa-solid fa-user text-[9px] mr-1"></i>${item.mkt || 'Marketing'}</span>
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold border shrink-0 ${mediaBadgeClass}"><i class="${mediaIcon} text-[8px] mr-1"></i>${mediaStr}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-400 text-[10px] pt-0.5">
+                            <span><i class="fa-solid fa-calendar-day text-[9px] mr-1"></i>${item.tanggal}</span>
+                        </div>
+                        <div class="text-slate-300 text-[11px] line-clamp-2 leading-tight border-t border-slate-800/80 pt-1" title="${item.progress}">
+                            ${item.progress}
+                        </div>
+                    </div>
+                    ${key === 'deal' && item.dealVal ? `<div class="text-[11px] font-extrabold text-emerald-400 border-t border-slate-800 pt-1.5 text-right">${window.formatRupiah(item.dealVal)}</div>` : ''}
+                `;
+                cols[key].appendChild(card);
             });
 
             Object.keys(counts).forEach(k => {
@@ -2515,9 +3145,14 @@
             let countAlerts = 0;
             if (container) {
                 const alerts = [];
+
+                // 1. Prospek HOT Notifications
                 (window.appState.activity || []).forEach(a => {
+                    const schName = a['Nama Sekolah'] || '';
+                    if (window.isSchoolDeal(schName)) return; 
                     const actMkt = String(a['Nama Marketing'] || '').trim();
                     if (!isAllMkt && actMkt.toLowerCase() !== mktFilter.trim().toLowerCase()) return;
+                    if (!window.isDateMatched(a['Tanggal Kunjungan'])) return;
                     if (String(a.Status || '').toLowerCase() === 'hot') {
                         alerts.push({
                             title: `PROSPEK HOT: ${a['Nama Sekolah']}`,
@@ -2526,6 +3161,19 @@
                             bg: 'bg-rose-500/10 border-rose-500/30'
                         });
                     }
+                });
+
+                // 2. Scheduled Calendar Agendas Notifications
+                (window.appState.calendarEvents || []).forEach(ev => {
+                    const evMkt = String(ev.Marketing || '').trim();
+                    if (!isAllMkt && evMkt.toLowerCase() !== mktFilter.trim().toLowerCase()) return;
+                    if (!window.isDateMatched(ev.Tanggal)) return;
+                    alerts.push({
+                        title: `AGENDA KALENDER: ${ev.Judul}`,
+                        desc: `Jadwal tanggal ${ev.Tanggal} jam ${ev.Jam} (${ev.Marketing || 'Marketing'}).${ev.Keterangan ? ' Catatan: ' + ev.Keterangan : ''}`,
+                        icon: 'fa-calendar-check text-indigo-400',
+                        bg: 'bg-indigo-500/10 border-indigo-500/30'
+                    });
                 });
 
                 countAlerts = alerts.length;
@@ -2657,8 +3305,11 @@
                 });
 
                 const eventsHtml = events.map(ev => `
-                    <div class="p-1 rounded bg-indigo-600/30 border border-indigo-500/40 text-[10px] font-bold text-indigo-200 truncate my-0.5">
-                        ${ev.Jam} ${ev.Judul}
+                    <div class="p-1 rounded bg-indigo-600/30 border border-indigo-500/40 text-[10px] font-bold text-indigo-200 flex items-center justify-between my-0.5 group/evt">
+                        <span class="truncate flex-1 cursor-pointer" onclick="event.stopPropagation(); window.openModalCalendarEvent(null, '${ev.ID}')" title="Klik untuk edit/lihat detail">${ev.Jam} ${ev.Judul}</span>
+                        <button type="button" onclick="event.stopPropagation(); window.confirmDeleteCalendarEvent('${ev.ID}')" title="Hapus Agenda" class="text-slate-400 hover:text-rose-400 p-0.5 ml-1 transition">
+                            <i class="fa-solid fa-trash text-[9px]"></i>
+                        </button>
                     </div>
                 `).join('');
 
@@ -2799,16 +3450,31 @@
             if (!nameStr) return '';
             let s = String(nameStr).trim().toUpperCase();
 
-            s = s.replace(/\bSMA\s+NEGERI\b/g, 'SMAN')
+            // Clean parentheses content
+            s = s.replace(/\([^)]*\)/g, '');
+
+            // Standardize school prefixes
+            s = s.replace(/\bMADRASAH\s+ALIYAH\s+NEGERI\b/g, 'MAN')
+                 .replace(/\bMADRASAH\s+ALIYAH\b/g, 'MA')
+                 .replace(/\bMA\s+NEGERI\b/g, 'MAN')
+                 .replace(/\bSMA\s+NEGERI\b/g, 'SMAN')
                  .replace(/\bSMK\s+NEGERI\b/g, 'SMKN')
                  .replace(/\bSMP\s+NEGERI\b/g, 'SMPN')
                  .replace(/\bSD\s+NEGERI\b/g, 'SDN');
 
-            s = s.replace(/\s+/g, ' ');
+            // Remove common locations & noise words
+            const noisePatterns = [
+                /\bJAKARTA\b/g, /\bPUSAT\b/g, /\bSELATAN\b/g, /\bUTARA\b/g, /\bBARAT\b/g, /\bTIMUR\b/g,
+                /\bBANDUNG\b/g, /\bSURABAYA\b/g, /\bMEDAN\b/g, /\bBEKASI\b/g, /\bDEPOK\b/g, /\bTANGERANG\b/g,
+                /\bBOGOR\b/g, /\bSEMARANG\b/g, /\bYOGYAKARTA\b/g, /\bSOLO\b/g, /\bBALI\b/g, /\bPUNCAK\b/g,
+                /\bKOTA\b/g, /\bKABUPATEN\b/g, /\bKAB\b/g
+            ];
 
-            s = s.replace(/\b(JAKARTA|BANDUNG|SURABAYA|MEDAN|BEKASI|DEPOK|TANGERANG|BOGOR|SEMARANG|YOGYAKARTA|SOLO|BALI|PUNCAK|PUSAT|SELATAN|UTARA|BARAT|TIMUR)\b/g, '');
+            noisePatterns.forEach(pattern => {
+                s = s.replace(pattern, '');
+            });
 
-            return s.replace(/\s+/g, ' ').trim();
+            return s.replace(/[^A-Z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
         };
 
         window.isDuplicateSekolah = function(namaInput, wilayahInput, currentId = null) {
@@ -3003,12 +3669,37 @@
             const userNama = window.appState.currentUser?.nama || window.appState.currentUser?.username || 'Marketing Staff';
             document.getElementById('act-mkt').value = userNama;
 
+            let currentMktName = userNama;
+            if (id) {
+                const a = (window.appState.activity || []).find(item => item['ID Activity'] === id);
+                if (a && a['Nama Marketing']) {
+                    currentMktName = a['Nama Marketing'];
+                }
+            }
+
+            const userRole = window.appState.currentUser?.role || 'Marketing';
+            const isOwnerOrHr = (userRole === 'Owner' || userRole === 'HR');
+
             const selectSekolah = document.getElementById('act-sekolah');
             if (selectSekolah) {
                 let options = '<option value="">-- Pilih Sekolah --</option>';
-                (window.appState.sekolah || []).forEach(s => {
+                const normCurrentMkt = String(currentMktName || '').trim().toLowerCase();
+
+                // Only show schools belonging to the current marketing staff (Owner & HR can access all)
+                const filteredSekolah = (window.appState.sekolah || []).filter(s => {
+                    if (isOwnerOrHr) return true;
+                    const schMkt = String(s['Nama Marketing'] || '').trim().toLowerCase();
+                    return schMkt === normCurrentMkt;
+                });
+
+                filteredSekolah.forEach(s => {
                     options += `<option value="${s['Nama Sekolah']}">${s['Nama Sekolah']} (${s.Wilayah || '-'})</option>`;
                 });
+
+                if (!isOwnerOrHr && filteredSekolah.length === 0) {
+                    options += `<option value="" disabled>-- Belum Ada Sekolah di Database Anda --</option>`;
+                }
+
                 selectSekolah.innerHTML = options;
             }
 
@@ -3018,7 +3709,19 @@
                     document.getElementById('act-id').value = a['ID Activity'];
                     document.getElementById('act-date').value = a['Tanggal Kunjungan'] || '';
                     document.getElementById('act-mkt').value = a['Nama Marketing'] || userNama;
-                    if (selectSekolah) selectSekolah.value = a['Nama Sekolah'] || '';
+
+                    if (selectSekolah && a['Nama Sekolah']) {
+                        // Ensure the existing school option is present during edits
+                        const existingOption = Array.from(selectSekolah.options).find(opt => opt.value === a['Nama Sekolah']);
+                        if (!existingOption) {
+                            const newOpt = document.createElement('option');
+                            newOpt.value = a['Nama Sekolah'];
+                            newOpt.innerText = `${a['Nama Sekolah']} (Terdaftar)`;
+                            selectSekolah.appendChild(newOpt);
+                        }
+                        selectSekolah.value = a['Nama Sekolah'];
+                    }
+
                     document.getElementById('act-media').value = a.Media || 'Canvassing';
                     document.getElementById('act-jenis').value = a.Aktivitas || 'Canvassing';
                     document.getElementById('act-status').value = a.Status || 'Hot';
@@ -3242,11 +3945,46 @@
                 wrapperMkt.classList.add('hidden');
             }
 
+            if (id) {
+                const ev = (window.appState.calendarEvents || []).find(e => e.ID === id);
+                if (ev) {
+                    if (document.getElementById('modal-calendar-title')) document.getElementById('modal-calendar-title').innerText = 'Edit Agenda Kalender';
+                    document.getElementById('cal-event-id').value = ev.ID;
+                    document.getElementById('cal-event-date').value = ev.Tanggal || dateStr;
+                    document.getElementById('cal-event-time').value = ev.Jam || '09:00';
+                    document.getElementById('cal-event-title').value = ev.Judul || '';
+                    document.getElementById('cal-event-desc').value = ev.Keterangan || '';
+                    if (selectMkt) selectMkt.value = ev.Marketing || '';
+                }
+            } else {
+                if (document.getElementById('modal-calendar-title')) document.getElementById('modal-calendar-title').innerText = 'Tambah Jadwal Baru';
+            }
+
             modal.classList.remove('hidden');
         };
 
         window.closeModalCalendarEvent = function() {
             document.getElementById('modal-calendar-event')?.classList.add('hidden');
+        };
+
+        window.confirmDeleteCalendarEvent = function(id) {
+            pendingDeleteCalEventId = id;
+            document.getElementById('modal-confirm-delete-cal-event')?.classList.remove('hidden');
+        };
+
+        window.closeConfirmDeleteCalEventModal = function() {
+            pendingDeleteCalEventId = null;
+            document.getElementById('modal-confirm-delete-cal-event')?.classList.add('hidden');
+        };
+
+        window.executeDeleteCalendarEvent = async function() {
+            if (!pendingDeleteCalEventId) return;
+            const btnExec = document.getElementById('btn-exec-delete-cal-event');
+            window.setButtonLoading(btnExec, true, 'Menghapus...');
+            await window.fbDeleteCalendarEvent(pendingDeleteCalEventId);
+            window.setButtonLoading(btnExec, false);
+            window.closeConfirmDeleteCalEventModal();
+            window.showToast('Agenda kalender berhasil dihapus!', 'success');
         };
 
         window.handleSaveCalendarEvent = async function(e) {
@@ -3300,6 +4038,11 @@
             const file = event.target.files[0];
             if (!file) return;
 
+            if (file.size > 2 * 1024 * 1024) {
+                window.showToast('Ukuran file logo terlalu besar! Maksimal 2MB.', 'error');
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 const base64 = e.target.result;
@@ -3327,13 +4070,17 @@
         };
 
         window.saveGeneralSettings = async function() {
+            const btnSave = document.getElementById('btn-save-gen-settings');
             const name = document.getElementById('setting-company-name').value.trim();
             const logoBase64 = document.getElementById('setting-logo-base64').value;
 
+            window.setButtonLoading(btnSave, true, 'Menyimpan...');
+
             window.appState.settings.companyName = name || 'PT Annual Book Creative';
-            if (logoBase64 !== undefined) window.appState.settings.logoUrl = logoBase64;
+            window.appState.settings.logoUrl = logoBase64 || '';
 
             await window.fbSaveSettings(window.appState.settings);
+            window.setButtonLoading(btnSave, false);
             window.refreshAllViews();
             window.showToast('Pengaturan profil perusahaan berhasil disimpan!', 'success');
         };
@@ -3343,10 +4090,12 @@
             const harianVal = Number(document.getElementById('cfg-target-harian-val')?.value) || 3;
             const workDays = Number(document.getElementById('cfg-working-days')?.value) || 5;
             const wksMonth = Number(document.getElementById('cfg-weeks-month')?.value) || 4;
-            const ratioCanvassPres = Number(document.getElementById('cfg-ratio-canvass-pres')?.value) || 50;
-            const ratioPresDeal = Number(document.getElementById('cfg-ratio-pres-deal')?.value) || 52;
-            const revStr = document.getElementById('cfg-target-revenue-val')?.value || '1100000000';
-            const revVal = Number(revStr.replace(/[^0-9]/g, '')) || 1100000000;
+
+            const ratioCanvassPresInput = document.getElementById('cfg-ratio-canvass-pres')?.value;
+            const ratioPresDealInput = document.getElementById('cfg-ratio-pres-deal')?.value;
+
+            const ratioCanvassPres = (ratioCanvassPresInput !== undefined && ratioCanvassPresInput !== '') ? Number(ratioCanvassPresInput) : 50;
+            const ratioPresDeal = (ratioPresDealInput !== undefined && ratioPresDealInput !== '') ? Number(ratioPresDealInput) : 52;
 
             const canvassMonth = harianVal * workDays * wksMonth;
             const presMonth = Math.round(canvassMonth * (ratioCanvassPres / 100));
@@ -3356,6 +4105,12 @@
             if (document.getElementById('cfg-target-presentasi-auto')) document.getElementById('cfg-target-presentasi-auto').value = `${presMonth} Sekolah / Bulan`;
             if (document.getElementById('cfg-target-deal-auto')) document.getElementById('cfg-target-deal-auto').value = `${dealMonth} Sekolah / Periode`;
 
+            const labelPresDesc = document.getElementById('label-presentasi-ratio-desc');
+            if (labelPresDesc) labelPresDesc.innerText = `${ratioCanvassPres}% dari Target Canvassing`;
+
+            const labelDealDesc = document.getElementById('label-deal-ratio-desc');
+            if (labelDealDesc) labelDealDesc.innerText = `${ratioPresDeal}% dari Target Presentasi`;
+
             if (document.getElementById('sum-db-val')) document.getElementById('sum-db-val').innerText = `${dbVal} Sekolah`;
             if (document.getElementById('sum-canvass-val')) document.getElementById('sum-canvass-val').innerText = `${canvassMonth} Sesi`;
             if (document.getElementById('sum-pres-val')) document.getElementById('sum-pres-val').innerText = `${presMonth} Sekolah`;
@@ -3364,20 +4119,46 @@
 
         window.populateKpiSettingsInputs = function() {
             const s = window.appState.settings || {};
-            if (document.getElementById('cfg-target-db')) document.getElementById('cfg-target-db').value = s.targetDatabase || 100;
-            if (document.getElementById('cfg-target-harian-val')) document.getElementById('cfg-target-harian-val').value = s.targetHarian || 3;
-            if (document.getElementById('cfg-working-days')) document.getElementById('cfg-working-days').value = s.workingDays || 5;
-            if (document.getElementById('cfg-weeks-month')) document.getElementById('cfg-weeks-month').value = s.weeksMonth || 4;
-            if (document.getElementById('cfg-ratio-db-canvass')) document.getElementById('cfg-ratio-db-canvass').value = s.ratioDbCanvass || 60;
-            if (document.getElementById('cfg-ratio-canvass-pres')) document.getElementById('cfg-ratio-canvass-pres').value = s.ratioCanvassPres || 50;
-            if (document.getElementById('cfg-ratio-pres-deal')) document.getElementById('cfg-ratio-pres-deal').value = s.ratioPresDeal || 52;
-            if (document.getElementById('cfg-target-revenue-val')) document.getElementById('cfg-target-revenue-val').value = window.formatRupiah(s.targetRevenue || 1100000000);
-            if (document.getElementById('cfg-formula-revenue')) document.getElementById('cfg-formula-revenue').value = s.formulaRevenue || '(Revenue Aktual / Target Revenue) * 100';
+            const activeElem = document.activeElement;
+
+            if (activeElem !== document.getElementById('cfg-target-db') && document.getElementById('cfg-target-db')) {
+                document.getElementById('cfg-target-db').value = s.targetDatabase !== undefined ? s.targetDatabase : 100;
+            }
+            if (activeElem !== document.getElementById('cfg-target-harian-val') && document.getElementById('cfg-target-harian-val')) {
+                document.getElementById('cfg-target-harian-val').value = s.targetHarian !== undefined ? s.targetHarian : 3;
+            }
+            if (activeElem !== document.getElementById('cfg-working-days') && document.getElementById('cfg-working-days')) {
+                document.getElementById('cfg-working-days').value = s.workingDays !== undefined ? s.workingDays : 5;
+            }
+            if (activeElem !== document.getElementById('cfg-weeks-month') && document.getElementById('cfg-weeks-month')) {
+                document.getElementById('cfg-weeks-month').value = s.weeksMonth !== undefined ? s.weeksMonth : 4;
+            }
+            if (activeElem !== document.getElementById('cfg-ratio-db-canvass') && document.getElementById('cfg-ratio-db-canvass')) {
+                document.getElementById('cfg-ratio-db-canvass').value = s.ratioDbCanvass !== undefined ? s.ratioDbCanvass : 60;
+            }
+            if (activeElem !== document.getElementById('cfg-ratio-canvass-pres') && document.getElementById('cfg-ratio-canvass-pres')) {
+                document.getElementById('cfg-ratio-canvass-pres').value = s.ratioCanvassPres !== undefined ? s.ratioCanvassPres : 50;
+            }
+            if (activeElem !== document.getElementById('cfg-ratio-pres-deal') && document.getElementById('cfg-ratio-pres-deal')) {
+                document.getElementById('cfg-ratio-pres-deal').value = s.ratioPresDeal !== undefined ? s.ratioPresDeal : 52;
+            }
+            if (activeElem !== document.getElementById('cfg-target-revenue-val') && document.getElementById('cfg-target-revenue-val')) {
+                document.getElementById('cfg-target-revenue-val').value = window.formatRupiah(s.targetRevenue || 1100000000);
+            }
+            if (activeElem !== document.getElementById('cfg-formula-revenue') && document.getElementById('cfg-formula-revenue')) {
+                document.getElementById('cfg-formula-revenue').value = s.formulaRevenue || '(Revenue Aktual / Target Revenue) * 100';
+            }
 
             const thresh = s.statusThresholds || { excellent: 90, good: 70, fair: 50 };
-            if (document.getElementById('cfg-thresh-excellent')) document.getElementById('cfg-thresh-excellent').value = thresh.excellent || 90;
-            if (document.getElementById('cfg-thresh-good')) document.getElementById('cfg-thresh-good').value = thresh.good || 70;
-            if (document.getElementById('cfg-thresh-fair')) document.getElementById('cfg-thresh-fair').value = thresh.fair || 50;
+            if (activeElem !== document.getElementById('cfg-thresh-excellent') && document.getElementById('cfg-thresh-excellent')) {
+                document.getElementById('cfg-thresh-excellent').value = thresh.excellent || 90;
+            }
+            if (activeElem !== document.getElementById('cfg-thresh-good') && document.getElementById('cfg-thresh-good')) {
+                document.getElementById('cfg-thresh-good').value = thresh.good || 70;
+            }
+            if (activeElem !== document.getElementById('cfg-thresh-fair') && document.getElementById('cfg-thresh-fair')) {
+                document.getElementById('cfg-thresh-fair').value = thresh.fair || 50;
+            }
 
             window.recalculateFunnel();
         };
@@ -3387,9 +4168,15 @@
             const harianVal = Number(document.getElementById('cfg-target-harian-val')?.value) || 3;
             const workDays = Number(document.getElementById('cfg-working-days')?.value) || 5;
             const wksMonth = Number(document.getElementById('cfg-weeks-month')?.value) || 4;
-            const rDbCanvass = Number(document.getElementById('cfg-ratio-db-canvass')?.value) || 60;
-            const rCanvassPres = Number(document.getElementById('cfg-ratio-canvass-pres')?.value) || 50;
-            const rPresDeal = Number(document.getElementById('cfg-ratio-pres-deal')?.value) || 52;
+
+            const rDbCanvassInput = document.getElementById('cfg-ratio-db-canvass')?.value;
+            const rCanvassPresInput = document.getElementById('cfg-ratio-canvass-pres')?.value;
+            const rPresDealInput = document.getElementById('cfg-ratio-pres-deal')?.value;
+
+            const rDbCanvass = (rDbCanvassInput !== undefined && rDbCanvassInput !== '') ? Number(rDbCanvassInput) : 60;
+            const rCanvassPres = (rCanvassPresInput !== undefined && rCanvassPresInput !== '') ? Number(rCanvassPresInput) : 50;
+            const rPresDeal = (rPresDealInput !== undefined && rPresDealInput !== '') ? Number(rPresDealInput) : 52;
+
             const revStr = document.getElementById('cfg-target-revenue-val')?.value || '1100000000';
             const revVal = Number(revStr.replace(/[^0-9]/g, '')) || 1100000000;
             const formulaStr = document.getElementById('cfg-formula-revenue')?.value || '';
@@ -3417,90 +4204,6 @@
             window.showToast('Pengaturan Dashboard KPI Sales Funnel berhasil diperbarui!', 'success');
         };
 
-        window.resetKpiDashboardSettingsToDefault = function() {
-            window.appState.settings = {
-                ...window.appState.settings,
-                targetDatabase: 100,
-                targetHarian: 3,
-                workingDays: 5,
-                weeksMonth: 4,
-                ratioDbCanvass: 60,
-                ratioCanvassPres: 50,
-                ratioPresDeal: 52,
-                targetRevenue: 1100000000,
-                formulaRevenue: '(Revenue Aktual / Target Revenue) * 100',
-                statusThresholds: { excellent: 90, good: 70, fair: 50 }
-            };
-            window.populateKpiSettingsInputs();
-            window.showToast('Pengaturan KPI dikembalikan ke default.', 'info');
-        };
-
-        window.saveRolePermissions = async function() {
-            const roleSelect = document.getElementById('role-access-select');
-            if (!roleSelect) return;
-            const selectedRole = roleSelect.value;
-
-            const selectedMenus = Array.from(document.querySelectorAll('.role-menu-cb:checked')).map(cb => cb.value);
-            const selectedActions = Array.from(document.querySelectorAll('.role-action-cb:checked')).map(cb => cb.value);
-
-            if (!window.appState.settings.rolePermissions) {
-                window.appState.settings.rolePermissions = {};
-            }
-
-            window.appState.settings.rolePermissions[selectedRole] = {
-                menus: selectedMenus,
-                actions: selectedActions
-            };
-
-            await window.fbSaveSettings(window.appState.settings);
-            window.showToast(`Hak akses untuk role ${selectedRole} berhasil disimpan!`, 'success');
-        };
-
-        window.handleBackupDatabase = function() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.appState, null, 2));
-            const dlAnchorElem = document.createElement('a');
-            dlAnchorElem.setAttribute("href", dataStr);
-            dlAnchorElem.setAttribute("download", `BTS_Backup_${new Date().toISOString().split('T')[0]}.json`);
-            dlAnchorElem.click();
-            window.showToast('Backup database JSON berhasil diunduh!', 'success');
-        };
-
-        window.handleRestoreDatabase = function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const parsed = JSON.parse(e.target.result);
-                    if (parsed && typeof parsed === 'object') {
-                        if (parsed.sekolah) parsed.sekolah.forEach(item => window.fbSaveSekolah(item));
-                        if (parsed.activity) parsed.activity.forEach(item => window.fbSaveActivity(item));
-                        if (parsed.marketing) parsed.marketing.forEach(item => window.fbSaveMarketing(item));
-                        if (parsed.calendarEvents) parsed.calendarEvents.forEach(item => window.fbSaveCalendarEvent(item));
-                        if (parsed.settings) window.fbSaveSettings(parsed.settings);
-                        window.showToast('Database berhasil dipulihkan!', 'success');
-                    }
-                } catch (err) {
-                    window.showToast('File JSON backup tidak valid!', 'error');
-                }
-            };
-            reader.readAsText(file);
-        };
-
-        // Export PDF and Excel Stubs
-        window.exportDashboardPdf = function() { window.print(); };
-        window.exportSekolahExcel = function() {
-            if (typeof XLSX === 'undefined') return;
-            const ws = XLSX.utils.json_to_sheet(window.appState.sekolah || []);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Sekolah");
-            XLSX.writeFile(wb, "Database_Sekolah.xlsx");
-        };
-        window.exportSekolahPdf = function() { window.print(); };
-        window.exportDailyPdf = function() { window.print(); };
-        window.exportPipelinePdf = function() { window.print(); };
-        window.exportNotificationsPdf = function() { window.print(); };
-
         window.refreshAllViews = function() {
             try {
                 if (typeof window.renderCompanyProfile === 'function') window.renderCompanyProfile();
@@ -3514,6 +4217,7 @@
                 if (typeof window.renderNotifications === 'function') window.renderNotifications();
                 if (typeof window.renderMarketingTable === 'function') window.renderMarketingTable();
                 if (typeof window.renderRolePermissionsUI === 'function') window.renderRolePermissionsUI();
+                if (typeof window.populateKpiSettingsInputs === 'function') window.populateKpiSettingsInputs();
                 
                 const activeSec = document.querySelector('main > section:not(.hidden)');
                 if (activeSec && activeSec.id === 'view-calendar' && typeof window.renderCalendar === 'function') window.renderCalendar();
