@@ -4275,6 +4275,353 @@
             window.showToast('Pengaturan Dashboard KPI Sales Funnel berhasil diperbarui!', 'success');
         };
 
+        window.resetKpiDashboardSettingsToDefault = function() {
+            if (document.getElementById('cfg-target-db')) document.getElementById('cfg-target-db').value = 100;
+            if (document.getElementById('cfg-target-harian-val')) document.getElementById('cfg-target-harian-val').value = 3;
+            if (document.getElementById('cfg-working-days')) document.getElementById('cfg-working-days').value = 5;
+            if (document.getElementById('cfg-weeks-month')) document.getElementById('cfg-weeks-month').value = 4;
+            if (document.getElementById('cfg-ratio-db-canvass')) document.getElementById('cfg-ratio-db-canvass').value = 60;
+            if (document.getElementById('cfg-ratio-canvass-pres')) document.getElementById('cfg-ratio-canvass-pres').value = 50;
+            if (document.getElementById('cfg-ratio-pres-deal')) document.getElementById('cfg-ratio-pres-deal').value = 52;
+            if (document.getElementById('cfg-target-revenue-val')) document.getElementById('cfg-target-revenue-val').value = window.formatRupiah(1100000000);
+            if (document.getElementById('cfg-formula-revenue')) document.getElementById('cfg-formula-revenue').value = '(Revenue Aktual / Target Revenue) * 100';
+            if (document.getElementById('cfg-thresh-excellent')) document.getElementById('cfg-thresh-excellent').value = 90;
+            if (document.getElementById('cfg-thresh-good')) document.getElementById('cfg-thresh-good').value = 70;
+            if (document.getElementById('cfg-thresh-fair')) document.getElementById('cfg-thresh-fair').value = 50;
+            window.recalculateFunnel();
+            window.showToast('Pengaturan telah di-reset ke nilai default!', 'info');
+        };
+
+        window.exportSekolahExcel = function() {
+            try {
+                const list = window.appState.sekolah || [];
+                if (list.length === 0) {
+                    window.showToast('Tidak ada data sekolah untuk diekspor.', 'warning');
+                    return;
+                }
+                const dataToExport = list.map((s, idx) => ({
+                    'No': idx + 1,
+                    'Nama Sekolah': s['Nama Sekolah'] || '',
+                    'Jenjang': s.Jenjang || '',
+                    'Wilayah': s.Wilayah || '',
+                    'Alamat': s.Alamat || '',
+                    'PIC 1': s['Nama PIC'] || '',
+                    'WA PIC 1': s['Nomor WhatsApp'] || '',
+                    'PIC 2': s['Nama PIC 2'] || '',
+                    'WA PIC 2': s['Nomor WhatsApp 2'] || '',
+                    'PIC 3': s['Nama PIC 3'] || '',
+                    'WA PIC 3': s['Nomor WhatsApp 3'] || '',
+                    'Marketing': s['Nama Marketing'] || ''
+                }));
+
+                const ws = XLSX.utils.json_to_sheet(dataToExport);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Database Sekolah");
+                XLSX.writeFile(wb, `Database_Sekolah_BTS_${new Date().toISOString().split('T')[0]}.xlsx`);
+                window.showToast('Data sekolah berhasil diekspor ke Excel!', 'success');
+            } catch (err) {
+                console.error("Export Excel error:", err);
+                window.showToast('Gagal mengekspor data ke Excel.', 'error');
+            }
+        };
+
+        window.exportSekolahPdf = function() {
+            try {
+                const list = window.appState.sekolah || [];
+                if (list.length === 0) {
+                    window.showToast('Tidak ada data sekolah untuk dicetak.', 'warning');
+                    return;
+                }
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('l', 'mm', 'a4');
+
+                doc.setFontSize(14);
+                doc.text("Laporan Database Sekolah", 14, 15);
+                doc.setFontSize(9);
+                doc.text(`Perusahaan: ${window.appState.settings.companyName || 'PT Annual Book Creative'} | Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 14, 21);
+
+                const tableData = list.map((s, idx) => [
+                    idx + 1,
+                    s['Nama Sekolah'] || '',
+                    s.Jenjang || '',
+                    s.Wilayah || '',
+                    s['Nama PIC'] || '',
+                    s['Nomor WhatsApp'] || '',
+                    s['Nama Marketing'] || ''
+                ]);
+
+                doc.autoTable({
+                    startY: 26,
+                    head: [['No', 'Nama Sekolah', 'Jenjang', 'Wilayah', 'PIC Utama', 'WhatsApp', 'Marketing']],
+                    body: tableData,
+                    theme: 'grid',
+                    styles: { fontSize: 8 }
+                });
+
+                doc.save(`Database_Sekolah_${new Date().toISOString().split('T')[0]}.pdf`);
+                window.showToast('Laporan PDF Sekolah berhasil diunduh!', 'success');
+            } catch (err) {
+                console.error("Export PDF error:", err);
+                window.showToast('Gagal mengunduh laporan PDF.', 'error');
+            }
+        };
+
+        window.exportDashboardPdf = function() {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const targets = window.getGlobalKpiTargets(window.appState.filterMarketing);
+
+                doc.setFontSize(16);
+                doc.text("Ringkasan Laporan Dashboard KPI", 14, 18);
+                doc.setFontSize(10);
+                doc.text(`Perusahaan: ${window.appState.settings.companyName || 'PT Annual Book Creative'}`, 14, 25);
+                doc.text(`Tahun: ${window.appState.filterYear} | Bulan: ${window.appState.filterMonth} | Marketing: ${window.appState.filterMarketing}`, 14, 30);
+
+                const summaryData = [
+                    ['Target Database', `${targets.targetDb} Sekolah`],
+                    ['Target Canvassing', `${targets.targetCanvass} Sesi`],
+                    ['Target Presentasi', `${targets.targetPresentasi} Sekolah`],
+                    ['Target Deal', `${targets.targetDeal} Sekolah`],
+                    ['Target Revenue', window.formatRupiah(targets.targetRevenue)]
+                ];
+
+                doc.autoTable({
+                    startY: 36,
+                    head: [['Indikator KPI Global', 'Target']],
+                    body: summaryData,
+                    theme: 'striped',
+                    styles: { fontSize: 9 }
+                });
+
+                doc.save(`Dashboard_KPI_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+                window.showToast('Laporan Dashboard PDF berhasil diunduh!', 'success');
+            } catch (err) {
+                console.error("Export Dashboard PDF error:", err);
+                window.showToast('Gagal mencetak laporan PDF.', 'error');
+            }
+        };
+
+        window.exportDailyPdf = function() {
+            try {
+                const list = window.appState.activity || [];
+                if (list.length === 0) {
+                    window.showToast('Tidak ada data aktivitas harian untuk dicetak.', 'warning');
+                    return;
+                }
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('l', 'mm', 'a4');
+
+                doc.setFontSize(14);
+                doc.text("Laporan Daily Activity Kunjungan", 14, 15);
+                doc.setFontSize(9);
+                doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 21);
+
+                const tableData = list.map(a => [
+                    a['Tanggal Kunjungan'] || '',
+                    a['Nama Marketing'] || '',
+                    a['Nama Sekolah'] || '',
+                    a.Media || '',
+                    a.Aktivitas || '',
+                    a.Status || '',
+                    a.Progress || '',
+                    a['Alamat GPS'] || ''
+                ]);
+
+                doc.autoTable({
+                    startY: 26,
+                    head: [['Tanggal', 'Marketing', 'Sekolah', 'Media', 'Tahapan', 'Status', 'Catatan Progress', 'Lokasi']],
+                    body: tableData,
+                    theme: 'grid',
+                    styles: { fontSize: 8 }
+                });
+
+                doc.save(`Daily_Activity_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+                window.showToast('Laporan PDF Daily Activity berhasil diunduh!', 'success');
+            } catch (err) {
+                console.error("Export Daily PDF error:", err);
+                window.showToast('Gagal mengunduh laporan PDF.', 'error');
+            }
+        };
+
+        window.exportPipelinePdf = function() {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+
+                doc.setFontSize(14);
+                doc.text("Laporan Status Kanban Pipeline Marketing", 14, 15);
+                doc.setFontSize(9);
+                doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 21);
+
+                const mapData = window.getKanbanSchoolMap(window.appState.filterMarketing);
+                const tableData = [];
+                mapData.forEach((item) => {
+                    tableData.push([
+                        item.sekolah,
+                        item.mkt,
+                        item.stage.toUpperCase(),
+                        item.statusProspek,
+                        item.tanggal,
+                        item.progress
+                    ]);
+                });
+
+                doc.autoTable({
+                    startY: 26,
+                    head: [['Sekolah', 'Marketing', 'Tahapan Pipeline', 'Status', 'Tanggal Terakhir', 'Catatan']],
+                    body: tableData,
+                    theme: 'grid',
+                    styles: { fontSize: 8 }
+                });
+
+                doc.save(`Pipeline_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+                window.showToast('Laporan Pipeline PDF berhasil diunduh!', 'success');
+            } catch (err) {
+                console.error("Export Pipeline PDF error:", err);
+                window.showToast('Gagal mengunduh laporan PDF.', 'error');
+            }
+        };
+
+        window.exportNotificationsPdf = function() {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+
+                doc.setFontSize(14);
+                doc.text("Pusat Notifikasi & Reminder Otomatis", 14, 15);
+                doc.setFontSize(9);
+                doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 21);
+
+                const mapData = window.getKanbanSchoolMap(window.appState.filterMarketing);
+                const tableData = [];
+                mapData.forEach((item) => {
+                    if (item.stage !== 'deal' && item.stage !== 'nodeal') {
+                        tableData.push([
+                            item.sekolah,
+                            item.mkt,
+                            `TAHAP ${item.stage.toUpperCase()}`,
+                            item.tanggal,
+                            item.progress
+                        ]);
+                    }
+                });
+
+                doc.autoTable({
+                    startY: 26,
+                    head: [['Nama Sekolah', 'Marketing', 'Tahapan Aktif', 'Tanggal Aktivitas', 'Catatan Progress']],
+                    body: tableData,
+                    theme: 'striped',
+                    styles: { fontSize: 8 }
+                });
+
+                doc.save(`Notifikasi_Reminder_${new Date().toISOString().split('T')[0]}.pdf`);
+                window.showToast('Laporan Notifikasi PDF berhasil diunduh!', 'success');
+            } catch (err) {
+                console.error("Export Notifikasi PDF error:", err);
+                window.showToast('Gagal mengunduh laporan PDF.', 'error');
+            }
+        };
+
+        window.handleBackupDatabase = function() {
+            try {
+                const backupObj = {
+                    appName: 'BTS Marketing Report System',
+                    backupDate: new Date().toISOString(),
+                    data: {
+                        sekolah: window.appState.sekolah || [],
+                        activity: window.appState.activity || [],
+                        pipeline: window.appState.pipeline || [],
+                        marketing: window.appState.marketing || [],
+                        calendarEvents: window.appState.calendarEvents || [],
+                        settings: window.appState.settings || {}
+                    }
+                };
+
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupObj, null, 2));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", `Backup_Database_BTS_${new Date().toISOString().split('T')[0]}.json`);
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+
+                window.showToast('Cadangan database berhasil diunduh!', 'success');
+            } catch (err) {
+                console.error("Backup Database error:", err);
+                window.showToast('Gagal mengunduh cadangan database.', 'error');
+            }
+        };
+
+        window.handleRestoreDatabase = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    if (!json.data) {
+                        window.showToast('Format file cadangan tidak valid!', 'error');
+                        return;
+                    }
+
+                    const d = json.data;
+                    if (Array.isArray(d.sekolah)) {
+                        for (const item of d.sekolah) await window.fbSaveSekolah(item);
+                    }
+                    if (Array.isArray(d.activity)) {
+                        for (const item of d.activity) await window.fbSaveActivity(item);
+                    }
+                    if (Array.isArray(d.marketing)) {
+                        for (const item of d.marketing) await window.fbSaveMarketing(item);
+                    }
+                    if (Array.isArray(d.calendarEvents)) {
+                        for (const item of d.calendarEvents) await window.fbSaveCalendarEvent(item);
+                    }
+                    if (d.settings) {
+                        await window.fbSaveSettings(d.settings);
+                    }
+
+                    window.refreshAllViews();
+                    window.showToast('Database berhasil dipulihkan dari cadangan!', 'success');
+                } catch (err) {
+                    console.error("Restore Database error:", err);
+                    window.showToast('Gagal memulihkan database dari file.', 'error');
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        window.saveRolePermissions = async function() {
+            const roleSelect = document.getElementById('role-access-select');
+            if (!roleSelect) return;
+            const role = roleSelect.value;
+
+            const menuCbs = document.querySelectorAll('.role-menu-cb:checked');
+            const actionCbs = document.querySelectorAll('.role-action-cb:checked');
+
+            const menus = Array.from(menuCbs).map(cb => cb.value);
+            const actions = Array.from(actionCbs).map(cb => cb.value);
+
+            window.appState.settings.rolePermissions = window.appState.settings.rolePermissions || {};
+            window.appState.settings.rolePermissions[role] = { menus, actions };
+
+            const btnSave = document.getElementById('btn-save-role-permissions');
+            window.setButtonLoading(btnSave, true, 'Menyimpan...');
+
+            await window.fbSaveSettings(window.appState.settings);
+            window.setButtonLoading(btnSave, false);
+            window.refreshAllViews();
+            window.showToast(`Hak akses untuk role ${role} berhasil disimpan!`, 'success');
+        };
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+                if (typeof window.refreshAllViews === "function") window.refreshAllViews();
+            }
+        });
+
         window.refreshAllViews = function() {
             try {
                 if (typeof window.renderCompanyProfile === 'function') window.renderCompanyProfile();
