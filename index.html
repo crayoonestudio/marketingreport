@@ -454,24 +454,19 @@
                                 </div>
                                 <button id="btn-add-sekolah" onclick="window.openModalSekolah()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> Tambah Sekolah</button>
                                 
-                                <!-- Menu Dropdown Dapodik Per Provinsi -->
-                                <div class="relative inline-block text-left group">
-                                    <button type="button" class="px-3 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow">
-                                        <i class="fa-solid fa-graduation-cap"></i> Dapodik <i class="fa-solid fa-chevron-down text-[10px] ml-1"></i>
+                                <!-- Menu Dropdown Dapodik Filter Per Provinsi -->
+                                <div class="relative inline-block text-left" id="dapodik-dropdown-container">
+                                    <button type="button" onclick="window.toggleDapodikDropdown(event)" class="px-3 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow focus:outline-none active:scale-95">
+                                        <i class="fa-solid fa-graduation-cap"></i> Dapodik <i class="fa-solid fa-chevron-down text-[10px] ml-1 transition-transform duration-200" id="dapodik-chevron"></i>
                                     </button>
-                                    <div class="hidden group-hover:block hover:block absolute right-0 mt-1 w-52 rounded-xl bg-slate-900 border border-slate-700 shadow-2xl z-50 py-1.5 transition-all">
-                                        <!-- Link Website Dapodik Prov. DKI Jakarta -->
-                                        <a href="https://dapo.kemendikdasmen.go.id/progres/010000" target="_blank" rel="noopener noreferrer" class="block px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-emerald-600/20 hover:text-emerald-400 transition flex items-center gap-2">
-                                            <i class="fa-solid fa-building-columns text-emerald-400 text-xs"></i> Prov. DKI Jakarta
-                                        </a>
-                                        <!-- Link Website Dapodik Prov. Jawa Barat -->
-                                        <a href="http://dapo.kemendikdasmen.go.id/progres/020000" target="_blank" rel="noopener noreferrer" class="block px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-emerald-600/20 hover:text-emerald-400 transition flex items-center gap-2">
-                                            <i class="fa-solid fa-building-columns text-emerald-400 text-xs"></i> Prov. Jawa Barat
-                                        </a>
-                                        <!-- Link Website Dapodik Prov. Banten -->
-                                        <a href="https://dapo.kemendikdasmen.go.id/progres/280000" target="_blank" rel="noopener noreferrer" class="block px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-emerald-600/20 hover:text-emerald-400 transition flex items-center gap-2">
-                                            <i class="fa-solid fa-building-columns text-emerald-400 text-xs"></i> Prov. Banten
-                                        </a>
+                                    <div id="dapodik-menu" class="hidden absolute right-0 mt-1.5 w-64 rounded-xl bg-slate-900 border border-slate-700 shadow-2xl z-50 p-2.5 transition-all space-y-2">
+                                        <div class="relative">
+                                            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-500 text-xs"></i>
+                                            <input type="text" id="dapodik-search-input" oninput="window.filterDapodikProvinces(this.value)" placeholder="Cari provinsi..." class="w-full bg-slate-950 border border-slate-700 rounded-lg pl-7 pr-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                                        </div>
+                                        <div class="max-h-60 overflow-y-auto custom-scrollbar space-y-1" id="dapodik-list-container">
+                                            <!-- Provinsi disajikan secara dinamis -->
+                                        </div>
                                     </div>
                                 </div>
                                 <button onclick="window.exportSekolahPdf()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5"><i class="fa-solid fa-file-pdf text-rose-400"></i> Cetak PDF</button>
@@ -1863,6 +1858,82 @@
         };
         window.formatNumericOnly = function(input) { if (input) input.value = input.value.replace(/[^0-9]/g, ''); };
 
+        window.DAPODIK_PROVINCES = [
+            { name: 'Prov. DKI Jakarta', url: 'https://dapo.kemendikdasmen.go.id/progres/010000' },
+            { name: 'Prov. Jawa Barat', url: 'https://dapo.kemendikdasmen.go.id/progres/020000' },
+            { name: 'Prov. Jawa Tengah', url: 'https://dapo.kemendikdasmen.go.id/progres/030000' },
+            { name: 'Prov. DI Yogyakarta', url: 'https://dapo.kemendikdasmen.go.id/progres/040000' },
+            { name: 'Prov. Jawa Timur', url: 'https://dapo.kemendikdasmen.go.id/progres/050000' },
+            { name: 'Prov. Banten', url: 'https://dapo.kemendikdasmen.go.id/progres/280000' },
+            { name: 'Prov. Aceh', url: 'https://dapo.kemendikdasmen.go.id/progres/060000' },
+            { name: 'Prov. Sumatera Utara', url: 'https://dapo.kemendikdasmen.go.id/progres/070000' },
+            { name: 'Prov. Sumatera Barat', url: 'https://dapo.kemendikdasmen.go.id/progres/080000' },
+            { name: 'Prov. Riau', url: 'https://dapo.kemendikdasmen.go.id/progres/090000' },
+            { name: 'Prov. Jambi', url: 'https://dapo.kemendikdasmen.go.id/progres/100000' },
+            { name: 'Prov. Sumatera Selatan', url: 'https://dapo.kemendikdasmen.go.id/progres/110000' },
+            { name: 'Prov. Lampung', url: 'https://dapo.kemendikdasmen.go.id/progres/120000' },
+            { name: 'Prov. Bali', url: 'https://dapo.kemendikdasmen.go.id/progres/220000' },
+            { name: 'Prov. NTB', url: 'https://dapo.kemendikdasmen.go.id/progres/230000' },
+            { name: 'Prov. NTT', url: 'https://dapo.kemendikdasmen.go.id/progres/240000' },
+            { name: 'Prov. Kalimantan Barat', url: 'https://dapo.kemendikdasmen.go.id/progres/130000' },
+            { name: 'Prov. Kalimantan Tengah', url: 'https://dapo.kemendikdasmen.go.id/progres/140000' },
+            { name: 'Prov. Kalimantan Selatan', url: 'https://dapo.kemendikdasmen.go.id/progres/150000' },
+            { name: 'Prov. Kalimantan Timur', url: 'https://dapo.kemendikdasmen.go.id/progres/160000' },
+            { name: 'Prov. Sulawesi Utara', url: 'https://dapo.kemendikdasmen.go.id/progres/170000' },
+            { name: 'Prov. Sulawesi Selatan', url: 'https://dapo.kemendikdasmen.go.id/progres/190000' }
+        ];
+
+        window.toggleDapodikDropdown = function(e) {
+            if (e) e.stopPropagation();
+            const menu = document.getElementById('dapodik-menu');
+            const chevron = document.getElementById('dapodik-chevron');
+            if (!menu) return;
+
+            const isHidden = menu.classList.contains('hidden');
+            if (isHidden) {
+                menu.classList.remove('hidden');
+                if (chevron) chevron.classList.add('rotate-180');
+                const searchInput = document.getElementById('dapodik-search-input');
+                if (searchInput) {
+                    searchInput.value = '';
+                    setTimeout(() => searchInput.focus(), 50);
+                }
+                window.filterDapodikProvinces('');
+            } else {
+                menu.classList.add('hidden');
+                if (chevron) chevron.classList.remove('rotate-180');
+            }
+        };
+
+        window.filterDapodikProvinces = function(queryStr) {
+            const container = document.getElementById('dapodik-list-container');
+            if (!container) return;
+            const q = (queryStr || '').toLowerCase().trim();
+
+            const filtered = window.DAPODIK_PROVINCES.filter(p => p.name.toLowerCase().includes(q));
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="p-2 text-center text-slate-500 text-xs italic">Provinsi tidak ditemukan</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(p => `
+                <a href="${p.url}" target="_blank" rel="noopener noreferrer" onclick="window.toggleDapodikDropdown()" class="block px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-emerald-600/20 hover:text-emerald-400 rounded-lg transition flex items-center gap-2">
+                    <i class="fa-solid fa-building-columns text-emerald-400 text-xs"></i> ${p.name}
+                </a>
+            `).join('');
+        };
+
+        document.addEventListener('click', function(e) {
+            const container = document.getElementById('dapodik-dropdown-container');
+            const menu = document.getElementById('dapodik-menu');
+            const chevron = document.getElementById('dapodik-chevron');
+            if (container && menu && !container.contains(e.target) && !menu.classList.contains('hidden')) {
+                menu.classList.add('hidden');
+                if (chevron) chevron.classList.remove('rotate-180');
+            }
+        });
+
         window.formatWaUrl = function(phoneStr) {
             if (!phoneStr) return '#';
             let clean = String(phoneStr).replace(/[^0-9]/g, '');
@@ -2447,6 +2518,7 @@
 
             const staffMap = new Map();
             
+            // Hanya ambil staff marketing yang terdaftar aktif di "Kelola Nama & Akun Marketing"
             (window.appState.marketing || []).forEach(m => {
                 const role = String(m.Role || 'Marketing').toLowerCase();
                 if (!m.Role || role === 'marketing') {
@@ -2457,20 +2529,6 @@
                             area: m.Area || '-'
                         });
                     }
-                }
-            });
-
-            (window.appState.activity || []).forEach(a => {
-                const name = String(a['Nama Marketing'] || '').trim();
-                if (name && !staffMap.has(name.toLowerCase())) {
-                    staffMap.set(name.toLowerCase(), { nama: name, area: '-' });
-                }
-            });
-
-            (window.appState.sekolah || []).forEach(s => {
-                const name = String(s['Nama Marketing'] || '').trim();
-                if (name && !staffMap.has(name.toLowerCase())) {
-                    staffMap.set(name.toLowerCase(), { nama: name, area: s.Wilayah || '-' });
                 }
             });
 
